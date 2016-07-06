@@ -86,7 +86,7 @@ if(NOT WIN32)
     option(SOFA_USE_C++11
         "Use C++11 as a target language. Even though Sofa is written in C++98, it is
         compatible with C++11. Targetting this standard allows you to benefit from
-        a more optimized STL."  OFF)
+        a more optimized STL."  ON)
 
     if(SOFA_USE_C++11)
 
