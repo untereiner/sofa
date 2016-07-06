@@ -276,9 +276,12 @@ if(PS3)
     list(APPEND SOURCE_FILES ps3/cxa_demangle.cpp)
 endif()
 
+find_package(cgogn_core REQUIRED)
+find_package(cgogn_geometry REQUIRED)
+find_package(cgogn_io REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} PUBLIC SofaHelper SofaDefaultType)
+target_link_libraries(${PROJECT_NAME} PUBLIC SofaHelper SofaDefaultType ${cgogn_core_LIBRARIES} ${cgogn_geometry_LIBRARIES} ${cgogn_io_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>")
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_CORE")

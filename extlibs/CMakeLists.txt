@@ -48,3 +48,6 @@ foreach(target ${EXTLIBS_TARGETS})
     set_target_properties(${target} PROPERTIES FOLDER "SofaExtlibs")
 endforeach()
 
+add_subdirectory(CGoGN_2)
+list(APPEND EXTLIBS_TARGETS cgogn_core)
+
