@@ -131,6 +131,7 @@ set(HEADER_FILES
     topology/TopologyChange.h
     topology/TopologyElementHandler.h
     topology/TopologyHandler.h
+    topology/MapTopology.h
     visual/DisplayFlags.h
     visual/DrawTool.h
     visual/Shader.h
@@ -224,6 +225,7 @@ set(SOURCE_FILES
     topology/TopologyChange.cpp
     topology/TopologyElementHandler.cpp
     topology/TopologyHandler.cpp
+    topology/MapTopology.cpp
     visual/Shader.cpp
     visual/DisplayFlags.cpp
     visual/VisualLoop.cpp

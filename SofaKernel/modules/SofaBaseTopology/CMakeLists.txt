@@ -34,6 +34,7 @@ set(HEADER_FILES
     QuadSetTopologyModifier.h
     RegularGridTopology.h
     SparseGridTopology.h
+    SurfaceTopologyContainer.h
     TetrahedronSetGeometryAlgorithms.h
     TetrahedronSetGeometryAlgorithms.inl
     TetrahedronSetTopologyAlgorithms.h
@@ -95,6 +96,7 @@ set(SOURCE_FILES
     TriangleSetTopologyContainer.cpp
     TriangleSetTopologyModifier.cpp
     initBaseTopology.cpp
+    SurfaceTopologyContainer.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
