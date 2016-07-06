@@ -58,3 +58,6 @@ if(NOT WIN32)
         endforeach()
     endif()
 endif()
+
+add_subdirectory(CGoGN_2)
+list(APPEND EXTLIBS_TARGETS cgogn_core)
