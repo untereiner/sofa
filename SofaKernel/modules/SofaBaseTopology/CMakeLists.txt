@@ -61,6 +61,7 @@ set(HEADER_FILES
     TriangleSetTopologyAlgorithms.inl
     TriangleSetTopologyContainer.h
     TriangleSetTopologyModifier.h
+    VolumeTopologyContainer.h
     config.h
     initBaseTopology.h
 )
@@ -97,6 +98,7 @@ set(SOURCE_FILES
     TriangleSetTopologyModifier.cpp
     initBaseTopology.cpp
     SurfaceTopologyContainer.cpp
+    VolumeTopologyContainer.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
