@@ -140,55 +140,6 @@ private:
 	ChunkArrayContainer vertex_attributes_;
 	ChunkArrayContainer volume_attributes_;
 
-protected:
-
-	inline void set_nb_vertices(uint32 nbv)
-	{
-		nb_vertices_ = nbv;
-	}
-
-	inline uint32 nb_vertices() const
-	{
-		return nb_vertices_;
-	}
-
-	inline void set_nb_volumes(uint32 nbw)
-	{
-		nb_volumes_ = nbw;
-		volumes_types.reserve(nbw);
-		volumes_vertex_indices_.reserve(8u * nbw);
-	}
-
-	inline uint32 nb_volumes() const
-	{
-		return nb_volumes_;
-	}
-
-	template <typename VEC3>
-	inline ChunkArray<VEC3>* position_attribute()
-	{
-		auto res = this->vertex_attributes_.template add_chunk_array<VEC3>("position");
-		if (res != nullptr)
-			return res;
-		else
-			return this->vertex_attributes_.template get_chunk_array<VEC3>("position");
-	}
-
-	inline uint32 insert_line_vertex_container()
-	{
-		return vertex_attributes_.template insert_lines<1>();
-	}
-
-	inline ChunkArrayContainer& vertex_attributes_container()
-	{
-		return vertex_attributes_;
-	}
-
-	inline ChunkArrayContainer& volume_attributes_container()
-	{
-		return volume_attributes_;
-	}
-
 public:
 
 	VolumeImport() :
@@ -521,16 +472,51 @@ public:
 		return true;
 	}
 
-protected:
-
-	virtual void clear() override
+	template <typename VEC3>
+	inline ChunkArray<VEC3>* position_attribute()
 	{
-		set_nb_vertices(0u);
-		set_nb_volumes(0u);
-		volumes_types.clear();
-		volumes_vertex_indices_.clear();
-		vertex_attributes_.remove_chunk_arrays();
-		volume_attributes_.remove_chunk_arrays();
+		auto res = this->vertex_attributes_.template add_chunk_array<VEC3>("position");
+		if (res != nullptr)
+			return res;
+		else
+			return this->vertex_attributes_.template get_chunk_array<VEC3>("position");
+	}
+
+	inline uint32 insert_line_vertex_container()
+	{
+		return vertex_attributes_.template insert_lines<1>();
+	}
+
+	inline ChunkArrayContainer& vertex_attributes_container()
+	{
+		return vertex_attributes_;
+	}
+
+	inline ChunkArrayContainer& volume_attributes_container()
+	{
+		return volume_attributes_;
+	}
+
+	inline void set_nb_vertices(uint32 nbv)
+	{
+		nb_vertices_ = nbv;
+	}
+
+	inline uint32 nb_vertices() const
+	{
+		return nb_vertices_;
+	}
+
+	inline void set_nb_volumes(uint32 nbw)
+	{
+		nb_volumes_ = nbw;
+		volumes_types.reserve(nbw);
+		volumes_vertex_indices_.reserve(8u * nbw);
+	}
+
+	inline uint32 nb_volumes() const
+	{
+		return nb_volumes_;
 	}
 
 	template <typename VEC3>
@@ -550,18 +536,6 @@ protected:
 	}
 
 	template <typename VEC3>
-	inline void reoriente_hexa(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5, uint32& p6, uint32& p7)
-	{
-		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
-		{
-			std::swap(p0, p3);
-			std::swap(p1, p2);
-			std::swap(p4, p7);
-			std::swap(p5, p6);
-		}
-	}
-
-	template <typename VEC3>
 	void add_tetra(ChunkArray<VEC3>const& pos, uint32 p0, uint32 p1, uint32 p2, uint32 p3, bool check_orientation)
 	{
 		if (check_orientation)
@@ -571,13 +545,6 @@ protected:
 		this->volumes_vertex_indices_.push_back(p1);
 		this->volumes_vertex_indices_.push_back(p2);
 		this->volumes_vertex_indices_.push_back(p3);
-	}
-
-	template <typename VEC3>
-	inline void reoriente_tetra(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3)
-	{
-		if (geometry::test_orientation_3D(pos[p0], pos[p1], pos[p2], pos[p3]) == geometry::Orientation3D::OVER)
-			std::swap(p1, p2);
 	}
 
 	template <typename VEC3>
@@ -594,13 +561,6 @@ protected:
 	}
 
 	template <typename VEC3>
-	inline void reoriente_pyramid(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4)
-	{
-		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
-			std::swap(p1, p3);
-	}
-
-	template <typename VEC3>
 	void add_triangular_prism(ChunkArray<VEC3>const& pos, uint32 p0, uint32 p1, uint32 p2, uint32 p3, uint32 p4, uint32 p5, bool check_orientation)
 	{
 		if (check_orientation)
@@ -614,6 +574,53 @@ protected:
 		this->volumes_vertex_indices_.push_back(p5);
 	}
 
+	inline void add_connector(uint32 p0, uint32 p1, uint32 p2, uint32 p3)
+	{
+		this->volumes_types.push_back(VolumeType::Connector);
+		this->volumes_vertex_indices_.push_back(p0);
+		this->volumes_vertex_indices_.push_back(p1);
+		this->volumes_vertex_indices_.push_back(p2);
+		this->volumes_vertex_indices_.push_back(p3);
+	}
+
+protected:
+
+	virtual void clear() override
+	{
+		set_nb_vertices(0u);
+		set_nb_volumes(0u);
+		volumes_types.clear();
+		volumes_vertex_indices_.clear();
+		vertex_attributes_.remove_chunk_arrays();
+		volume_attributes_.remove_chunk_arrays();
+	}
+
+	template <typename VEC3>
+	inline void reoriente_hexa(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5, uint32& p6, uint32& p7)
+	{
+		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
+		{
+			std::swap(p0, p3);
+			std::swap(p1, p2);
+			std::swap(p4, p7);
+			std::swap(p5, p6);
+		}
+	}
+
+	template <typename VEC3>
+	inline void reoriente_tetra(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3)
+	{
+		if (geometry::test_orientation_3D(pos[p0], pos[p1], pos[p2], pos[p3]) == geometry::Orientation3D::OVER)
+			std::swap(p1, p2);
+	}
+
+	template <typename VEC3>
+	inline void reoriente_pyramid(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4)
+	{
+		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
+			std::swap(p1, p3);
+	}
+
 	template <typename VEC3>
 	inline void reoriente_triangular_prism(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5)
 	{
@@ -622,15 +629,6 @@ protected:
 			std::swap(p1, p2);
 			std::swap(p4, p5);
 		}
-	}
-
-	inline void add_connector(uint32 p0, uint32 p1, uint32 p2, uint32 p3)
-	{
-		this->volumes_types.push_back(VolumeType::Connector);
-		this->volumes_vertex_indices_.push_back(p0);
-		this->volumes_vertex_indices_.push_back(p1);
-		this->volumes_vertex_indices_.push_back(p2);
-		this->volumes_vertex_indices_.push_back(p3);
 	}
 };
 

@@ -50,7 +50,7 @@ public:
 	virtual void clear() = 0;
 
 protected:
-	virtual bool import_file_impl(const std::string& filename) = 0;
+	virtual bool import_file_impl(const std::string& filename);
 
 	/**
 	 * @brief skip_empty_lines

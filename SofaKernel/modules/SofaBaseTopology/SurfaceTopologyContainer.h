@@ -27,7 +27,7 @@
 
 #include "config.h"
 #include <sofa/core/topology/MapTopology.h>
-
+#include <cgogn/io/surface_import.h>
 namespace sofa
 {
 
@@ -36,6 +36,12 @@ namespace component
 
 namespace topology
 {
+
+class SOFA_BASE_TOPOLOGY_API SurfaceImport : public cgogn::io::SurfaceImport<cgogn::DefaultMapTraits>
+{
+protected:
+	virtual bool import_file_impl(const std::string& filename) override;
+};
 
 class SOFA_BASE_TOPOLOGY_API SurfaceTopologyContainer : public core::topology::MapTopology
 {
@@ -144,6 +150,15 @@ public:
         topology_.foreach_incident_face(vol,func);
     }
 
+public:
+	virtual void init() override;
+	virtual void bwdInit() override;
+	virtual void reinit() override;
+	virtual void reset() override;
+	virtual void cleanup() override;
+
+protected:
+	virtual void initFromMeshLoader() override;
 private:
     Topology topology_;
     CellCache cache_;

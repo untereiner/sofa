@@ -33,6 +33,43 @@ namespace core
 namespace topology
 {
 
+void MapTopology::cleanup()
+{
+	Inherit1::cleanup();
+}
+
+MapTopology::MapTopology() :
+	Inherit1(),
+	d_initPoints (initData(&d_initPoints, "position", "Initial position of points")),
+	d_triangle(initData(&d_triangle, "triangles", "List of triangle indices")),
+	d_quad(initData(&d_quad, "quads", "List of quad indices")),
+	d_tetra(initData(&d_tetra, "tetrahedra", "List of tetrahedron indices")),
+	d_hexa(initData(&d_hexa, "hexahedra", "List of hexahedron indices")),
+	mech_state_(initLink("mstate", "mechanical state linked to the topology"))
+{
+
+}
+
+void MapTopology::init()
+{
+	Inherit1::init();
+}
+
+void MapTopology::reinit()
+{
+	Inherit1::reinit();
+}
+
+void MapTopology::reset()
+{
+	Inherit1::reset();
+}
+
+void MapTopology::bwdInit()
+{
+	Inherit1::bwdInit();
+}
+
 } // namespace topology
 
 } // namespace core

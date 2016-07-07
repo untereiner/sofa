@@ -37,6 +37,12 @@ namespace io
 
 MeshImportGen::~MeshImportGen() {}
 
+bool MeshImportGen::import_file_impl(const std::string& /*filename*/)
+{
+	cgogn_log_warning("MeshImportGen::import_file_impl") << "The method import_file_impl must be overriden.";
+	return false;
+}
+
 bool MeshImportGen::import_file(const std::string& filename)
 {
 	this->clear();

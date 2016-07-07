@@ -27,6 +27,7 @@
 
 #include <functional>
 #include <sofa/core/topology/BaseTopology.h>
+#include <sofa/core/State.h>
 #include <cgogn/core/cmap/cmap3.h>
 
 namespace sofa
@@ -119,6 +120,11 @@ public:
 	using Face = Topo_Traits::Face;
 	using Volume = Topo_Traits::Volume;
 
+	using Vec3Types = sofa::defaulttype::Vec3Types;
+	using VecCoord = Vec3Types::VecCoord;
+
+	MapTopology();
+
 	virtual void foreach_vertex(std::function<void(Vertex)> const &) = 0;
 
 	virtual void foreach_edge(std::function<void(Edge)> const &) = 0;
@@ -139,6 +145,22 @@ public:
 
 	virtual void foreach_incident_face_of_volume(Volume /*vol_id*/, std::function<void(Face)> const & /*func*/) = 0;
 
+	virtual void init() override;
+	virtual void bwdInit() override;
+	virtual void reinit() override;
+	virtual void reset() override;
+	virtual void cleanup() override;
+
+protected:
+	virtual void initFromMeshLoader() = 0;
+
+	Data< VecCoord > d_initPoints;
+	Data< helper::vector< Triangle > > d_triangle;
+	Data< helper::vector< Quad > > d_quad;
+	Data< helper::vector< Tetra > > d_tetra;
+	Data< helper::vector< Hexa > > d_hexa;
+
+	SingleLink< MapTopology, core::State< Vec3Types >, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK > mech_state_;
 private:
 	Attribute_T<Dart> first_vertex_of_edge;
 	Attribute_T<Dart> first_vertex_of_face;
