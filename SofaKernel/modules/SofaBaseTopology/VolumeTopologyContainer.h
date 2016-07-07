@@ -51,7 +51,9 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	using BaseVolume = Inherit1::Volume;
 
 	using CellCache = cgogn::CellCache<Topology>;
-
+	using DartMarker = cgogn::DartMarker<Topology>;
+	template<Orbit ORB>
+	using CellMarker = cgogn::CellMarker<Topology, ORB>;
 
 	// MapTopology interface
 public:
