@@ -58,8 +58,8 @@ void VolumeTopologyContainer::initFromMeshLoader()
 
 	for(const Tetra& t : m_tetra.ref())
 		volume_import.add_tetra(*pos_att, t[0], t[1], t[2], t[3], true);
-	for(const Hexa& t : m_hexa.ref())
-		volume_import.add_hexa(*pos_att, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], true);
+	for(const Hexa& h : m_hexa.ref())
+		volume_import.add_hexa(*pos_att, h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], true);
 
 	volume_import.create_map(topology_);
 }

@@ -28,8 +28,10 @@
 #include <functional>
 #include <sofa/core/topology/BaseTopology.h>
 #include <sofa/core/State.h>
-#include <cgogn/core/cmap/cmap3.h>
 
+#include <cgogn/core/cmap/cmap3.h>
+#include <cgogn/core/basic/dart_marker.h>
+#include <cgogn/core/basic/cell_marker.h>
 namespace sofa
 {
 
@@ -165,6 +167,30 @@ private:
 	Attribute_T<Dart> first_vertex_of_edge;
 	Attribute_T<Dart> first_vertex_of_face;
 	Attribute_T<Dart> first_vertex_of_volume;
+
+	// compatibility
+protected:
+	Attribute_T<EdgesAroundVertex>			m_edgesAroundVertex;
+	Attribute_T<EdgesInTriangle>			m_edgesInTriangle;
+	Attribute_T<EdgesInQuad>				m_edgesInQuad;
+	Attribute_T<TrianglesAroundVertex>		m_trianglesAroundVertex;
+	Attribute_T<TrianglesAroundEdge>		m_trianglesAroundEdge;
+	Attribute_T<QuadsAroundEdge>			m_quadsAroundEdge;
+	Attribute_T<QuadsAroundVertex>			m_quadsAroundVertex;
+	Attribute_T<TrianglesAroundVertex>		m_orientedTrianglesAroundVertex;
+	Attribute_T<QuadsAroundVertex>			m_orientedQuadsAroundVertex;
+	Attribute_T<EdgesAroundVertex>			m_orientedEdgesAroundVertex;
+	Attribute_T<TrianglesInTetrahedron>		m_trianglesInTetrahedron;
+	Attribute_T<EdgesInHexahedron>			m_edgesInHexahedron;
+	Attribute_T<EdgesInTetrahedron>			m_edgesInTetrahedron;
+	Attribute_T<QuadsInHexahedron>			m_quadsInHexahedron;
+	Attribute_T<TetrahedraAroundVertex>		m_tetrahedraAroundVertex;
+	Attribute_T<TetrahedraAroundEdge>		m_tetrahedraAroundEdge;
+	Attribute_T<TetrahedraAroundTriangle>	m_tetrahedraAroundTriangle;
+	Attribute_T<HexahedraAroundVertex>		m_hexahedraAroundVertex;
+	Attribute_T<HexahedraAroundEdge>		m_hexahedraAroundEdge;
+	Attribute_T<HexahedraAroundQuad>		m_hexahedraAroundQuad;
+
 };
 
 
