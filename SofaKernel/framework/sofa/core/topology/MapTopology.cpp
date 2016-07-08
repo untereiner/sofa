@@ -50,6 +50,11 @@ MapTopology::MapTopology() :
 
 }
 
+MapTopology::~MapTopology()
+{
+
+}
+
 void MapTopology::init()
 {
 	Inherit1::init();

@@ -126,6 +126,7 @@ public:
 	using VecCoord = Vec3Types::VecCoord;
 
 	MapTopology();
+	~MapTopology() override;
 
 	virtual void foreach_vertex(std::function<void(Vertex)> const &) = 0;
 
@@ -170,6 +171,7 @@ private:
 
 	// compatibility
 protected:
+
 	Attribute_T<EdgesAroundVertex>			m_edgesAroundVertex;
 	Attribute_T<EdgesInTriangle>			m_edgesInTriangle;
 	Attribute_T<EdgesInQuad>				m_edgesInQuad;
@@ -190,6 +192,7 @@ protected:
 	Attribute_T<HexahedraAroundVertex>		m_hexahedraAroundVertex;
 	Attribute_T<HexahedraAroundEdge>		m_hexahedraAroundEdge;
 	Attribute_T<HexahedraAroundQuad>		m_hexahedraAroundQuad;
+//	Attribute_T<core::topology::Topology::Edge> edges_;
 
 };
 

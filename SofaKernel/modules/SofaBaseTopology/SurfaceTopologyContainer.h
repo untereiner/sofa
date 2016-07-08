@@ -39,6 +39,7 @@ namespace topology
 
 class SOFA_BASE_TOPOLOGY_API SurfaceTopologyContainer : public core::topology::MapTopology
 {
+public:
     SOFA_CLASS(SurfaceTopologyContainer, core::topology::MapTopology);
     using Topology = Topo_Traits::Topology2;
     using Vertex = Topo_Traits::Vertex2;
@@ -56,8 +57,9 @@ class SOFA_BASE_TOPOLOGY_API SurfaceTopologyContainer : public core::topology::M
 	template<Orbit ORB>
 	using CellMarker = cgogn::CellMarker<Topology, ORB>;
 
+	SurfaceTopologyContainer();
+	~SurfaceTopologyContainer() override;
     // MapTopology interface
-public:
 
     virtual void foreach_vertex(const std::function<void (BaseVertex)>& func) override
     {
@@ -156,9 +158,6 @@ public:
 
 protected:
 	virtual void initFromMeshLoader() override;
-private:
-    Topology topology_;
-    CellCache cache_;
 
 	// Topology interface
 public:
@@ -178,9 +177,9 @@ public:
 	virtual int getNbQuads() override;
 	virtual int getNbTetrahedra() override;
 	virtual int getNbHexahedra() override;
-	virtual const Edge getEdge(EdgeID i) override;
-	virtual const Triangle getTriangle(TriangleID i) override;
-	virtual const Quad getQuad(QuadID i) override;
+	virtual const core::topology::Topology::Edge getEdge(EdgeID i) override;
+	virtual const core::topology::Topology::Triangle getTriangle(TriangleID i) override;
+	virtual const core::topology::Topology::Quad getQuad(QuadID i) override;
 	virtual const Tetra getTetrahedron(TetraID i) override;
 	virtual const Hexa getHexahedron(HexaID i) override;
 	virtual int getNbTetras() override;
@@ -224,9 +223,9 @@ public:
 	virtual int getVertexIndexInHexahedron(const Hexa& t, PointID vertexIndex) const override;
 	virtual int getEdgeIndexInHexahedron(const EdgesInHexahedron& t, EdgeID edgeIndex) const override;
 	virtual int getQuadIndexInHexahedron(const QuadsInHexahedron& t, QuadID quadIndex) const override;
-	virtual Edge getLocalEdgesInTetrahedron(const PointID i) const override;
-	virtual Triangle getLocalTrianglesInTetrahedron(const PointID i) const override;
-	virtual Edge getLocalEdgesInHexahedron(const PointID i) const override;
+	virtual core::topology::Topology::Edge getLocalEdgesInTetrahedron(const PointID i) const override;
+	virtual core::topology::Topology::Triangle getLocalTrianglesInTetrahedron(const PointID i) const override;
+	virtual core::topology::Topology::Edge getLocalEdgesInHexahedron(const PointID i) const override;
 	virtual Quad getLocalQuadsInHexahedron(const PointID i) const override;
 	virtual void clear() override;
 	virtual void addPoint(SReal px, SReal py, SReal pz) override;
@@ -239,6 +238,10 @@ public:
 	virtual unsigned int getNumberOfConnectedComponent() override;
 	virtual const sofa::helper::vector<index_type> getConnectedElement(index_type elem) override;
 	virtual void reOrientateTriangle(TriangleID id) override;
+
+private:
+    Topology topology_;
+    std::unique_ptr<CellCache> cache_;
 };
 
 } // namespace topology

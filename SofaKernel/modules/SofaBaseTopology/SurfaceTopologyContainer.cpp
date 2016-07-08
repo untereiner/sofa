@@ -23,9 +23,8 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #include <SofaBaseTopology/SurfaceTopologyContainer.h>
-
+#include <sofa/core/ObjectFactory.h>
 #include <cgogn/io/surface_import.h>
-
 
 namespace sofa
 {
@@ -35,6 +34,21 @@ namespace component
 
 namespace topology
 {
+
+SOFA_DECL_CLASS(SurfaceTopologyContainer)
+int SurfaceTopologyContainerClass = core::RegisterObject("Surface topology container")
+        .add< SurfaceTopologyContainer >()
+        ;
+
+SurfaceTopologyContainer::SurfaceTopologyContainer()
+{
+
+}
+
+SurfaceTopologyContainer::~SurfaceTopologyContainer()
+{
+
+}
 
 void SurfaceTopologyContainer::initFromMeshLoader()
 {
@@ -144,7 +158,7 @@ int SurfaceTopologyContainer::getNbHexahedra()
 {
 }
 
-const SurfaceTopologyContainer::Edge SurfaceTopologyContainer::getEdge(core::topology::Topology::EdgeID i)
+const core::topology::Topology::Edge SurfaceTopologyContainer::getEdge(core::topology::Topology::EdgeID i)
 {
 }
 
@@ -328,7 +342,7 @@ int SurfaceTopologyContainer::getQuadIndexInHexahedron(const sofa::core::topolog
 {
 }
 
-SurfaceTopologyContainer::Edge SurfaceTopologyContainer::getLocalEdgesInTetrahedron(const core::topology::Topology::PointID i) const
+core::topology::Topology::Edge SurfaceTopologyContainer::getLocalEdgesInTetrahedron(const core::topology::Topology::PointID i) const
 {
 }
 
@@ -336,7 +350,7 @@ core::topology::Topology::Triangle SurfaceTopologyContainer::getLocalTrianglesIn
 {
 }
 
-SurfaceTopologyContainer::Edge SurfaceTopologyContainer::getLocalEdgesInHexahedron(const core::topology::Topology::PointID i) const
+core::topology::Topology::Edge SurfaceTopologyContainer::getLocalEdgesInHexahedron(const core::topology::Topology::PointID i) const
 {
 }
 
