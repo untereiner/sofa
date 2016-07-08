@@ -39,6 +39,8 @@ namespace topology
 
 class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::MapTopology
 {
+	public:
+
 	SOFA_CLASS(VolumeTopologyContainer, core::topology::MapTopology);
 	using Topology = Topo_Traits::Topology3;
 	using Vertex = Topo_Traits::Vertex3;
@@ -55,8 +57,10 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	template<Orbit ORB>
 	using CellMarker = cgogn::CellMarker<Topology, ORB>;
 
+	VolumeTopologyContainer();
+	~VolumeTopologyContainer() override;
+
 	// MapTopology interface
-public:
 
 	virtual void foreach_vertex(const std::function<void (BaseVertex)>& func) override
 	{
@@ -149,10 +153,6 @@ public:
 protected:
 	virtual void initFromMeshLoader() override;
 
-private:
-	Topology topology_;
-	CellCache cache_;
-
 	// BaseObject interface
 public:
 	virtual void init() override;
@@ -160,6 +160,11 @@ public:
 	virtual void reinit() override;
 	virtual void reset() override;
 	virtual void cleanup() override;
+
+private:
+	Topology topology_;
+	std::unique_ptr<CellCache> cache_;
+
 };
 
 } // namespace topology

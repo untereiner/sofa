@@ -132,7 +132,6 @@ public:
 private:
 
 	uint32 nb_vertices_;
-	uint32 nb_volumes_;
 
 	std::vector<VolumeType>	volumes_types;
 	std::vector<uint32>		volumes_vertex_indices_;
@@ -161,7 +160,7 @@ public:
 		using Face2 = typename Map::Face2;
 		using MapBuilder = typename Map::Builder;
 
-		if (this->nb_vertices_ == 0u || this->volumes_types.size() != this->nb_volumes_)
+		if (this->nb_vertices_ == 0u)
 			return false;
 
 		MapBuilder mbuild(map);
@@ -174,9 +173,10 @@ public:
 
 		uint32 index = 0u;
 		typename Map::DartMarkerStore m(map);
+		const uint32 nb_vols = nb_volumes();
 
 		//for each volume of table
-		for (uint32 i = 0u; i < this->nb_volumes_; ++i)
+		for (uint32 i = 0u; i < nb_vols; ++i)
 		{
 			// store volume in buffer, removing degenated faces
 			const VolumeType vol_type = this->volumes_types[i];
@@ -509,14 +509,13 @@ public:
 
 	inline void set_nb_volumes(uint32 nbw)
 	{
-		nb_volumes_ = nbw;
 		volumes_types.reserve(nbw);
 		volumes_vertex_indices_.reserve(8u * nbw);
 	}
 
 	inline uint32 nb_volumes() const
 	{
-		return nb_volumes_;
+		return volumes_types.size();
 	}
 
 	template <typename VEC3>

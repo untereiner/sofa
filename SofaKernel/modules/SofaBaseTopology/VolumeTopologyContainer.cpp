@@ -23,7 +23,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #include <SofaBaseTopology/VolumeTopologyContainer.h>
-
+#include <sofa/core/ObjectFactory.h>
 #include <cgogn/io/volume_import.h>
 #include <cgogn/geometry/types/eigen.h>
 
@@ -35,6 +35,21 @@ namespace component
 
 namespace topology
 {
+
+SOFA_DECL_CLASS(VolumeTopologyContainer)
+int VolumeTopologyContainerClass = core::RegisterObject("Volume topology container")
+        .add< VolumeTopologyContainer >()
+        ;
+
+VolumeTopologyContainer::VolumeTopologyContainer()
+{
+
+}
+
+VolumeTopologyContainer::~VolumeTopologyContainer()
+{
+
+}
 
 void VolumeTopologyContainer::initFromMeshLoader()
 {
