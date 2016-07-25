@@ -107,6 +107,44 @@ void VolumeTopologyContainer::cleanup()
 	Inherit1::cleanup();
 }
 
+void VolumeTopologyContainer::draw(const core::visual::VisualParams* /*vparams*/)
+{
+//	TriangleSetGeometryAlgorithms<DataTypes>::draw(vparams);
+
+//    const VecCoord& coords =mech_state_->read(core::ConstVecCoordId::position())->getValue();
+
+//    // Draw Tetra
+////    if (d_drawTetrahedra.getValue())
+////    {
+//	if (vparams->displayFlags().getShowWireFrame())
+//		vparams->drawTool()->setPolygonMode(0, true);
+//	const sofa::defaulttype::Vec4f& color_tmp = d_drawColorTetrahedra.getValue();
+//	defaulttype::Vec4f color4(color_tmp[0] - 0.2f, color_tmp[1] - 0.2f, color_tmp[2] - 0.2f, 1.0);
+
+//	const sofa::helper::vector<Tetrahedron> &tetraArray = this->m_topology->getTetrahedra();
+//	std::vector<defaulttype::Vector3>   pos;
+//	pos.reserve(tetraArray.size()*4u);
+
+//	for (unsigned int i = 0; i<tetraArray.size(); ++i)
+//	{
+//		const Tetrahedron& tet = tetraArray[i];
+//		for (unsigned int j = 0u; j<4u; ++j)
+//		{
+//			pos.push_back(defaulttype::Vector3(DataTypes::getCPos(coords[tet[j]])));
+//		}
+//	}
+
+//	const float& scale = d_drawScaleTetrahedra.getValue();
+
+//	if (scale >= 1.0 && scale < 0.001)
+//		vparams->drawTool()->drawTetrahedra(pos, color4);
+//	else
+//		vparams->drawTool()->drawScaledTetrahedra(pos, color4, scale);
+
+//	if (vparams->displayFlags().getShowWireFrame())
+//		vparams->drawTool()->setPolygonMode(0, false);
+////    }
+}
 
 } // namespace topology
 

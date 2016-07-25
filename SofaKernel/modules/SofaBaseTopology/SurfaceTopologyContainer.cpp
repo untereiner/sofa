@@ -108,6 +108,7 @@ void SurfaceTopologyContainer::cleanup()
 
 bool SurfaceTopologyContainer::hasPos() const
 {
+	return true;
 }
 
 SReal SurfaceTopologyContainer::getPX(int) const
@@ -124,82 +125,17 @@ SReal SurfaceTopologyContainer::getPZ(int) const
 
 const sofa::core::topology::BaseMeshTopology::SeqEdges&SurfaceTopologyContainer::getEdges()
 {
+	return d_edge.getValue();
 }
 
 const sofa::core::topology::BaseMeshTopology::SeqTriangles&SurfaceTopologyContainer::getTriangles()
 {
+	return d_triangle.getValue();
 }
 
 const sofa::core::topology::BaseMeshTopology::SeqQuads&SurfaceTopologyContainer::getQuads()
 {
-}
-
-const sofa::core::topology::BaseMeshTopology::SeqTetrahedra&SurfaceTopologyContainer::getTetrahedra()
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::SeqHexahedra&SurfaceTopologyContainer::getHexahedra()
-{
-}
-
-int SurfaceTopologyContainer::getNbTriangles()
-{
-}
-
-int SurfaceTopologyContainer::getNbQuads()
-{
-}
-
-int SurfaceTopologyContainer::getNbTetrahedra()
-{
-}
-
-int SurfaceTopologyContainer::getNbHexahedra()
-{
-}
-
-const core::topology::Topology::Edge SurfaceTopologyContainer::getEdge(core::topology::Topology::EdgeID i)
-{
-}
-
-const core::topology::Topology::Triangle SurfaceTopologyContainer::getTriangle(core::topology::Topology::TriangleID i)
-{
-}
-
-const core::topology::Topology::Quad SurfaceTopologyContainer::getQuad(core::topology::Topology::QuadID i)
-{
-}
-
-const core::topology::Topology::Tetra SurfaceTopologyContainer::getTetrahedron(core::topology::Topology::TetraID i)
-{
-}
-
-const core::topology::Topology::Hexa SurfaceTopologyContainer::getHexahedron(core::topology::Topology::HexaID i)
-{
-}
-
-int SurfaceTopologyContainer::getNbTetras()
-{
-}
-
-int SurfaceTopologyContainer::getNbHexas()
-{
-}
-
-core::topology::Topology::Tetra SurfaceTopologyContainer::getTetra(core::topology::Topology::TetraID i)
-{
-}
-
-core::topology::Topology::Hexa SurfaceTopologyContainer::getHexa(core::topology::Topology::HexaID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::SeqTetrahedra&SurfaceTopologyContainer::getTetras()
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::SeqHexahedra&SurfaceTopologyContainer::getHexas()
-{
+	return d_quad.getValue();
 }
 
 const sofa::core::topology::BaseMeshTopology::EdgesAroundVertex&SurfaceTopologyContainer::getEdgesAroundVertex(core::topology::Topology::PointID i)
@@ -214,14 +150,6 @@ const sofa::core::topology::BaseMeshTopology::EdgesInQuad&SurfaceTopologyContain
 {
 }
 
-const sofa::core::topology::BaseMeshTopology::EdgesInTetrahedron&SurfaceTopologyContainer::getEdgesInTetrahedron(core::topology::Topology::TetraID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::EdgesInHexahedron&SurfaceTopologyContainer::getEdgesInHexahedron(core::topology::Topology::HexaID i)
-{
-}
-
 const sofa::core::topology::BaseMeshTopology::TrianglesAroundVertex&SurfaceTopologyContainer::getTrianglesAroundVertex(core::topology::Topology::PointID i)
 {
 }
@@ -230,43 +158,11 @@ const sofa::core::topology::BaseMeshTopology::TrianglesAroundEdge&SurfaceTopolog
 {
 }
 
-const sofa::core::topology::BaseMeshTopology::TrianglesInTetrahedron&SurfaceTopologyContainer::getTrianglesInTetrahedron(core::topology::Topology::TetraID i)
-{
-}
-
 const sofa::core::topology::BaseMeshTopology::QuadsAroundVertex&SurfaceTopologyContainer::getQuadsAroundVertex(core::topology::Topology::PointID i)
 {
 }
 
 const sofa::core::topology::BaseMeshTopology::QuadsAroundEdge&SurfaceTopologyContainer::getQuadsAroundEdge(core::topology::Topology::EdgeID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::QuadsInHexahedron&SurfaceTopologyContainer::getQuadsInHexahedron(core::topology::Topology::HexaID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::TetrahedraAroundVertex&SurfaceTopologyContainer::getTetrahedraAroundVertex(core::topology::Topology::PointID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::TetrahedraAroundEdge&SurfaceTopologyContainer::getTetrahedraAroundEdge(core::topology::Topology::EdgeID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::TetrahedraAroundTriangle&SurfaceTopologyContainer::getTetrahedraAroundTriangle(core::topology::Topology::TriangleID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::HexahedraAroundVertex&SurfaceTopologyContainer::getHexahedraAroundVertex(core::topology::Topology::PointID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::HexahedraAroundEdge&SurfaceTopologyContainer::getHexahedraAroundEdge(core::topology::Topology::EdgeID i)
-{
-}
-
-const sofa::core::topology::BaseMeshTopology::HexahedraAroundQuad&SurfaceTopologyContainer::getHexahedraAroundQuad(core::topology::Topology::QuadID i)
 {
 }
 
@@ -294,14 +190,6 @@ int SurfaceTopologyContainer::getQuadIndex(core::topology::Topology::PointID v1,
 {
 }
 
-int SurfaceTopologyContainer::getTetrahedronIndex(core::topology::Topology::PointID v1, core::topology::Topology::PointID v2, core::topology::Topology::PointID v3, core::topology::Topology::PointID v4)
-{
-}
-
-int SurfaceTopologyContainer::getHexahedronIndex(core::topology::Topology::PointID v1, core::topology::Topology::PointID v2, core::topology::Topology::PointID v3, core::topology::Topology::PointID v4, core::topology::Topology::PointID v5, core::topology::Topology::PointID v6, core::topology::Topology::PointID v7, core::topology::Topology::PointID v8)
-{
-}
-
 int SurfaceTopologyContainer::getVertexIndexInTriangle(const core::topology::Topology::Triangle& t, core::topology::Topology::PointID vertexIndex) const
 {
 }
@@ -315,46 +203,6 @@ int SurfaceTopologyContainer::getVertexIndexInQuad(const core::topology::Topolog
 }
 
 int SurfaceTopologyContainer::getEdgeIndexInQuad(const sofa::core::topology::BaseMeshTopology::EdgesInQuad& t, core::topology::Topology::EdgeID edgeIndex) const
-{
-}
-
-int SurfaceTopologyContainer::getVertexIndexInTetrahedron(const core::topology::Topology::Tetra& t, core::topology::Topology::PointID vertexIndex) const
-{
-}
-
-int SurfaceTopologyContainer::getEdgeIndexInTetrahedron(const sofa::core::topology::BaseMeshTopology::EdgesInTetrahedron& t, core::topology::Topology::EdgeID edgeIndex) const
-{
-}
-
-int SurfaceTopologyContainer::getTriangleIndexInTetrahedron(const sofa::core::topology::BaseMeshTopology::TrianglesInTetrahedron& t, core::topology::Topology::TriangleID triangleIndex) const
-{
-}
-
-int SurfaceTopologyContainer::getVertexIndexInHexahedron(const core::topology::Topology::Hexa& t, core::topology::Topology::PointID vertexIndex) const
-{
-}
-
-int SurfaceTopologyContainer::getEdgeIndexInHexahedron(const sofa::core::topology::BaseMeshTopology::EdgesInHexahedron& t, core::topology::Topology::EdgeID edgeIndex) const
-{
-}
-
-int SurfaceTopologyContainer::getQuadIndexInHexahedron(const sofa::core::topology::BaseMeshTopology::QuadsInHexahedron& t, core::topology::Topology::QuadID quadIndex) const
-{
-}
-
-core::topology::Topology::Edge SurfaceTopologyContainer::getLocalEdgesInTetrahedron(const core::topology::Topology::PointID i) const
-{
-}
-
-core::topology::Topology::Triangle SurfaceTopologyContainer::getLocalTrianglesInTetrahedron(const core::topology::Topology::PointID i) const
-{
-}
-
-core::topology::Topology::Edge SurfaceTopologyContainer::getLocalEdgesInHexahedron(const core::topology::Topology::PointID i) const
-{
-}
-
-core::topology::Topology::Quad SurfaceTopologyContainer::getLocalQuadsInHexahedron(const core::topology::Topology::PointID i) const
 {
 }
 
@@ -375,14 +223,6 @@ void SurfaceTopologyContainer::addTriangle(int a, int b, int c)
 }
 
 void SurfaceTopologyContainer::addQuad(int a, int b, int c, int d)
-{
-}
-
-void SurfaceTopologyContainer::addTetra(int a, int b, int c, int d)
-{
-}
-
-void SurfaceTopologyContainer::addHexa(int a, int b, int c, int d, int e, int f, int g, int h)
 {
 }
 

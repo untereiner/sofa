@@ -158,6 +158,7 @@ protected:
 	virtual void initFromMeshLoader() = 0;
 
 	Data< VecCoord > d_initPoints;
+	Data< helper::vector< core::topology::Topology::Edge > > d_edge;
 	Data< helper::vector< Triangle > > d_triangle;
 	Data< helper::vector< Quad > > d_quad;
 	Data< helper::vector< Tetra > > d_tetra;
@@ -165,9 +166,9 @@ protected:
 
 	SingleLink< MapTopology, core::State< Vec3Types >, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK > mech_state_;
 private:
-	Attribute_T<Dart> first_vertex_of_edge;
-	Attribute_T<Dart> first_vertex_of_face;
-	Attribute_T<Dart> first_vertex_of_volume;
+	Attribute_T<Dart> first_vertex_of_edge_;
+	Attribute_T<Dart> first_vertex_of_face_;
+	Attribute_T<Dart> first_vertex_of_volume_;
 
 	// compatibility
 protected:
@@ -194,6 +195,45 @@ protected:
 	Attribute_T<HexahedraAroundQuad>		m_hexahedraAroundQuad;
 //	Attribute_T<core::topology::Topology::Edge> edges_;
 
+	// compatibility
+public:
+	virtual bool hasPos() const override;
+	virtual SReal getPX(int) const override;
+	virtual SReal getPY(int) const override;
+	virtual SReal getPZ(int) const override;
+
+	virtual const SeqEdges&getEdges() override;
+	virtual const SeqTriangles&getTriangles() override;
+	virtual const SeqQuads&getQuads() override;
+	virtual const SeqTetrahedra& getTetrahedra() override;
+	virtual const SeqHexahedra& getHexahedra() override;
+
+	virtual const EdgesAroundVertex&getEdgesAroundVertex(PointID i) override;
+	virtual const EdgesInTriangle&getEdgesInTriangle(TriangleID i) override;
+	virtual const EdgesInQuad&getEdgesInQuad(QuadID i) override;
+	virtual const TrianglesAroundVertex&getTrianglesAroundVertex(PointID i) override;
+	virtual const TrianglesAroundEdge&getTrianglesAroundEdge(EdgeID i) override;
+	virtual const QuadsAroundVertex&getQuadsAroundVertex(PointID i) override;
+	virtual const QuadsAroundEdge&getQuadsAroundEdge(EdgeID i) override;
+	virtual const VerticesAroundVertex getVerticesAroundVertex(PointID i) override;
+	virtual const sofa::helper::vector<index_type> getElementAroundElement(index_type elem) override;
+	virtual const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems) override;
+	virtual int getEdgeIndex(PointID v1, PointID v2) override;
+	virtual int getTriangleIndex(PointID v1, PointID v2, PointID v3) override;
+	virtual int getQuadIndex(PointID v1, PointID v2, PointID v3, PointID v4) override;
+	virtual int getVertexIndexInTriangle(const Triangle& t, PointID vertexIndex) const override;
+	virtual int getEdgeIndexInTriangle(const EdgesInTriangle& t, EdgeID edgeIndex) const override;
+	virtual int getVertexIndexInQuad(const Quad& t, PointID vertexIndex) const override;
+	virtual int getEdgeIndexInQuad(const EdgesInQuad& t, EdgeID edgeIndex) const override;
+	virtual void clear() override;
+	virtual void addPoint(SReal px, SReal py, SReal pz) override;
+	virtual void addEdge(int a, int b) override;
+	virtual void addTriangle(int a, int b, int c) override;
+	virtual void addQuad(int a, int b, int c, int d) override;
+	virtual bool checkConnexity() override;
+	virtual unsigned int getNumberOfConnectedComponent() override;
+	virtual const sofa::helper::vector<index_type> getConnectedElement(index_type elem) override;
+	virtual void reOrientateTriangle(TriangleID id) override;
 };
 
 
