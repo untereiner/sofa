@@ -38,6 +38,182 @@ void MapTopology::cleanup()
 	Inherit1::cleanup();
 }
 
+bool MapTopology::hasPos() const
+{
+	return true;
+}
+
+SReal MapTopology::getPX(int i) const
+{
+	return d_initPoints.getValue()[i][0];
+}
+
+SReal MapTopology::getPY(int i) const
+{
+	return d_initPoints.getValue()[i][1];
+}
+
+SReal MapTopology::getPZ(int i) const
+{
+	return d_initPoints.getValue()[i][2];
+}
+
+const BaseMeshTopology::SeqEdges&MapTopology::getEdges()
+{
+	return d_edge.getValue();
+}
+
+const BaseMeshTopology::SeqTriangles&MapTopology::getTriangles()
+{
+	return d_triangle.getValue();
+}
+
+const BaseMeshTopology::SeqQuads&MapTopology::getQuads()
+{
+	return d_quad.getValue();
+}
+
+const BaseMeshTopology::SeqTetrahedra&MapTopology::getTetrahedra()
+{
+	return d_tetra.getValue();
+}
+
+const BaseMeshTopology::SeqHexahedra&MapTopology::getHexahedra()
+{
+	return d_hexa.getValue();
+}
+
+const BaseMeshTopology::EdgesAroundVertex&MapTopology::getEdgesAroundVertex(Topology::PointID i)
+{
+	return m_edgesAroundVertex[i];
+}
+
+const BaseMeshTopology::EdgesInTriangle&MapTopology::getEdgesInTriangle(Topology::TriangleID i)
+{
+	return m_edgesInTriangle[i];
+}
+
+const BaseMeshTopology::EdgesInQuad&MapTopology::getEdgesInQuad(Topology::QuadID i)
+{
+	return m_edgesInQuad[i];
+}
+
+const BaseMeshTopology::TrianglesAroundVertex&MapTopology::getTrianglesAroundVertex(Topology::PointID i)
+{
+	return m_trianglesAroundVertex[i];
+}
+
+const BaseMeshTopology::TrianglesAroundEdge&MapTopology::getTrianglesAroundEdge(Topology::EdgeID i)
+{
+	return m_trianglesAroundEdge[i];
+}
+
+const BaseMeshTopology::QuadsAroundVertex&MapTopology::getQuadsAroundVertex(Topology::PointID i)
+{
+	return m_quadsAroundVertex[i];
+}
+
+const BaseMeshTopology::QuadsAroundEdge&MapTopology::getQuadsAroundEdge(Topology::EdgeID i)
+{
+	return m_quadsAroundEdge[i];
+}
+
+const BaseMeshTopology::VerticesAroundVertex MapTopology::getVerticesAroundVertex(Topology::PointID i)
+{
+//	return m_ver[i];
+	return VerticesAroundVertex();
+}
+
+const sofa::helper::vector<Topology::index_type> MapTopology::getElementAroundElement(Topology::index_type elem)
+{
+	return sofa::helper::vector<Topology::index_type>();
+}
+
+const sofa::helper::vector<Topology::index_type> MapTopology::getElementAroundElements(sofa::helper::vector<Topology::index_type> elems)
+{
+	return sofa::helper::vector<Topology::index_type>();
+}
+
+int MapTopology::getEdgeIndex(Topology::PointID v1, Topology::PointID v2)
+{
+	return -1;
+}
+
+int MapTopology::getTriangleIndex(Topology::PointID v1, Topology::PointID v2, Topology::PointID v3)
+{
+	return -1;
+}
+
+int MapTopology::getQuadIndex(Topology::PointID v1, Topology::PointID v2, Topology::PointID v3, Topology::PointID v4)
+{
+	return -1;
+}
+
+int MapTopology::getVertexIndexInTriangle(const Topology::Triangle& t, Topology::PointID vertexIndex) const
+{
+
+}
+
+int MapTopology::getEdgeIndexInTriangle(const BaseMeshTopology::EdgesInTriangle& t, Topology::EdgeID edgeIndex) const
+{
+	return -1;
+}
+
+int MapTopology::getVertexIndexInQuad(const Topology::Quad& t, Topology::PointID vertexIndex) const
+{
+	return -1;
+}
+
+int MapTopology::getEdgeIndexInQuad(const BaseMeshTopology::EdgesInQuad& t, Topology::EdgeID edgeIndex) const
+{
+	return -1;
+}
+
+void MapTopology::clear()
+{
+//	Inherit1::clear();
+}
+
+void MapTopology::addPoint(SReal px, SReal py, SReal pz)
+{
+
+}
+
+void MapTopology::addEdge(int a, int b)
+{
+
+}
+
+void MapTopology::addTriangle(int a, int b, int c)
+{
+
+}
+
+void MapTopology::addQuad(int a, int b, int c, int d)
+{
+
+}
+
+bool MapTopology::checkConnexity()
+{
+	return true;
+}
+
+unsigned int MapTopology::getNumberOfConnectedComponent()
+{
+
+}
+
+const sofa::helper::vector<Topology::index_type> MapTopology::getConnectedElement(Topology::index_type elem)
+{
+	return sofa::helper::vector<Topology::index_type> ();
+}
+
+void MapTopology::reOrientateTriangle(Topology::TriangleID id)
+{
+
+}
+
 MapTopology::MapTopology() :
 	Inherit1(),
 	d_initPoints (initData(&d_initPoints, "position", "Initial position of points")),

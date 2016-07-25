@@ -160,11 +160,11 @@ public:
 	virtual void reinit() override;
 	virtual void reset() override;
 	virtual void cleanup() override;
+	virtual void draw(const core::visual::VisualParams*) override;
 
 private:
 	Topology topology_;
 	std::unique_ptr<CellCache> cache_;
-
 };
 
 } // namespace topology
