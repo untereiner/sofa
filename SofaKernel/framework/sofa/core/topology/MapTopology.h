@@ -106,7 +106,7 @@ struct CGOGN_Traits
 	};
 };
 
-class SOFA_CORE_API MapTopology : public TopologyContainer
+class SOFA_CORE_API MapTopology : virtual public TopologyContainer
 {
 public:
 	SOFA_CLASS(MapTopology,core::topology::TopologyContainer);
@@ -148,6 +148,7 @@ public:
 
 	virtual void foreach_incident_face_of_volume(Volume /*vol_id*/, std::function<void(Face)> const & /*func*/) = 0;
 
+
 	virtual void init() override;
 	virtual void bwdInit() override;
 	virtual void reinit() override;
@@ -174,13 +175,9 @@ private:
 protected:
 
 	Attribute_T<EdgesAroundVertex>			m_edgesAroundVertex;
-	Attribute_T<EdgesInTriangle>			m_edgesInTriangle;
 	Attribute_T<EdgesInQuad>				m_edgesInQuad;
-	Attribute_T<TrianglesAroundVertex>		m_trianglesAroundVertex;
-	Attribute_T<TrianglesAroundEdge>		m_trianglesAroundEdge;
 	Attribute_T<QuadsAroundEdge>			m_quadsAroundEdge;
 	Attribute_T<QuadsAroundVertex>			m_quadsAroundVertex;
-	Attribute_T<TrianglesAroundVertex>		m_orientedTrianglesAroundVertex;
 	Attribute_T<QuadsAroundVertex>			m_orientedQuadsAroundVertex;
 	Attribute_T<EdgesAroundVertex>			m_orientedEdgesAroundVertex;
 	Attribute_T<TrianglesInTetrahedron>		m_trianglesInTetrahedron;

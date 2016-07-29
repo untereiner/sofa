@@ -37,7 +37,7 @@ namespace component
 namespace topology
 {
 
-class SOFA_BASE_TOPOLOGY_API SurfaceTopologyContainer : public core::topology::MapTopology
+class SOFA_BASE_TOPOLOGY_API SurfaceTopologyContainer : virtual public core::topology::MapTopology
 {
 public:
     SOFA_CLASS(SurfaceTopologyContainer, core::topology::MapTopology);
@@ -57,9 +57,17 @@ public:
 	template<Orbit ORB>
 	using CellMarker = cgogn::CellMarker<Topology, ORB>;
 
+	template <typename T, Orbit ORBIT>
+	using Attribute = Topology::Attribute<T,ORBIT>;
+
 	SurfaceTopologyContainer();
 	~SurfaceTopologyContainer() override;
-    // MapTopology interface
+
+	template<Orbit ORBIT>
+	inline unsigned int nb_cells() const
+	{
+		return topology_.nb_cells<ORBIT>();
+	}
 
     virtual void foreach_vertex(const std::function<void (BaseVertex)>& func) override
     {
@@ -148,6 +156,19 @@ public:
     {
         topology_.foreach_incident_face(vol,func);
     }
+
+	// attributes
+	template<typename T, Orbit ORB>
+	inline Attribute<T,ORB> add_attribute(const std::string& attribute_name)
+	{
+		topology_.add_attribute<T,ORB>(attribute_name);
+	}
+
+	template<typename T, Orbit ORB>
+	inline void add_attribute(Attribute<T,ORB>& dest_attribute, const std::string& attribute_name)
+	{
+		dest_attribute = topology_.add_attribute<T,ORB>(attribute_name);
+	}
 
 public:
 	virtual void init() override;

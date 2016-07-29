@@ -90,7 +90,7 @@ const BaseMeshTopology::EdgesAroundVertex&MapTopology::getEdgesAroundVertex(Topo
 
 const BaseMeshTopology::EdgesInTriangle&MapTopology::getEdgesInTriangle(Topology::TriangleID i)
 {
-	return m_edgesInTriangle[i];
+//	return m_edgesInTriangle[i];
 }
 
 const BaseMeshTopology::EdgesInQuad&MapTopology::getEdgesInQuad(Topology::QuadID i)
@@ -100,12 +100,12 @@ const BaseMeshTopology::EdgesInQuad&MapTopology::getEdgesInQuad(Topology::QuadID
 
 const BaseMeshTopology::TrianglesAroundVertex&MapTopology::getTrianglesAroundVertex(Topology::PointID i)
 {
-	return m_trianglesAroundVertex[i];
+//	return m_trianglesAroundVertex[i];
 }
 
 const BaseMeshTopology::TrianglesAroundEdge&MapTopology::getTrianglesAroundEdge(Topology::EdgeID i)
 {
-	return m_trianglesAroundEdge[i];
+//	return m_trianglesAroundEdge[i];
 }
 
 const BaseMeshTopology::QuadsAroundVertex&MapTopology::getQuadsAroundVertex(Topology::PointID i)
