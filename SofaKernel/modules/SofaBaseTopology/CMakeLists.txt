@@ -17,6 +17,7 @@ set(HEADER_FILES
     HexahedronSetTopologyAlgorithms.inl
     HexahedronSetTopologyContainer.h
     HexahedronSetTopologyModifier.h
+    MapTriangleSetTopologyContainer.h
     MeshTopology.h
     NumericalIntegrationDescriptor.h
     NumericalIntegrationDescriptor.inl
@@ -76,6 +77,7 @@ set(SOURCE_FILES
     HexahedronSetTopologyAlgorithms.cpp
     HexahedronSetTopologyContainer.cpp
     HexahedronSetTopologyModifier.cpp
+    MapTriangleSetTopologyContainer.cpp
     MeshTopology.cpp
     NumericalIntegrationDescriptor.cpp
     PointSetGeometryAlgorithms.cpp
