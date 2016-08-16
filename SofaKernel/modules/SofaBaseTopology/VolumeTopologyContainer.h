@@ -56,9 +56,36 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	using DartMarker = cgogn::DartMarker<Topology>;
 	template<Orbit ORB>
 	using CellMarker = cgogn::CellMarker<Topology, ORB>;
+	template <typename T, Orbit ORBIT>
+	using Attribute = Topology::Attribute<T,ORBIT>;
 
 	VolumeTopologyContainer();
 	~VolumeTopologyContainer() override;
+
+	template<Orbit ORBIT>
+	inline uint32_t embedding(cgogn::Cell<ORBIT> c) const
+	{
+		return topology_.embedding(c);
+	}
+
+	// attributes
+	template<typename T, Orbit ORB>
+	inline Attribute<T,ORB> add_attribute(const std::string& attribute_name)
+	{
+		topology_.add_attribute<T,ORB>(attribute_name);
+	}
+
+	template<typename T, Orbit ORB>
+	inline void add_attribute(Attribute<T,ORB>& dest_attribute, const std::string& attribute_name)
+	{
+		dest_attribute = topology_.add_attribute<T,ORB>(attribute_name);
+	}
+
+	template<typename T, Orbit ORB>
+	void remove_attribute(const Attribute<T,ORB>& attribute)
+	{
+		topology_.remove_attribute(attribute);
+	}
 
 	// MapTopology interface
 
@@ -85,6 +112,11 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		topology_.foreach_cell(f);
 	}
 
+	template<typename FUNC>
+	inline void parallel_foreach_cell(const FUNC& f)
+	{
+		topology_.parallel_foreach_cell(f);
+	}
 
 	virtual void foreach_incident_vertex_of_edge(BaseEdge e, const std::function<void (BaseVertex)>& func) override
 	{
@@ -118,6 +150,14 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		topology_.foreach_incident_vertex(w,func);
 	}
 
+
+	template<typename FUNC>
+	inline void foreach_incident_edge(Vertex v,const FUNC& func)
+	{
+		topology_.foreach_incident_edge(v,func);
+	}
+
+
 	virtual void foreach_incident_edge_of_face(BaseFace f, const std::function<void (BaseEdge)>& func) override
 	{
 		topology_.foreach_incident_edge(Face(f.id_),[&func](Edge e) { func(e.dart); });
@@ -148,6 +188,12 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline void foreach_incident_face(Volume vol,const FUNC& func)
 	{
 		topology_.foreach_incident_face(vol,func);
+	}
+
+	template<Orbit ORBIT>
+	inline unsigned int nb_cells() const
+	{
+		return topology_.nb_cells<ORBIT>();
 	}
 
 protected:
