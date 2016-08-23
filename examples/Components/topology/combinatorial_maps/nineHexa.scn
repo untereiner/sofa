@@ -4,5 +4,6 @@
     <Node name="nine">
         <MeshGmshLoader filename="mesh/nine_hexa.msh" name="loader"/>
         <VolumeTopologyContainer src="@loader"/>
+        <MapTetrahedronSetTopologyContainer name="test" src="@loader"/>
     </Node>
 </Node>
