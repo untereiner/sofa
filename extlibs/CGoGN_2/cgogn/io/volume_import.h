@@ -110,13 +110,11 @@ namespace io
 {
 
 template <typename MAP_TRAITS>
-class VolumeImport : public MeshImportGen
+class VolumeImport
 {
 public:
 
 	using Self = VolumeImport<MAP_TRAITS>;
-	using Inherit = MeshImportGen;
-
 	static const uint32 CHUNK_SIZE = MAP_TRAITS::CHUNK_SIZE;
 
 	template <typename T>
@@ -126,19 +124,6 @@ public:
 	template <typename T, Orbit ORBIT>
 	using Attribute = Attribute<MAP_TRAITS, T, ORBIT>;
 
-	virtual ~VolumeImport() override
-	{}
-
-private:
-
-	uint32 nb_vertices_;
-
-	std::vector<VolumeType>	volumes_types;
-	std::vector<uint32>		volumes_vertex_indices_;
-
-	ChunkArrayContainer vertex_attributes_;
-	ChunkArrayContainer volume_attributes_;
-
 public:
 
 	VolumeImport() :
@@ -147,7 +132,57 @@ public:
 	  ,volumes_vertex_indices_()
 	{}
 
+	virtual ~VolumeImport()
+	{}
+
 	CGOGN_NOT_COPYABLE_NOR_MOVABLE(VolumeImport);
+
+	inline void set_nb_vertices(uint32 nbv)
+	{
+		nb_vertices_ = nbv;
+	}
+
+	inline uint32 nb_vertices() const
+	{
+		return nb_vertices_;
+	}
+
+	inline void set_nb_volumes(uint32 nbw)
+	{
+		nb_volumes_ = nbw;
+		volumes_types.reserve(nbw);
+		volumes_vertex_indices_.reserve(8u * nbw);
+	}
+
+	inline uint32 nb_volumes() const
+	{
+		return nb_volumes_;
+	}
+
+	template <typename VEC3>
+	inline ChunkArray<VEC3>* position_attribute()
+	{
+		auto res = this->vertex_attributes_.template add_chunk_array<VEC3>("position");
+		if (res != nullptr)
+			return res;
+		else
+			return this->vertex_attributes_.template get_chunk_array<VEC3>("position");
+	}
+
+	inline uint32 insert_line_vertex_container()
+	{
+		return vertex_attributes_.template insert_lines<1>();
+	}
+
+	inline ChunkArrayContainer& vertex_attributes_container()
+	{
+		return vertex_attributes_;
+	}
+
+	inline ChunkArrayContainer& volume_attributes_container()
+	{
+		return volume_attributes_;
+	}
 
 	template <typename Map>
 	bool create_map(Map& map)
@@ -160,7 +195,7 @@ public:
 		using Face2 = typename Map::Face2;
 		using MapBuilder = typename Map::Builder;
 
-		if (this->nb_vertices_ == 0u)
+		if (this->nb_vertices_ == 0u || this->volumes_types.size() != this->nb_volumes_)
 			return false;
 
 		MapBuilder mbuild(map);
@@ -169,14 +204,13 @@ public:
 		mbuild.template create_embedding<Vertex::ORBIT>();
 		mbuild.template swap_chunk_array_container<Vertex::ORBIT>(this->vertex_attributes_);
 
-		typename Map::template VertexAttribute<std::vector<Dart>> darts_per_vertex = map.template add_attribute<std::vector<Dart>, Vertex::ORBIT>("darts_per_vertex");
+		auto darts_per_vertex = map.template add_attribute<std::vector<Dart>, Vertex::ORBIT>("darts_per_vertex");
 
 		uint32 index = 0u;
 		typename Map::DartMarkerStore m(map);
-		const uint32 nb_vols = nb_volumes();
 
 		//for each volume of table
-		for (uint32 i = 0u; i < nb_vols; ++i)
+		for (uint32 i = 0u; i < this->nb_volumes_; ++i)
 		{
 			// store volume in buffer, removing degenated faces
 			const VolumeType vol_type = this->volumes_types[i];
@@ -472,52 +506,55 @@ public:
 		return true;
 	}
 
+protected:
+
+	virtual void clear()
+	{
+		set_nb_vertices(0u);
+		set_nb_volumes(0u);
+		volumes_types.clear();
+		volumes_vertex_indices_.clear();
+		vertex_attributes_.remove_chunk_arrays();
+		volume_attributes_.remove_chunk_arrays();
+	}
+
 	template <typename VEC3>
-	inline ChunkArray<VEC3>* position_attribute()
+	inline void reoriente_hexa(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5, uint32& p6, uint32& p7)
 	{
-		auto res = this->vertex_attributes_.template add_chunk_array<VEC3>("position");
-		if (res != nullptr)
-			return res;
-		else
-			return this->vertex_attributes_.template get_chunk_array<VEC3>("position");
+		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
+		{
+			std::swap(p0, p3);
+			std::swap(p1, p2);
+			std::swap(p4, p7);
+			std::swap(p5, p6);
+		}
 	}
 
-	inline uint32 insert_line_vertex_container()
+	template <typename VEC3>
+	inline void reoriente_tetra(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3)
 	{
-		return vertex_attributes_.template insert_lines<1>();
+		if (geometry::test_orientation_3D(pos[p0], pos[p1], pos[p2], pos[p3]) == geometry::Orientation3D::OVER)
+			std::swap(p1, p2);
 	}
 
-	inline ChunkArrayContainer& vertex_attributes_container()
+	template <typename VEC3>
+	inline void reoriente_pyramid(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4)
 	{
-		return vertex_attributes_;
+		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
+			std::swap(p1, p3);
 	}
 
-	inline ChunkArrayContainer& volume_attributes_container()
+	template <typename VEC3>
+	inline void reoriente_triangular_prism(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5)
 	{
-		return volume_attributes_;
+		if (geometry::test_orientation_3D(pos[p3], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
+		{
+			std::swap(p1, p2);
+			std::swap(p4, p5);
+		}
 	}
 
-	inline void set_nb_vertices(uint32 nbv)
-	{
-		nb_vertices_ = nbv;
-	}
-
-	inline uint32 nb_vertices() const
-	{
-		return nb_vertices_;
-	}
-
-	inline void set_nb_volumes(uint32 nbw)
-	{
-		volumes_types.reserve(nbw);
-		volumes_vertex_indices_.reserve(8u * nbw);
-	}
-
-	inline uint32 nb_volumes() const
-	{
-		return volumes_types.size();
-	}
-
+public:
 	template <typename VEC3>
 	void add_hexa(ChunkArray<VEC3>const& pos, uint32 p0, uint32 p1, uint32 p2, uint32 p3, uint32 p4, uint32 p5, uint32 p6, uint32 p7, bool check_orientation)
 	{
@@ -582,57 +619,38 @@ public:
 		this->volumes_vertex_indices_.push_back(p3);
 	}
 
-protected:
+private:
 
-	virtual void clear() override
-	{
-		set_nb_vertices(0u);
-		set_nb_volumes(0u);
-		volumes_types.clear();
-		volumes_vertex_indices_.clear();
-		vertex_attributes_.remove_chunk_arrays();
-		volume_attributes_.remove_chunk_arrays();
-	}
+	uint32 nb_vertices_;
+	uint32 nb_volumes_;
 
-	template <typename VEC3>
-	inline void reoriente_hexa(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5, uint32& p6, uint32& p7)
-	{
-		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
-		{
-			std::swap(p0, p3);
-			std::swap(p1, p2);
-			std::swap(p4, p7);
-			std::swap(p5, p6);
-		}
-	}
+	std::vector<VolumeType>	volumes_types;
+	std::vector<uint32>		volumes_vertex_indices_;
 
-	template <typename VEC3>
-	inline void reoriente_tetra(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3)
-	{
-		if (geometry::test_orientation_3D(pos[p0], pos[p1], pos[p2], pos[p3]) == geometry::Orientation3D::OVER)
-			std::swap(p1, p2);
-	}
+	ChunkArrayContainer vertex_attributes_;
+	ChunkArrayContainer volume_attributes_;
+};
 
-	template <typename VEC3>
-	inline void reoriente_pyramid(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4)
-	{
-		if (geometry::test_orientation_3D(pos[p4], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
-			std::swap(p1, p3);
-	}
+template <typename MAP_TRAITS>
+class VolumeFileImport : public VolumeImport<MAP_TRAITS>, public FileImport
+{
+	using Self = VolumeFileImport<MAP_TRAITS>;
+	using Inherit1 = VolumeImport<MAP_TRAITS>;
+	using Inherit2 = FileImport;
 
-	template <typename VEC3>
-	inline void reoriente_triangular_prism(ChunkArray<VEC3>const& pos, uint32& p0, uint32& p1, uint32& p2, uint32& p3, uint32& p4, uint32& p5)
-	{
-		if (geometry::test_orientation_3D(pos[p3], pos[p0], pos[p1], pos[p2]) == geometry::Orientation3D::OVER)
-		{
-			std::swap(p1, p2);
-			std::swap(p4, p5);
-		}
-	}
+	CGOGN_NOT_COPYABLE_NOR_MOVABLE(VolumeFileImport);
+
+public:
+	inline VolumeFileImport() : Inherit1(), Inherit2()
+	{}
+
+	virtual ~VolumeFileImport()
+	{}
 };
 
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_VOLUME_IMPORT_CPP_))
 extern template class CGOGN_IO_API VolumeImport<DefaultMapTraits>;
+extern template class CGOGN_IO_API VolumeFileImport<DefaultMapTraits>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_VOLUME_IMPORT_CPP_))
 
 } // namespace io

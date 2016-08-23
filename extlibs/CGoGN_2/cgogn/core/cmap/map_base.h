@@ -30,6 +30,7 @@
 #include <cgogn/core/utils/masks.h>
 #include <cgogn/core/utils/logger.h>
 #include <cgogn/core/utils/unique_ptr.h>
+#include <cgogn/core/utils/type_traits.h>
 
 #include <cgogn/core/basic/cell.h>
 #include <cgogn/core/basic/dart_marker.h>
@@ -64,12 +65,14 @@ public:
 	template <typename T>
 	using ChunkArray = typename Inherit::template ChunkArray<T>;
 	using typename Inherit::ChunkArrayBool;
+	template <typename T_REF>
+	using ChunkArrayContainer = typename Inherit::template ChunkArrayContainer<T_REF>;
 
-	using AttributeGen = cgogn::AttributeGen<MAP_TRAITS>;
+	using AttributeGen = typename Inherit::AttributeGen;
 	template <typename T>
-	using Attribute_T = cgogn::Attribute_T<MAP_TRAITS, T>;
+	using Attribute_T = typename Inherit::template Attribute_T<T>;
 	template <typename T, Orbit ORBIT>
-	using Attribute = cgogn::Attribute<MAP_TRAITS, T, ORBIT>;
+	using Attribute = typename Inherit::template Attribute<T, ORBIT>;
 
 	using ConcreteMap = typename MAP_TYPE::TYPE;
 
@@ -232,13 +235,19 @@ public:
 	 * Attributes management
 	 *******************************************************************************/
 
+	inline bool has_attribute(Orbit orbit, const std::string& att_name)
+	{
+		cgogn_message_assert(orbit < NB_ORBITS, "Unknown orbit parameter");
+		return this->attributes_[orbit].has_array(att_name);
+	}
+
 	/**
 	 * \brief add an attribute
 	 * @param attribute_name the name of the attribute to create
 	 * @return a handler to the created attribute
 	 */
 	template <typename T, Orbit ORBIT>
-	inline Attribute<T, ORBIT> add_attribute(const std::string& attribute_name = "")
+	inline Attribute<T, ORBIT> add_attribute(const std::string& attribute_name)
 	{
 		static_assert(ORBIT < NB_ORBITS, "Unknown orbit parameter");
 		if (!this->template is_embedded<ORBIT>())
@@ -248,17 +257,57 @@ public:
 	}
 
 	/**
+	 * @brief add an attribute, given a ref on an existing attribute
+	 * @param result_attribute, a reference to an attribute that will be overwritten
+	 * @param attribute_name the name of the attribute to create
+	 */
+	template <typename T, Orbit ORBIT>
+	inline void add_attribute(Attribute<T, ORBIT>& attribute_handler, const std::string& attribute_name)
+	{
+		attribute_handler = add_attribute<T,ORBIT>(attribute_name);
+	}
+
+	/**
+	 * @brief init_attribute, init an uninitialized Attribute<T,ORBIT> object (does nothing if the attribute_handler param is already valid)
+	 */
+	template <typename T, Orbit ORBIT>
+	inline void init_attribute(Attribute<T, ORBIT>& attribute_handler, const std::string& attribute_name)
+	{
+		if (attribute_handler.is_valid())
+		{
+			cgogn_log_debug("init_attribute(Attribute<T, ORBIT>&,const std::string&)") << "The attribute \"" << attribute_handler.name() << "\" is already initialized.";
+			return;
+		}
+
+		add_attribute(attribute_handler, attribute_name);
+		if (!attribute_handler.is_valid())
+			get_attribute(attribute_handler, attribute_name);
+	}
+
+	/**
 	 * \brief remove an attribute
 	 * @param ah a handler to the attribute to remove
 	 * @return true if remove succeed else false
 	 */
 	template <typename T, Orbit ORBIT>
-	inline bool remove_attribute(Attribute<T, ORBIT>& ah)
+	inline bool remove_attribute(const Attribute<T, ORBIT>& ah)
 	{
 		static_assert(ORBIT < NB_ORBITS, "Unknown orbit parameter");
 
 		const ChunkArray<T>* ca = ah.data();
 		return this->attributes_[ORBIT].remove_chunk_array(ca);
+	}
+
+	/**
+	 * \brief remove_attribute
+	 * @param orbit, the attribute orbit
+	 * @param att_name attribute name
+	 * @return true if remove succeed else false
+	 */
+	inline bool remove_attribute(Orbit orbit, const std::string& att_name)
+	{
+		cgogn_message_assert(orbit < NB_ORBITS, "Unknown orbit parameter");
+		return this->attributes_[orbit].remove_chunk_array(att_name);
 	}
 
 	/**
@@ -275,6 +324,12 @@ public:
 		return Attribute<T, ORBIT>(this, ca);
 	}
 
+	template <typename T, Orbit ORBIT>
+	inline void get_attribute(Attribute<T, ORBIT>& ah, const std::string& attribute_name)
+	{
+		ah = get_attribute<T,ORBIT>(attribute_name);
+	}
+
 	template <typename T>
 	inline Attribute_T<T> get_attribute(Orbit orbit, const std::string& attribute_name)
 	{
@@ -282,6 +337,12 @@ public:
 
 		ChunkArray<T>* ca = this->attributes_[orbit].template get_chunk_array<T>(attribute_name);
 		return Attribute_T<T>(this, ca, orbit);
+	}
+
+	template <typename T>
+	inline void get_attribute(Attribute_T<T>& ath, Orbit orbit, const std::string& attribute_name)
+	{
+		ath = get_attribute<T>(orbit, attribute_name);
 	}
 
 	/**
@@ -457,7 +518,7 @@ public:
 		Attribute<std::vector<CellType>, ORBIT> counter = add_attribute<std::vector<CellType>, ORBIT>("__tmp_dart_per_emb");
 		bool result = true;
 
-		const typename Inherit::template ChunkArrayContainer<uint32>& container = this->attributes_[ORBIT];
+		const ChunkArrayContainer<uint32>& container = this->attributes_[ORBIT];
 
 		// Check that the indexation of cells is correct
 		foreach_cell<FORCE_DART_MARKING>([&] (CellType c)
@@ -659,6 +720,26 @@ public:
 		return result;
 	}
 
+protected:
+	template <Orbit ORBIT>
+	void boundary_mark(Cell<ORBIT> c)
+	{
+		static_assert(std::is_same<Cell<ORBIT>, typename ConcreteMap::Boundary>::value, "Cell is not defined as boundary");
+		to_concrete()->foreach_dart_of_orbit(c, [this] (Dart d)
+		{
+			set_boundary(d,true);
+		});
+	}
+
+	template <Orbit ORBIT>
+	void boundary_unmark(Cell<ORBIT> c)
+	{
+		static_assert(std::is_same<Cell<ORBIT>, typename ConcreteMap::Boundary>::value, "Cell is not defined as boundary");
+		to_concrete()->foreach_dart_of_orbit(c, [this] (Dart d)
+		{
+			set_boundary(d,false);
+		});
+	}
 	/*******************************************************************************
 	 * Traversals
 	 *******************************************************************************/
@@ -673,7 +754,7 @@ public:
 	template <typename FUNC>
 	inline void foreach_dart(const FUNC& f) const
 	{
-		static_assert(check_func_parameter_type(FUNC, Dart), "Wrong function parameter type");
+		static_assert(is_func_parameter_same<FUNC, Dart>::value, "Wrong function parameter type");
 
 		for (Dart it = Dart(this->topology_.begin()), last = Dart(this->topology_.end()); it != last; this->topology_.next(it.index))
 			f(it);
@@ -682,8 +763,8 @@ public:
 	template <typename FUNC>
 	inline void parallel_foreach_dart(const FUNC& f) const
 	{
-		static_assert(check_func_ith_parameter_type(FUNC, 0, Dart), "Wrong function first parameter type");
-		static_assert(check_func_ith_parameter_type(FUNC, 1, uint32), "Wrong function second parameter type");
+		static_assert(is_ith_func_parameter_same<FUNC, 0, Dart>::value, "Wrong function first parameter type");
+		static_assert(is_ith_func_parameter_same<FUNC, 1, uint32>::value, "Wrong function second parameter type");
 
 		using Future = std::future<typename std::result_of<FUNC(Dart, uint32)>::type>;
 		using VecDarts = std::vector<Dart>;
@@ -756,8 +837,8 @@ public:
 	template <typename FUNC>
 	inline void foreach_dart_until(const FUNC& f) const
 	{
-		static_assert(check_func_parameter_type(FUNC, Dart), "Wrong function parameter type");
-		static_assert(check_func_return_type(FUNC, bool), "Wrong function return type");
+		static_assert(is_func_parameter_same<FUNC, Dart>::value, "Wrong function parameter type");
+		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
 
 		for (Dart it = Dart(this->topology_.begin()), last = Dart(this->topology_.end()); it != last; this->topology_.next(it.index))
 		{
@@ -808,7 +889,7 @@ public:
 	template <TraversalStrategy STRATEGY = TraversalStrategy::AUTO, typename FUNC>
 	inline void foreach_cell(const FUNC& f) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		foreach_cell<STRATEGY>(f, [] (CellType) { return true; });
 	}
@@ -816,7 +897,7 @@ public:
 	template <TraversalStrategy STRATEGY = TraversalStrategy::AUTO, typename FUNC>
 	inline void parallel_foreach_cell(const FUNC& f) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		parallel_foreach_cell<STRATEGY>(f, [] (CellType) { return true; });
 	}
@@ -824,7 +905,7 @@ public:
 	template <TraversalStrategy STRATEGY = TraversalStrategy::AUTO, typename FUNC>
 	inline void foreach_cell_until(const FUNC& f) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		foreach_cell_until<STRATEGY>(f, [] (CellType) { return true; });
 	}
@@ -839,10 +920,10 @@ public:
 	template <TraversalStrategy STRATEGY = TraversalStrategy::AUTO,
 			  typename FUNC,
 			  typename FilterFunction,
-			  typename std::enable_if<check_func_return_type(FilterFunction, bool) && check_func_parameter_type(FilterFunction, func_parameter_type(FUNC))>::type* = nullptr>
+			  typename std::enable_if<is_func_return_same<FilterFunction, bool>::value && is_func_parameter_same<FilterFunction, func_parameter_type<FUNC>>::value>::type* = nullptr>
 	inline void foreach_cell(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 		static const Orbit ORBIT = CellType::ORBIT;
 
 		switch (STRATEGY)
@@ -865,12 +946,11 @@ public:
 	template <TraversalStrategy STRATEGY = TraversalStrategy::AUTO,
 			  typename FUNC,
 			  typename FilterFunction,
-			  typename std::enable_if<check_func_return_type(FilterFunction, bool) && check_func_parameter_type(FilterFunction, func_parameter_type(FUNC))>::type* = nullptr>
+			  typename std::enable_if<is_func_return_same<FilterFunction, bool>::value  && is_func_parameter_same<FilterFunction, func_parameter_type<FUNC>>::value>::type* = nullptr>
 	inline void parallel_foreach_cell(const FUNC& f, const FilterFunction& filter) const
 	{
-		static_assert(check_func_ith_parameter_type(FUNC, 1, uint32), "Wrong function second parameter type");
-
-		using CellType = func_parameter_type(FUNC);
+		static_assert(is_ith_func_parameter_same<FUNC, 1, uint32>::value, "Wrong function second parameter type");
+		using CellType = func_parameter_type<FUNC>;
 		static const Orbit ORBIT = CellType::ORBIT;
 
 		switch (STRATEGY)
@@ -893,10 +973,11 @@ public:
 	template <TraversalStrategy STRATEGY = TraversalStrategy::AUTO,
 			  typename FUNC,
 			  typename FilterFunction,
-			  typename std::enable_if<check_func_return_type(FilterFunction, bool) && check_func_parameter_type(FilterFunction, func_parameter_type(FUNC))>::type* = nullptr>
+			  typename std::enable_if<is_func_return_same<FilterFunction, bool>::value  && is_func_parameter_same<FilterFunction, func_parameter_type<FUNC>>::value>::type* = nullptr>
 	void foreach_cell_until(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
+		using CellType = func_parameter_type<FUNC>;
 
 		switch (STRATEGY)
 		{
@@ -927,7 +1008,7 @@ public:
 			  typename std::enable_if<std::is_base_of<CellFilters, Filters>::value>::type* = nullptr>
 	inline void foreach_cell(const FUNC& f, const Filters& filters) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		foreach_cell(f, [&filters] (CellType c) { return filters.filter(c); });
 	}
@@ -937,7 +1018,7 @@ public:
 			  typename std::enable_if<std::is_base_of<CellFilters, Filters>::value>::type* = nullptr>
 	inline void parallel_foreach_cell(const FUNC& f, const Filters& filters) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		parallel_foreach_cell(f, [&filters] (CellType c) { return filters.filter(c); });
 	}
@@ -947,7 +1028,8 @@ public:
 			  typename std::enable_if<std::is_base_of<CellFilters, Filters>::value>::type* = nullptr>
 	inline void foreach_cell_until(const FUNC& f, const Filters& filters) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
+		using CellType = func_parameter_type<FUNC>;
 
 		foreach_cell_until(f, [&filters] (CellType c) { return filters.filter(c); });
 	}
@@ -963,7 +1045,7 @@ public:
 			  typename std::enable_if<std::is_base_of<CellTraversor, Traversor>::value>::type* = nullptr>
 	inline void foreach_cell(const FUNC& f, const Traversor& t) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		for(typename Traversor::const_iterator it = t.template begin<CellType>(), end = t.template end<CellType>() ; it != end; ++it)
 			f(CellType(*it));
@@ -974,9 +1056,9 @@ public:
 			  typename std::enable_if<std::is_base_of<CellTraversor, Traversor>::value>::type* = nullptr>
 	inline void parallel_foreach_cell(const FUNC& f, const Traversor& t) const
 	{
-		static_assert(check_func_ith_parameter_type(FUNC, 1, uint32), "Wrong function second parameter type");
+		static_assert(is_ith_func_parameter_same<FUNC, 1, uint32>::value, "Wrong function second parameter type");
 
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		using VecCell = std::vector<CellType>;
 		using Future = std::future<typename std::result_of<FUNC(CellType, uint32)>::type>;
@@ -1044,7 +1126,8 @@ public:
 			  typename std::enable_if<std::is_base_of<CellTraversor, Traversor>::value>::type* = nullptr>
 	inline void foreach_cell_until(const FUNC& f, const Traversor& t) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
+		using CellType = func_parameter_type<FUNC>;
 
 		for(typename Traversor::const_iterator it = t.template begin<CellType>(), end = t.template end<CellType>() ;it != end; ++it)
 			if (!f(CellType(*it)))
@@ -1056,7 +1139,7 @@ protected:
 	template <typename FUNC, typename FilterFunction>
 	inline void foreach_cell_dart_marking(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		const ConcreteMap* cmap = to_concrete();
 		DartMarker dm(*cmap);
@@ -1075,7 +1158,7 @@ protected:
 	template <typename FUNC, typename FilterFunction>
 	inline void parallel_foreach_cell_dart_marking(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 
 		using VecCell = std::vector<CellType>;
 		using Future = std::future<typename std::result_of<FUNC(CellType, uint32)>::type>;
@@ -1153,7 +1236,7 @@ protected:
 	template <typename FUNC, typename FilterFunction>
 	inline void foreach_cell_cell_marking(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 		static const Orbit ORBIT = CellType::ORBIT;
 
 		const ConcreteMap* cmap = to_concrete();
@@ -1173,7 +1256,7 @@ protected:
 	template <typename FUNC, typename FilterFunction>
 	inline void parallel_foreach_cell_cell_marking(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		using CellType = func_parameter_type<FUNC>;
 		static const Orbit ORBIT = CellType::ORBIT;
 
 		using VecCell = std::vector<CellType>;
@@ -1252,7 +1335,8 @@ protected:
 	template <typename FUNC, typename FilterFunction>
 	inline void foreach_cell_until_dart_marking(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
+		using CellType = func_parameter_type<FUNC>;
 
 		const ConcreteMap* cmap = to_concrete();
 		DartMarker dm(*cmap);
@@ -1272,7 +1356,8 @@ protected:
 	template <typename FUNC, typename FilterFunction>
 	inline void foreach_cell_until_cell_marking(const FUNC& f, const FilterFunction& filter) const
 	{
-		using CellType = func_parameter_type(FUNC);
+		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
+		using CellType = func_parameter_type<FUNC>;
 		static const Orbit ORBIT = CellType::ORBIT;
 
 		const ConcreteMap* cmap = to_concrete();

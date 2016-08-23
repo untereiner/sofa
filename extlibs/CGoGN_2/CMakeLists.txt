@@ -36,9 +36,6 @@ set(CGOGN_SOURCE_DIR ${CGOGN_PATH})
 
 ### External Templates
 option(CGOGN_EXTERNAL_TEMPLATES "Use external templates to reduce compile time" ON)
-if(${CGOGN_EXTERNAL_TEMPLATES})
-	add_definitions("-DCGOGN_USE_EXTERNAL_TEMPLATES")
-endif()
 
 #### ThirdParty options
 set(CGOGN_THIRDPARTY_DIR ${CGOGN_PATH}/thirdparty)
@@ -136,9 +133,9 @@ include(CMakePackageConfigHelpers)
 add_subdirectory(${CGOGN_THIRDPARTY_DIR})
 add_subdirectory(${CGOGN_SOURCE_DIR}/cgogn)
 
-if(${CGOGN_BUILD_BENCHS})
-	add_subdirectory(benchmarks)
-endif(${CGOGN_BUILD_BENCHS})
+# if(${CGOGN_BUILD_BENCHS})
+# 	add_subdirectory(benchmarks)
+# endif(${CGOGN_BUILD_BENCHS})
 
 if(CGOGN_BUILD_TESTS)
 	add_subdirectory(cgogn/core/tests)
