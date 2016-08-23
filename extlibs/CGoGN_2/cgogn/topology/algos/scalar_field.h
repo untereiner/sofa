@@ -68,6 +68,8 @@ class ScalarField
 	using VolumeMarkerStore = typename cgogn::CellMarkerStore<MAP, Volume::ORBIT>;
 
 public:
+	CGOGN_NOT_COPYABLE_NOR_MOVABLE(ScalarField);
+
 	ScalarField(MAP& map,
 				const AdjacencyCache<MAP>& cache,
 				const VertexAttribute<Scalar>& scalar_field) :
@@ -78,7 +80,7 @@ public:
 	{
 		// To allow multiple ScalarField on a same map
 		std::string name = "vertex_type_for_" + scalar_field.name();
-		vertex_type_ = map.template add_attribute<CriticalPoint::Type, Vertex::ORBIT>(name);
+		map.add_attribute(vertex_type_, name);
 	}
 
 	~ScalarField()
@@ -685,6 +687,13 @@ private:
 	std::vector<Vertex> saddles_;
 
 };
+
+#if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_TOPOLOGY_SCALAR_FIELD_CPP_))
+extern template class CGOGN_TOPLOGY_API ScalarField<float32, CMap2<DefaultMapTraits>>;
+extern template class CGOGN_TOPLOGY_API ScalarField<float64, CMap2<DefaultMapTraits>>;
+extern template class CGOGN_TOPLOGY_API ScalarField<float32, CMap3<DefaultMapTraits>>;
+extern template class CGOGN_TOPLOGY_API ScalarField<float64, CMap3<DefaultMapTraits>>;
+#endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_TOPOLOGY_SCALAR_FIELD_CPP_))
 
 } // namespace topology
 

@@ -45,13 +45,11 @@ namespace io
 {
 
 template <typename MAP_TRAITS>
-class SurfaceImport : public MeshImportGen
+class SurfaceImport
 {
 public:
 
 	using Self = SurfaceImport<MAP_TRAITS>;
-	using Inherit = MeshImportGen;
-
 	static const uint32 CHUNK_SIZE = MAP_TRAITS::CHUNK_SIZE;
 
 	template <typename T>
@@ -63,7 +61,6 @@ public:
 protected:
 
 	uint32 nb_vertices_;
-//	uint32 nb_edges_;
 	uint32 nb_faces_;
 
 	std::vector<uint32> faces_nb_edges_;
@@ -76,7 +73,6 @@ public:
 
 	inline SurfaceImport() :
 		nb_vertices_(0u)
-//	  ,nb_edges_(0u)
 	  ,nb_faces_(0u)
 	  ,faces_nb_edges_()
 	  ,faces_vertex_indices_()
@@ -84,13 +80,12 @@ public:
 
 	CGOGN_NOT_COPYABLE_NOR_MOVABLE(SurfaceImport);
 
-	virtual ~SurfaceImport() override
+	virtual ~SurfaceImport()
 	{}
 
-	virtual void clear() override
+	virtual void clear()
 	{
 		nb_vertices_ = 0;
-//		nb_edges_ = 0;
 		nb_faces_ = 0;
 		faces_nb_edges_.clear();
 		faces_vertex_indices_.clear();
@@ -104,6 +99,7 @@ public:
 		static_assert(Map::DIMENSION == 2, "must use map of dim 2 in surface import");
 
 		using Vertex = typename Map::Vertex;
+		using Edge = typename Map::Edge;
 		using Face = typename Map::Face;
 		using MapBuilder = typename Map::Builder;
 
@@ -116,8 +112,7 @@ public:
 		mbuild.template create_embedding<Vertex::ORBIT>();
 		mbuild.template swap_chunk_array_container<Vertex::ORBIT>(this->vertex_attributes_);
 
-		typename Map::template VertexAttribute<std::vector<Dart>> darts_per_vertex =
-			map.template add_attribute<std::vector<Dart>, Vertex::ORBIT>("darts_per_vertex");
+		auto darts_per_vertex = map.template add_attribute<std::vector<Dart>, Vertex::ORBIT>("darts_per_vertex");
 
 		uint32 faces_vertex_index = 0;
 		std::vector<uint32> vertices_buffer;
@@ -283,11 +278,35 @@ public:
 		faces_vertex_indices_.push_back(p3);
 	}
 
+	void add_face(const std::vector<uint32>& v_ids)
+	{
+		nb_faces_ += 1u;
+		faces_nb_edges_.push_back(uint32(v_ids.size()));
+		for (uint32 id : v_ids)
+			faces_vertex_indices_.push_back(id);
+	}
+};
 
+template <typename MAP_TRAITS>
+class SurfaceFileImport : public SurfaceImport<MAP_TRAITS>, public FileImport
+{
+	using Self = SurfaceFileImport<MAP_TRAITS>;
+	using Inherit1 = SurfaceImport<MAP_TRAITS>;
+	using Inherit2 = FileImport;
+
+	CGOGN_NOT_COPYABLE_NOR_MOVABLE(SurfaceFileImport);
+
+public:
+	inline SurfaceFileImport() : Inherit1(), Inherit2()
+	{}
+
+	virtual ~SurfaceFileImport()
+	{}
 };
 
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_SURFACE_IMPORT_CPP_))
 extern template class CGOGN_IO_API SurfaceImport<DefaultMapTraits>;
+extern template class CGOGN_IO_API SurfaceFileImport<DefaultMapTraits>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_SURFACE_IMPORT_CPP_))
 
 } // namespace io
