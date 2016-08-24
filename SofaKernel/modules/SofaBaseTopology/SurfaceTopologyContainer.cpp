@@ -57,7 +57,7 @@ void SurfaceTopologyContainer::initFromMeshLoader()
 	helper::ReadAccessor< Data< helper::vector< Quad> > > m_quad = d_quad;
 
 	cgogn::io::SurfaceImport<Topo_Traits::MapTraits> surface_import;
-	surface_import.set_nb_vertices(m_position.size());
+	surface_import.reserve(m_tri.size() + m_quad.size());
 
 	auto* pos_att = surface_import.template position_attribute<Eigen::Vector3d>();
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)

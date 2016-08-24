@@ -57,8 +57,21 @@ int MapTetrahedronSetTopologyContainer::getNbPoints() const
 
 void MapTetrahedronSetTopologyContainer::init()
 {
-	Inherit1::init();
 	this->getContext()->get(map_);
+	if (!map_)
+		return;
+
+	map_->add_attribute(edges_around_vertex_, "edges_around_vertex");
+	map_->add_attribute(edges_in_triangle_, "edges_in_triangle");
+	map_->add_attribute(triangles_around_vertex_, "triangles_around_vertex");
+	map_->add_attribute(triangles_around_edge_, "triangles_around_edge");
+	map_->add_attribute(oriented_triangles_around_vertex_, "oriented_triangles_around_vertex");
+	map_->add_attribute(tetrahedra_around_vertex_, "tetrahedra_around_vertex");
+	map_->add_attribute(tetrahedra_around_edge_, "tetrahedra_around_edge");
+	map_->add_attribute(tetrahedra_around_triangle_, "tetrahedra_around_triangle");
+	map_->add_attribute(edges_in_tetrahedron_, "edges_in_tetrahedron");
+	map_->add_attribute(triangles_in_tetrahedron_, "triangles_in_tetrahedron");
+	Inherit1::init();
 }
 
 void MapTetrahedronSetTopologyContainer::bwdInit()

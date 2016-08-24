@@ -58,8 +58,7 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	helper::ReadAccessor< Data< helper::vector< Hexa > > > m_hexa = d_hexa;
 
 	cgogn::io::VolumeImport<Topo_Traits::MapTraits> volume_import;
-	volume_import.set_nb_vertices(m_position.size());
-	volume_import.set_nb_volumes(m_tetra.size() + m_hexa.size());
+	volume_import.reserve(m_tetra.size() + m_hexa.size());
 
 	auto* pos_att = volume_import.template position_attribute<Eigen::Vector3d>();
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)
@@ -82,7 +81,7 @@ void VolumeTopologyContainer::initFromMeshLoader()
 
 void VolumeTopologyContainer::init()
 {
-	topology_.clear_and_remove_attributes();
+//	topology_.clear_and_remove_attributes();
 	Inherit1::init();
 	initFromMeshLoader();
 }
@@ -99,7 +98,7 @@ void VolumeTopologyContainer::reinit()
 
 void VolumeTopologyContainer::reset()
 {
-	topology_.clear_and_remove_attributes();
+//	topology_.clear_and_remove_attributes();
 	Inherit1::reset();
 }
 
