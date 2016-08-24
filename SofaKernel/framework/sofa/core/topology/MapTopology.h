@@ -38,6 +38,20 @@ namespace sofa
 namespace core
 {
 
+namespace cm_topology
+{
+
+/// The enumeration used to give unique identifiers to Topological objects.
+enum TopologyObjectType
+{
+	VERTEX,
+	EDGE,
+	FACE,
+	VOLUME
+};
+
+} // namespace cm_topology
+
 namespace topology
 {
 
