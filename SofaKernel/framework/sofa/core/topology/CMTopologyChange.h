@@ -102,7 +102,7 @@ SOFA_CORE_API std::istream& operator >> (std::istream& in, TopologyElemID& d);
 struct PointAncestorElem
 {
 	typedef defaulttype::Vec<3, double> LocalCoords;
-	using Vertex = Topology::Vertex;
+	using Vertex = topology::MapTopology::Vertex;
 
 	PointAncestorElem() : type(VERTEX), index(Vertex()) {}
 
@@ -113,7 +113,7 @@ struct PointAncestorElem
 	{}
 
 	TopologyObjectType type;
-	Vertex index;
+	topology::MapTopology::Vertex index;
 	LocalCoords localCoords;
 };
 
@@ -243,10 +243,11 @@ struct TopologyChangeElementInfo<topology::MapTopology::Volume>
 class SOFA_CORE_API TopologyChange
 {
 public:
-	using Vertex = topology::MapTopology::Vertex;
-	using Edge = topology::MapTopology::Edge;
-	using Face = topology::MapTopology::Face;
-	using Volume = topology::MapTopology::Volume;
+	using Dart		= topology::MapTopology::Dart;
+	using Vertex	= topology::MapTopology::Vertex;
+	using Edge		= topology::MapTopology::Edge;
+	using Face		= topology::MapTopology::Face;
+	using Volume	= topology::MapTopology::Volume;
 
 	/** \ brief Destructor.
 		*
@@ -315,16 +316,16 @@ public:
 class SOFA_CORE_API PointsIndicesSwap : public core::cm_topology::TopologyChange
 {
 public:
-	PointsIndicesSwap(const unsigned int i1,const unsigned int i2) : core::cm_topology::TopologyChange(core::cm_topology::POINTSINDICESSWAP)
+	PointsIndicesSwap(Vertex i1,Vertex i2) : core::cm_topology::TopologyChange(core::cm_topology::POINTSINDICESSWAP)
 	{
-		index[0]=i1;
-		index[1]=i2;
+		index[0] = i1;
+		index[1] = i2;
 	}
 
 	virtual ~PointsIndicesSwap();
 
 public:
-	unsigned int index[2];
+	Vertex index[2];
 };
 
 
@@ -385,7 +386,7 @@ public:
 	unsigned int nVertices;
 	sofa::helper::vector< Vertex > pointIndexArray;
 	sofa::helper::vector< sofa::helper::vector< Vertex > > ancestorsList;
-	sofa::helper::vector< sofa::helper::vector< double       > > coefs;
+	sofa::helper::vector< sofa::helper::vector< double > > coefs;
 	sofa::helper::vector< PointAncestorElem > ancestorElems;
 };
 
@@ -546,7 +547,7 @@ public:
 
 public:
 	unsigned int nEdges;
-	sofa::helper::vector< Topology::Edge > edgeArray;
+	sofa::helper::vector< Edge > edgeArray;
 	sofa::helper::vector< sofa::helper::vector< Edge > > ancestorsList;
 	sofa::helper::vector< sofa::helper::vector< double > > coefs;
 	sofa::helper::vector< ElemAncestorElem > ancestorElems;
@@ -616,7 +617,7 @@ public:
 
 public:
 	sofa::helper::vector< Edge > edgesAroundVertexMoved;
-	sofa::helper::vector< Topology::Edge > edgeArray2Moved;
+	sofa::helper::vector< topology::MapTopology::Edge > edgeArray2Moved;
 };
 
 
@@ -719,7 +720,7 @@ public:
 		return faceArray;
 	}
 
-	const Topology::Face &getFace(const unsigned int i)
+	const topology::MapTopology::Face &getFace(const unsigned int i)
 	{
 		return faceArray[i];
 	}
