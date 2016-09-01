@@ -38,20 +38,6 @@ namespace sofa
 namespace core
 {
 
-namespace cm_topology
-{
-
-/// The enumeration used to give unique identifiers to Topological objects.
-enum TopologyObjectType
-{
-	VERTEX,
-	EDGE,
-	FACE,
-	VOLUME
-};
-
-} // namespace cm_topology
-
 namespace topology
 {
 
@@ -119,6 +105,7 @@ struct CGOGN_Traits
 		}
 	};
 };
+
 
 class SOFA_CORE_API MapTopology : virtual public TopologyContainer
 {
@@ -249,6 +236,52 @@ public:
 
 
 } // namespace topology
+
+namespace cm_topology
+{
+
+/// The enumeration used to give unique identifiers to Topological objects.
+enum TopologyObjectType
+{
+	VERTEX,
+	EDGE,
+	FACE,
+	VOLUME
+};
+
+template<class TopologyElement>
+struct TopologyElementInfo;
+
+template<>
+struct TopologyElementInfo<topology::CGOGN_Traits::Vertex>
+{
+	static TopologyObjectType type() { return VERTEX; }
+	static const char* name() { return "Vertex"; }
+};
+
+template<>
+struct TopologyElementInfo<topology::CGOGN_Traits::Edge>
+{
+	static TopologyObjectType type() { return EDGE; }
+	static const char* name() { return "Edge"; }
+};
+
+template<>
+struct TopologyElementInfo<topology::CGOGN_Traits::Face>
+{
+	static TopologyObjectType type() { return FACE; }
+	static const char* name() { return "Face"; }
+};
+
+template<>
+struct TopologyElementInfo<topology::CGOGN_Traits::Volume>
+{
+	static TopologyObjectType type() { return VOLUME; }
+	static const char* name() { return "Volume"; }
+};
+
+} // namespace cm_topology
+
 
 } // namespace core
 

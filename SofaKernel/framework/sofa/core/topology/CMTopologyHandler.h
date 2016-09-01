@@ -12,10 +12,10 @@ namespace core
 namespace cm_topology
 {
 
-typedef Topology::Vertex           Vertex;
-typedef Topology::Edge             Edge;
-typedef Topology::Face             Face;
-typedef Topology::Volume           Volume;
+typedef topology::MapTopology::Vertex           Vertex;
+typedef topology::MapTopology::Edge             Edge;
+typedef topology::MapTopology::Face             Face;
+typedef topology::MapTopology::Volume           Volume;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
