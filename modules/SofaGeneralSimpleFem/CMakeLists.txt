@@ -16,6 +16,8 @@ set(HEADER_FILES
     StiffnessContainer.h
     TetrahedralCorotationalFEMForceField.h
     TetrahedralCorotationalFEMForceField.inl
+    CMTetrahedralCorotationalFEMForceField.h
+    CMTetrahedralCorotationalFEMForceField.inl
     TriangularFEMForceFieldOptim.h
     TriangularFEMForceFieldOptim.inl
     config.h
@@ -29,6 +31,7 @@ set(SOURCE_FILES
     HexahedralFEMForceFieldAndMass.cpp
     HexahedronFEMForceFieldAndMass.cpp
     TetrahedralCorotationalFEMForceField.cpp
+    CMTetrahedralCorotationalFEMForceField.cpp
     TriangularFEMForceFieldOptim.cpp
 )
 
