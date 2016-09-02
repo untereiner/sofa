@@ -66,6 +66,12 @@ set(HEADER_FILES
     VolumeTopologyContainer.h
     config.h
     initBaseTopology.h
+    CMTopologyData.h
+    CMTopologyData.inl
+    CMTopologyDataHandler.h
+    CMTopologyDataHandler.inl
+    CMTopologyEngine.h
+    CMTopologyEngine.inl
 )
 
 set(SOURCE_FILES

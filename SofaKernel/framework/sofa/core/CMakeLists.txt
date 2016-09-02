@@ -136,6 +136,8 @@ set(HEADER_FILES
     topology/CMTopologyChange.h
     topology/CMTopologyHandler.h
     topology/CMTopologyElementHandler.h
+    topology/CMBaseTopologyData.h
+    topology/CMBaseTopologyEngine.h
     visual/DisplayFlags.h
     visual/DrawTool.h
     visual/Shader.h
