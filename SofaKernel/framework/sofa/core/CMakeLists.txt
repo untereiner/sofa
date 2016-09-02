@@ -229,6 +229,7 @@ set(SOURCE_FILES
     topology/TopologyElementHandler.cpp
     topology/TopologyHandler.cpp
     topology/MapTopology.cpp
+    topology/CMTopologyHandler.cpp
     topology/CMTopologyElementHandler.cpp
     visual/Shader.cpp
     visual/DisplayFlags.cpp
