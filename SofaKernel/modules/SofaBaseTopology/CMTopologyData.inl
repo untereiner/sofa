@@ -51,13 +51,13 @@ TopologyDataImpl <TopologyElementType, VecT>::~TopologyDataImpl()
 
 
 template <typename TopologyElementType, typename VecT>
-void TopologyDataImpl <TopologyElementType, VecT>::createTopologicalEngine(sofa::core::topology::BaseMeshTopology *_topology, sofa::component::topology::TopologyDataHandler<TopologyElementType,VecT>* _topologyHandler, bool deleteHandler)
+void TopologyDataImpl <TopologyElementType, VecT>::createTopologicalEngine(sofa::core::topology::MapTopology *_topology, sofa::component::cm_topology::TopologyDataHandler<TopologyElementType,VecT>* _topologyHandler, bool deleteHandler)
 {
     this->m_topology = _topology;
     if (_topology && dynamic_cast<sofa::core::topology::TopologyContainer*>(_topology))
     {
-        this->m_topologicalEngine = sofa::core::objectmodel::New<TopologyEngineImpl<VecT> >((sofa::component::topology::TopologyDataImpl<TopologyElementType, VecT>*)this, _topology, _topologyHandler);
-        this->m_topologicalEngine->setNamePrefix(std::string(sofa::core::topology::TopologyElementInfo<TopologyElementType>::name()) + std::string("Engine_"));
+        this->m_topologicalEngine = sofa::core::objectmodel::New<TopologyEngineImpl<VecT> >((sofa::component::cm_topology::TopologyDataImpl<TopologyElementType, VecT>*)this, _topology, _topologyHandler);
+        this->m_topologicalEngine->setNamePrefix(std::string(sofa::core::cm_topology::TopologyElementInfo<TopologyElementType>::name()) + std::string("Engine_"));
         if (this->getOwner() && dynamic_cast<sofa::core::objectmodel::BaseObject*>(this->getOwner())) dynamic_cast<sofa::core::objectmodel::BaseObject*>(this->getOwner())->addSlave(this->m_topologicalEngine.get());
         this->m_topologicalEngine->init();
         this->linkToElementDataArray();
@@ -78,7 +78,7 @@ void TopologyDataImpl <TopologyElementType, VecT>::createTopologicalEngine(sofa:
 
 
 template <typename TopologyElementType, typename VecT>
-void TopologyDataImpl <TopologyElementType, VecT>::createTopologicalEngine(sofa::core::topology::BaseMeshTopology *_topology)
+void TopologyDataImpl <TopologyElementType, VecT>::createTopologicalEngine(sofa::core::topology::MapTopology *_topology)
 {
     this->m_topologyHandler = new TopologyDataHandler<TopologyElementType, VecT>(this);
     createTopologicalEngine(_topology, this->m_topologyHandler);
