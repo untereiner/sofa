@@ -211,7 +211,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 		{
 			_topology->foreach_cell([&](VolumeTopology::Volume w)
 			{
-				const auto& t=_topology->get_dofs(w);
+				const auto& t=_topology->get_dofs(w.dart);
 				Index a = t[0];
 				Index b = t[1];
 				Index c = t[2];
@@ -221,11 +221,11 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 			});
 			break;
 		}
-    case LARGE :
-    {
+		case LARGE :
+		{
 			_topology->foreach_cell([&](VolumeTopology::Volume w)
 			{
-				const auto& t=_topology->get_dofs(w);
+				const auto& t=_topology->get_dofs(w.dart);
 				Index a = t[0];
 				Index b = t[1];
 				Index c = t[2];
@@ -235,21 +235,21 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 			});
 			break;
 		}
-    case POLAR :
-    {
-        for(int i = 0 ; i<_topology->getNbTetrahedra(); ++i)
-        {
-            const core::topology::BaseMeshTopology::Tetrahedron t=_topology->getTetrahedron(i);
-            Index a = t[0];
-            Index b = t[1];
-            Index c = t[2];
-            Index d = t[3];
+		case POLAR :
+		{
+			_topology->foreach_cell([&](VolumeTopology::Volume w)
+			{
+				const auto& t=_topology->get_dofs(w.dart);
+				Index a = t[0];
+				Index b = t[1];
+				Index c = t[2];
+				Index d = t[3];
 
-            applyStiffnessPolar( df, dx, i, a,b,c,d, kFactor );
-        }
-        break;
-    }
-    }
+				applyStiffnessPolar( df, dx, w.dart, a,b,c,d, kFactor );
+			});
+			break;
+		}
+	}
 
     d_df.endEdit();
 }
