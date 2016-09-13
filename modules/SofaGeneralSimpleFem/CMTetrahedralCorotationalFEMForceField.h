@@ -27,6 +27,7 @@
 #include "config.h"
 
 #include <sofa/core/behavior/ForceField.h>
+#include <SofaBaseTopology/VolumeTopologyContainer.h>
 #include <SofaBaseTopology/CMTopologyData.h>
 #include <sofa/helper/vector.h>
 #include <sofa/defaulttype/Vec.h>
@@ -71,7 +72,8 @@ public:
     typedef typename DataTypes::Coord Coord;
     typedef typename DataTypes::Deriv Deriv;
     typedef typename Coord::value_type Real;
-	using Volume = core::topology::MapTopology::Volume;
+	using VolumeTopology = sofa::component::topology::VolumeTopologyContainer;
+	using BaseVolume = core::topology::MapTopology::Volume;
 
     typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
     typedef core::objectmodel::Data<VecCoord>    DataVecCoord;
@@ -133,7 +135,7 @@ protected:
         }
     };
     /// container that stotes all requires information for each tetrahedron
-    cm_topology::TetrahedronData<sofa::helper::vector<TetrahedronInformation> > tetrahedronInfo;
+	cm_topology::TetrahedronData<TetrahedronInformation> tetrahedronInfo;
 
     /// @name Full system matrix assembly support
     /// @{
@@ -148,14 +150,14 @@ protected:
 
     SReal m_potentialEnergy;
 
-    sofa::core::topology::BaseMeshTopology* _topology;
+	VolumeTopology* _topology;
 public:
     class TetrahedronHandler : public cm_topology::TopologyDataHandler<core::topology::MapTopology::Volume, TetrahedronInformation>
     {
     public :
         typedef typename TetrahedralCorotationalFEMForceField<DataTypes>::TetrahedronInformation TetrahedronInformation;
         TetrahedronHandler(TetrahedralCorotationalFEMForceField<DataTypes>* forcefield,
-                           cm_topology::TetrahedronData<sofa::helper::vector<TetrahedronInformation> >* data)
+						   cm_topology::TetrahedronData<TetrahedronInformation>* data)
             : cm_topology::TopologyDataHandler<core::topology::MapTopology::Volume, TetrahedronInformation>(data)
             ,ff(forcefield)
         {
@@ -219,7 +221,7 @@ public:
     void getElementRotation(Transformation& R, unsigned int elementIdx);
 
     // Getting the stiffness matrix of index i
-    void getElementStiffnessMatrix(Real* stiffness, unsigned int nodeIdx);
+	void getElementStiffnessMatrix(Real* stiffness, BaseVolume element);
     void getElementStiffnessMatrix(Real* stiffness, core::topology::BaseMeshTopology::Tetrahedron& te);
 
     void draw(const core::visual::VisualParams* vparams);
@@ -231,7 +233,7 @@ protected:
 
     void computeStiffnessMatrix( StiffnessMatrix& S,StiffnessMatrix& SR,const MaterialStiffness &K, const StrainDisplacementTransposed &J, const Transformation& Rot );
 
-    void computeMaterialStiffness(int i, Index&a, Index&b, Index&c, Index&d);
+	void computeMaterialStiffness(BaseVolume i, Index&a, Index&b, Index&c, Index&d);
 
     /// overloaded by classes with non-uniform stiffness
     virtual void computeMaterialStiffness(MaterialStiffness& materialMatrix, Index&a, Index&b, Index&c, Index&d, SReal localStiffnessFactor=1);
@@ -240,22 +242,22 @@ protected:
     void computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J, SReal fact );
 
     ////////////// small displacements method
-    void initSmall(int i, Index&a, Index&b, Index&c, Index&d);
+	void initSmall(BaseVolume w, Index&a, Index&b, Index&c, Index&d);
     void accumulateForceSmall( Vector& f, const Vector & p, Index elementIndex );
     void applyStiffnessSmall( Vector& f, const Vector& x, int i=0, Index a=0,Index b=1,Index c=2,Index d=3, SReal fact=1.0 );
 
     ////////////// large displacements method
-    void initLarge(int i, Index&a, Index&b, Index&c, Index&d);
+	void initLarge(BaseVolume w, Index&a, Index&b, Index&c, Index&d);
     void computeRotationLarge( Transformation &r, const Vector &p, const Index &a, const Index &b, const Index &c);
     void accumulateForceLarge( Vector& f, const Vector & p, Index elementIndex );
-    void applyStiffnessLarge( Vector& f, const Vector& x, int i=0, Index a=0,Index b=1,Index c=2,Index d=3, SReal fact=1.0 );
+	void applyStiffnessLarge(Vector& f, const Vector& x, BaseVolume w=0, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
     ////////////// polar decomposition method
     void initPolar(int i, Index&a, Index&b, Index&c, Index&d);
     void accumulateForcePolar( Vector& f, const Vector & p,Index elementIndex );
     void applyStiffnessPolar( Vector& f, const Vector& x, int i=0, Index a=0,Index b=1,Index c=2,Index d=3, SReal fact=1.0 );
 
-    void printStiffnessMatrix(int idTetra);
+	void printStiffnessMatrix(BaseVolume idTetra);
 
 };
 
