@@ -211,7 +211,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 		{
 			_topology->foreach_cell([&](VolumeTopology::Volume w)
 			{
-				const auto& t=_topology->get_dofs(w.dart);
+				const auto& t=_topology->get_dofs(BaseVolume(w.dart));
 				Index a = t[0];
 				Index b = t[1];
 				Index c = t[2];
@@ -225,7 +225,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 		{
 			_topology->foreach_cell([&](VolumeTopology::Volume w)
 			{
-				const auto& t=_topology->get_dofs(w.dart);
+				const auto& t=_topology->get_dofs(BaseVolume(w.dart));
 				Index a = t[0];
 				Index b = t[1];
 				Index c = t[2];
@@ -239,7 +239,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 		{
 			_topology->foreach_cell([&](VolumeTopology::Volume w)
 			{
-				const auto& t=_topology->get_dofs(w.dart);
+				const auto& t=_topology->get_dofs(BaseVolume(w.dart));
 				Index a = t[0];
 				Index b = t[1];
 				Index c = t[2];
