@@ -32,6 +32,8 @@
 #include <cgogn/core/cmap/cmap3.h>
 #include <cgogn/core/basic/dart_marker.h>
 #include <cgogn/core/basic/cell_marker.h>
+#include <cgogn/io/io_utils.h>
+
 namespace sofa
 {
 

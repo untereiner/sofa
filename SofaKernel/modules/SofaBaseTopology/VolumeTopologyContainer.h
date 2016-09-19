@@ -196,14 +196,14 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		return topology_.nb_cells<ORBIT>();
 	}
 
-	inline const std::vector<unsigned int>& get_dofs(BaseVolume /*w*/) const
+	inline const std::vector<unsigned int>& get_dofs(Volume /*w*/) const
 	{
 		// TODO
 		static const std::vector<unsigned int> empty;
 		return empty;
 	}
 
-	inline const std::vector<unsigned int>& get_dofs(BaseFace /*f*/) const
+	inline const std::vector<unsigned int>& get_dofs(Face /*f*/) const
 	{
 		// TODO
 		static const std::vector<unsigned int> empty;
