@@ -74,6 +74,7 @@ public:
     typedef typename Coord::value_type Real;
 	using VolumeTopology = sofa::component::topology::VolumeTopologyContainer;
 	using BaseVolume = core::topology::MapTopology::Volume;
+	using Volume = VolumeTopology::Volume;
 
     typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
     typedef core::objectmodel::Data<VecCoord>    DataVecCoord;
@@ -221,8 +222,8 @@ public:
     void getElementRotation(Transformation& R, unsigned int elementIdx);
 
     // Getting the stiffness matrix of index i
-	void getElementStiffnessMatrix(Real* stiffness, BaseVolume element);
-    void getElementStiffnessMatrix(Real* stiffness, core::topology::BaseMeshTopology::Tetrahedron& te);
+	void getElementStiffnessMatrix(Real* stiffness, Volume w);
+    void getElementStiffnessMatrix(Real* stiffness, const std::vector<unsigned int>& t);
 
     void draw(const core::visual::VisualParams* vparams);
 
@@ -233,7 +234,7 @@ protected:
 
     void computeStiffnessMatrix( StiffnessMatrix& S,StiffnessMatrix& SR,const MaterialStiffness &K, const StrainDisplacementTransposed &J, const Transformation& Rot );
 
-	void computeMaterialStiffness(BaseVolume i, Index&a, Index&b, Index&c, Index&d);
+	void computeMaterialStiffness(Volume w, Index&a, Index&b, Index&c, Index&d);
 
     /// overloaded by classes with non-uniform stiffness
     virtual void computeMaterialStiffness(MaterialStiffness& materialMatrix, Index&a, Index&b, Index&c, Index&d, SReal localStiffnessFactor=1);
@@ -242,22 +243,22 @@ protected:
     void computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J, SReal fact );
 
     ////////////// small displacements method
-	void initSmall(BaseVolume w, Index&a, Index&b, Index&c, Index&d);
-    void accumulateForceSmall( Vector& f, const Vector & p, Index elementIndex );
-    void applyStiffnessSmall( Vector& f, const Vector& x, int i=0, Index a=0,Index b=1,Index c=2,Index d=3, SReal fact=1.0 );
+	void initSmall(Volume w, Index&a, Index&b, Index&c, Index&d);
+    void accumulateForceSmall(Vector& f, const Vector & p, Volume w );
+    void applyStiffnessSmall(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
     ////////////// large displacements method
-	void initLarge(BaseVolume w, Index&a, Index&b, Index&c, Index&d);
+	void initLarge(Volume w, Index&a, Index&b, Index&c, Index&d);
     void computeRotationLarge( Transformation &r, const Vector &p, const Index &a, const Index &b, const Index &c);
-    void accumulateForceLarge( Vector& f, const Vector & p, Index elementIndex );
-	void applyStiffnessLarge(Vector& f, const Vector& x, BaseVolume w=0, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
+    void accumulateForceLarge(Vector& f, const Vector & p, Volume w );
+	void applyStiffnessLarge(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
     ////////////// polar decomposition method
-    void initPolar(int i, Index&a, Index&b, Index&c, Index&d);
-    void accumulateForcePolar( Vector& f, const Vector & p,Index elementIndex );
-    void applyStiffnessPolar( Vector& f, const Vector& x, int i=0, Index a=0,Index b=1,Index c=2,Index d=3, SReal fact=1.0 );
+    void initPolar(Volume w, Index&a, Index&b, Index&c, Index&d);
+    void accumulateForcePolar(Vector& f, const Vector & p, Volume element );
+    void applyStiffnessPolar(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
-	void printStiffnessMatrix(BaseVolume idTetra);
+	void printStiffnessMatrix(Volume idTetra);
 
 };
 
