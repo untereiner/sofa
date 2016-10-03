@@ -40,6 +40,13 @@ namespace sofa
 namespace core
 {
 
+namespace cm_topology
+{
+// fw declaration of cm_topology::TopologyEngine
+class TopologyEngine;
+// fw declaration of cm_topology::TopologyChange
+class TopologyChange;
+}
 namespace topology
 {
 
@@ -109,10 +116,10 @@ struct CGOGN_Traits
 };
 
 
-class SOFA_CORE_API MapTopology : virtual public TopologyContainer
+class SOFA_CORE_API MapTopology : public virtual core::objectmodel::BaseObject
 {
 public:
-	SOFA_CLASS(MapTopology,core::topology::TopologyContainer);
+	SOFA_CLASS(MapTopology,core::objectmodel::BaseObject);
 
 	using Topo_Traits = CGOGN_Traits;
 	using Dart = cgogn::Dart;
@@ -127,6 +134,48 @@ public:
 
 	using Vec3Types = sofa::defaulttype::Vec3Types;
 	using VecCoord = Vec3Types::VecCoord;
+
+
+	// compatibility
+	using EdgeIds = core::topology::Topology::Edge;
+	using TriangleIds = core::topology::Topology::Triangle;
+	using QuadIds = core::topology::Topology::Quad;
+	using TetraIds = core::topology::Topology::Tetra;
+	using HexaIds = core::topology::Topology::Hexa;
+
+	using index_type = core::topology::Topology::index_type;
+	using PointID = core::topology::Topology::PointID;
+	using EdgeID = core::topology::Topology::EdgeID;
+	using TriangleID = core::topology::Topology::TriangleID;
+	using QuadID = core::topology::Topology::QuadID;
+	using TetrahedronID = core::topology::Topology::TetrahedronID;
+	using HexahedronID = core::topology::Topology::HexahedronID;
+
+	using SeqEdges = core::topology::BaseMeshTopology::SeqEdges;
+	using SeqTriangles = core::topology::BaseMeshTopology::SeqTriangles;
+	using SeqQuads = core::topology::BaseMeshTopology::SeqQuads;
+	using SeqTetrahedra = core::topology::BaseMeshTopology::SeqTetrahedra;
+	using SeqHexahedra = core::topology::BaseMeshTopology::SeqHexahedra;
+
+	using EdgesAroundVertex = core::topology::BaseMeshTopology::EdgesAroundVertex;
+	using EdgesInTriangle = core::topology::BaseMeshTopology::EdgesInTriangle;
+	using EdgesInQuad = core::topology::BaseMeshTopology::EdgesInQuad;
+	using QuadsAroundEdge = core::topology::BaseMeshTopology::QuadsAroundEdge;
+	using QuadsAroundVertex = core::topology::BaseMeshTopology::QuadsAroundVertex;
+	using TrianglesInTetrahedron = core::topology::BaseMeshTopology::TrianglesInTetrahedron;
+	using EdgesInHexahedron = core::topology::BaseMeshTopology::EdgesInHexahedron;
+	using EdgesInTetrahedron = core::topology::BaseMeshTopology::EdgesInTetrahedron;
+	using QuadsInHexahedron = core::topology::BaseMeshTopology::QuadsInHexahedron;
+	using TetrahedraAroundVertex = core::topology::BaseMeshTopology::TetrahedraAroundVertex;
+	using TetrahedraAroundEdge = core::topology::BaseMeshTopology::TetrahedraAroundEdge;
+	using TetrahedraAroundTriangle = core::topology::BaseMeshTopology::TetrahedraAroundTriangle;
+	using HexahedraAroundVertex = core::topology::BaseMeshTopology::HexahedraAroundVertex;
+	using HexahedraAroundEdge = core::topology::BaseMeshTopology::HexahedraAroundEdge;
+	using HexahedraAroundQuad = core::topology::BaseMeshTopology::HexahedraAroundQuad;
+	using TrianglesAroundVertex = core::topology::BaseMeshTopology::TrianglesAroundVertex;
+	using TrianglesAroundEdge = core::topology::BaseMeshTopology::TrianglesAroundEdge;
+	using VerticesAroundVertex = core::topology::BaseMeshTopology::VerticesAroundVertex;
+
 
 	MapTopology();
 	~MapTopology() override;
@@ -162,11 +211,11 @@ protected:
 	virtual void initFromMeshLoader() = 0;
 
 	Data< VecCoord > d_initPoints;
-	Data< helper::vector< core::topology::Topology::Edge > > d_edge;
-	Data< helper::vector< Triangle > > d_triangle;
-	Data< helper::vector< Quad > > d_quad;
-	Data< helper::vector< Tetra > > d_tetra;
-	Data< helper::vector< Hexa > > d_hexa;
+	Data< helper::vector< EdgeIds > > d_edge;
+	Data< helper::vector< TriangleIds > > d_triangle;
+	Data< helper::vector< QuadIds > > d_quad;
+	Data< helper::vector< TetraIds > > d_tetra;
+	Data< helper::vector< HexaIds > > d_hexa;
 
 	SingleLink< MapTopology, core::State< Vec3Types >, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK > mech_state_;
 private:
@@ -176,7 +225,6 @@ private:
 
 	// compatibility
 protected:
-
 	Attribute_T<EdgesAroundVertex>			m_edgesAroundVertex;
 	Attribute_T<EdgesInQuad>				m_edgesInQuad;
 	Attribute_T<QuadsAroundEdge>			m_quadsAroundEdge;
@@ -193,47 +241,69 @@ protected:
 	Attribute_T<HexahedraAroundVertex>		m_hexahedraAroundVertex;
 	Attribute_T<HexahedraAroundEdge>		m_hexahedraAroundEdge;
 	Attribute_T<HexahedraAroundQuad>		m_hexahedraAroundQuad;
-//	Attribute_T<core::topology::Topology::Edge> edges_;
 
 	// compatibility
 public:
-	virtual bool hasPos() const override;
-	virtual SReal getPX(int) const override;
-	virtual SReal getPY(int) const override;
-	virtual SReal getPZ(int) const override;
+//	bool hasPos() const;
+//	SReal getPX(int) const;
+//	SReal getPY(int) const;
+//	SReal getPZ(int) const;
 
-	virtual const SeqEdges&getEdges() override;
-	virtual const SeqTriangles&getTriangles() override;
-	virtual const SeqQuads&getQuads() override;
-	virtual const SeqTetrahedra& getTetrahedra() override;
-	virtual const SeqHexahedra& getHexahedra() override;
+	virtual unsigned int getNbPoints() const = 0;
+	const SeqEdges&getEdges();
+	const SeqTriangles&getTriangles();
+	const SeqQuads&getQuads();
+	const SeqTetrahedra& getTetrahedra();
+	const SeqHexahedra& getHexahedra();
 
-	virtual const EdgesAroundVertex&getEdgesAroundVertex(PointID i) override;
-	virtual const EdgesInTriangle&getEdgesInTriangle(TriangleID i) override;
-	virtual const EdgesInQuad&getEdgesInQuad(QuadID i) override;
-	virtual const TrianglesAroundVertex&getTrianglesAroundVertex(PointID i) override;
-	virtual const TrianglesAroundEdge&getTrianglesAroundEdge(EdgeID i) override;
-	virtual const QuadsAroundVertex&getQuadsAroundVertex(PointID i) override;
-	virtual const QuadsAroundEdge&getQuadsAroundEdge(EdgeID i) override;
-	virtual const VerticesAroundVertex getVerticesAroundVertex(PointID i) override;
-	virtual const sofa::helper::vector<index_type> getElementAroundElement(index_type elem) override;
-	virtual const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems) override;
-	virtual int getEdgeIndex(PointID v1, PointID v2) override;
-	virtual int getTriangleIndex(PointID v1, PointID v2, PointID v3) override;
-	virtual int getQuadIndex(PointID v1, PointID v2, PointID v3, PointID v4) override;
-	virtual int getVertexIndexInTriangle(const Triangle& t, PointID vertexIndex) const override;
-	virtual int getEdgeIndexInTriangle(const EdgesInTriangle& t, EdgeID edgeIndex) const override;
-	virtual int getVertexIndexInQuad(const Quad& t, PointID vertexIndex) const override;
-	virtual int getEdgeIndexInQuad(const EdgesInQuad& t, EdgeID edgeIndex) const override;
-	virtual void clear() override;
-	virtual void addPoint(SReal px, SReal py, SReal pz) override;
-	virtual void addEdge(int a, int b) override;
-	virtual void addTriangle(int a, int b, int c) override;
-	virtual void addQuad(int a, int b, int c, int d) override;
-	virtual bool checkConnexity() override;
-	virtual unsigned int getNumberOfConnectedComponent() override;
-	virtual const sofa::helper::vector<index_type> getConnectedElement(index_type elem) override;
-	virtual void reOrientateTriangle(TriangleID id) override;
+	const SeqEdges& getEdgeArray();
+
+
+	const EdgesAroundVertex&getEdgesAroundVertex(PointID i);
+	const EdgesInTriangle&getEdgesInTriangle(TriangleID i);
+	const EdgesInQuad&getEdgesInQuad(QuadID i);
+	const TrianglesAroundVertex&getTrianglesAroundVertex(PointID i);
+	const TrianglesAroundEdge&getTrianglesAroundEdge(EdgeID i);
+	const QuadsAroundVertex&getQuadsAroundVertex(PointID i);
+	const QuadsAroundEdge&getQuadsAroundEdge(EdgeID i);
+	const VerticesAroundVertex getVerticesAroundVertex(PointID i);
+	const sofa::helper::vector<index_type> getElementAroundElement(index_type elem);
+	const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems);
+	int getEdgeIndex(PointID v1, PointID v2);
+	int getTriangleIndex(PointID v1, PointID v2, PointID v3);
+	int getQuadIndex(PointID v1, PointID v2, PointID v3, PointID v4);
+	int getVertexIndexInTriangle(const TriangleIds& t, PointID vertexIndex) const;
+	int getEdgeIndexInTriangle(const EdgesInTriangle& t, EdgeID edgeIndex) const;
+	int getVertexIndexInQuad(const QuadIds& q, PointID vertexIndex) const;
+	int getEdgeIndexInQuad(const EdgesInQuad& t, EdgeID edgeIndex) const;
+//	virtual void clear() override;
+//	virtual void addPoint(SReal px, SReal py, SReal pz);
+//	virtual void addEdge(int a, int b);
+//	virtual void addTriangle(int a, int b, int c);
+//	virtual void addQuad(int a, int b, int c, int d);
+//	virtual bool checkConnexity();
+	unsigned int getNumberOfConnectedComponent();
+	const sofa::helper::vector<index_type> getConnectedElement(index_type elem);
+	void reOrientateTriangle(TriangleID id);
+
+	// TOPOLOGY CONTAINER
+public:
+	void addTopologyEngine(cm_topology::TopologyEngine* _topologyEngine);
+
+protected:
+	void updateTopologyEngineGraph();
+	/// \brief functions to really update the graph of Data/DataEngines linked to the different Data array, using member variable.
+	virtual void updateDataEngineGraph(sofa::core::objectmodel::BaseData& my_Data, sofa::helper::list <sofa::core::cm_topology::TopologyEngine *>& my_enginesList);
+
+protected:
+	/// Array of topology modifications that have already occured (addition) or will occur next (deletion).
+    Data <sofa::helper::list<const cm_topology::TopologyChange *> >m_changeList;
+
+	/// List of topology engines which will interact on all topological Data.
+    sofa::helper::list<cm_topology::TopologyEngine *> m_topologyEngineList;
+
+	sofa::helper::list <cm_topology::TopologyEngine *> m_enginesList;
+
 };
 
 

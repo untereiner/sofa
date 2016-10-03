@@ -111,12 +111,12 @@ const core::topology::BaseMeshTopology::SeqHexahedra&MapTriangleSetTopologyConta
 
 int MapTriangleSetTopologyContainer::getNbEdges()
 {
-    return map_->getNbEdges();
+	return map_->nb_cells<Edge::ORBIT>();
 }
 
 int MapTriangleSetTopologyContainer::getNbTriangles()
 {
-    return map_->getNbTriangles();
+	return map_->nb_cells<Face::ORBIT>();
 }
 
 int MapTriangleSetTopologyContainer::getNbQuads()
@@ -136,12 +136,12 @@ int MapTriangleSetTopologyContainer::getNbHexahedra()
 
 const TriangleSetTopologyContainer::Edge MapTriangleSetTopologyContainer::getEdge(TriangleSetTopologyContainer::EdgeID i)
 {
-    return map_->getEdge(i);
+    return map_->getEdges()[i];
 }
 
 const TriangleSetTopologyContainer::Triangle MapTriangleSetTopologyContainer::getTriangle(TriangleSetTopologyContainer::TriangleID i)
 {
-    return map_->getTriangle(i);
+    return map_->getTriangles()[i];
 }
 
 const core::topology::Topology::Quad MapTriangleSetTopologyContainer::getQuad(core::topology::Topology::QuadID i)
@@ -410,7 +410,7 @@ void MapTriangleSetTopologyContainer::addHexa(int, int, int, int, int, int, int,
 
 bool MapTriangleSetTopologyContainer::checkConnexity()
 {
-	return map_->checkConnexity();
+//	return map_->checkConnexity();
 }
 
 unsigned int MapTriangleSetTopologyContainer::getNumberOfConnectedComponent()
@@ -420,27 +420,13 @@ unsigned int MapTriangleSetTopologyContainer::getNumberOfConnectedComponent()
 
 int MapTriangleSetTopologyContainer::getRevision() const
 {
-	return map_->getRevision();
+//	return map_->getRevision();
+	return -1;
 }
 
 void MapTriangleSetTopologyContainer::reOrientateTriangle(TriangleSetTopologyContainer::TriangleID id)
 {
 	return map_->reOrientateTriangle(id);
-}
-
-const sofa::helper::vector<TriangleSetTopologyContainer::TriangleID>&MapTriangleSetTopologyContainer::getTrianglesOnBorder()
-{
-	return map_->getTrianglesOnBorder();
-}
-
-const sofa::helper::vector<TriangleSetTopologyContainer::EdgeID>&MapTriangleSetTopologyContainer::getEdgesOnBorder()
-{
-	return map_->getEdgesOnBorder();
-}
-
-const sofa::helper::vector<TriangleSetTopologyContainer::PointID>&MapTriangleSetTopologyContainer::getPointsOnBorder()
-{
-	return map_->getPointsOnBorder();
 }
 
 void MapTriangleSetTopologyContainer::updateTopologyEngineGraph()

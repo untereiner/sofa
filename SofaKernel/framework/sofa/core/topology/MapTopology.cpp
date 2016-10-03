@@ -23,7 +23,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #include <sofa/core/topology/MapTopology.h>
-
+#include <sofa/core/topology/CMBaseTopologyEngine.h>
 namespace sofa
 {
 
@@ -38,25 +38,6 @@ void MapTopology::cleanup()
 	Inherit1::cleanup();
 }
 
-bool MapTopology::hasPos() const
-{
-	return true;
-}
-
-SReal MapTopology::getPX(int i) const
-{
-	return d_initPoints.getValue()[i][0];
-}
-
-SReal MapTopology::getPY(int i) const
-{
-	return d_initPoints.getValue()[i][1];
-}
-
-SReal MapTopology::getPZ(int i) const
-{
-	return d_initPoints.getValue()[i][2];
-}
 
 const BaseMeshTopology::SeqEdges&MapTopology::getEdges()
 {
@@ -149,7 +130,7 @@ int MapTopology::getQuadIndex(Topology::PointID v1, Topology::PointID v2, Topolo
 	return -1;
 }
 
-int MapTopology::getVertexIndexInTriangle(const Topology::Triangle& t, Topology::PointID vertexIndex) const
+int MapTopology::getVertexIndexInTriangle(const TriangleIds& t, Topology::PointID vertexIndex) const
 {
 
 }
@@ -169,36 +150,6 @@ int MapTopology::getEdgeIndexInQuad(const BaseMeshTopology::EdgesInQuad& t, Topo
 	return -1;
 }
 
-void MapTopology::clear()
-{
-//	Inherit1::clear();
-}
-
-void MapTopology::addPoint(SReal px, SReal py, SReal pz)
-{
-
-}
-
-void MapTopology::addEdge(int a, int b)
-{
-
-}
-
-void MapTopology::addTriangle(int a, int b, int c)
-{
-
-}
-
-void MapTopology::addQuad(int a, int b, int c, int d)
-{
-
-}
-
-bool MapTopology::checkConnexity()
-{
-	return true;
-}
-
 unsigned int MapTopology::getNumberOfConnectedComponent()
 {
 
@@ -212,6 +163,23 @@ const sofa::helper::vector<Topology::index_type> MapTopology::getConnectedElemen
 void MapTopology::reOrientateTriangle(Topology::TriangleID id)
 {
 
+}
+
+void MapTopology::addTopologyEngine(cm_topology::TopologyEngine* _topologyEngine)
+{
+	m_topologyEngineList.push_back(_topologyEngine);
+    m_topologyEngineList.back()->m_changeList.setParent(&this->m_changeList);
+	this->updateTopologyEngineGraph();
+}
+
+void MapTopology::updateTopologyEngineGraph()
+{
+	this->updateDataEngineGraph(this->d_hexa, this->m_enginesList);
+}
+
+void MapTopology::updateDataEngineGraph(objectmodel::BaseData& my_Data, sofa::helper::list<cm_topology::TopologyEngine*>& my_enginesList)
+{
+	//TODO
 }
 
 MapTopology::MapTopology() :

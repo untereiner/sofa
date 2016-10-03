@@ -74,6 +74,7 @@ public:
     typedef typename Coord::value_type Real;
 	using VolumeTopology = sofa::component::topology::VolumeTopologyContainer;
 	using BaseVolume = core::topology::MapTopology::Volume;
+	using Vertex = VolumeTopology::Vertex;
 	using Volume = VolumeTopology::Volume;
 
     typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
@@ -217,7 +218,7 @@ public:
     virtual void addKToMatrix(sofa::defaulttype::BaseMatrix *m, SReal kFactor, unsigned int &offset);
 
     // Getting the rotation of the vertex by averaing the rotation of neighboring elements
-    void getRotation(Transformation& R, unsigned int nodeIdx);
+    void getRotation(Transformation& R, Vertex vertex);
     void getRotations() {}
     void getElementRotation(Transformation& R, unsigned int elementIdx);
 

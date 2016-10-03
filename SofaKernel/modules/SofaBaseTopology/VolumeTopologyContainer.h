@@ -62,6 +62,11 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	VolumeTopologyContainer();
 	~VolumeTopologyContainer() override;
 
+	virtual unsigned int getNbPoints() const override
+	{
+		return this->nb_cells<Vertex::ORBIT>();
+	}
+
 	template<Orbit ORBIT>
 	inline uint32_t embedding(cgogn::Cell<ORBIT> c) const
 	{
@@ -188,6 +193,12 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline void foreach_incident_face(Volume vol,const FUNC& func)
 	{
 		topology_.foreach_incident_face(vol,func);
+	}
+
+	template<typename FUNC>
+	inline void foreach_incident_volume(Vertex v,const FUNC& func)
+	{
+		topology_.foreach_incident_volume(v,func);
 	}
 
 	template<Orbit ORBIT>
