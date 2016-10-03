@@ -847,46 +847,48 @@ inline void TetrahedralCorotationalFEMForceField<DataTypes>::getElementRotation(
 }
 
 template <class DataTypes>
-inline void TetrahedralCorotationalFEMForceField<DataTypes>::getRotation(Transformation& R, unsigned int nodeIdx)
+inline void TetrahedralCorotationalFEMForceField<DataTypes>::getRotation(Transformation& R, Vertex vertex)
 {
 	const auto& tetraInf = tetrahedronInfo.getValue();
-    int numNeiTetra=_topology->getTetrahedraAroundVertex(nodeIdx).size();
-    Transformation r;
-    r.clear();
+	//    int numNeiTetra=_topology->getTetrahedraAroundVertex(w).size();
+	Transformation r;
+	r.clear();
 
-    for(int i=0; i<numNeiTetra; i++)
-    {
-        int tetraIdx=_topology->getTetrahedraAroundVertex(nodeIdx)[i];
-        const TetrahedronInformation *tinfo = &tetraInf[tetraIdx];
-        Transformation r01,r21;
-        r01=tinfo->initialTransformation;
-        r21=tinfo->rotation*r01;
-        r+=r21;
-    }
-    R=r*(1.0f/numNeiTetra);
+	unsigned int nb_neighbors = 0u;
 
-    //orthogonalization
-    Coord ex,ey,ez;
-    for(int i=0; i<3; i++)
-    {
-        ex[i]=R[0][i];
-        ey[i]=R[1][i];
-    }
-    ex.normalize();
-    ey.normalize();
+	_topology->foreach_incident_volume(vertex, [&](Volume w) {
+		const TetrahedronInformation *tinfo = &tetraInf[w.dart];
+		Transformation r01,r21;
+		r01=tinfo->initialTransformation;
+		r21=tinfo->rotation*r01;
+		r+=r21;
+		++nb_neighbors;
+	});
 
-    ez=cross(ex,ey);
-    ez.normalize();
+	R=r*(1.0f/nb_neighbors);
 
-    ey=cross(ez,ex);
-    ey.normalize();
+	//orthogonalization
+	Coord ex,ey,ez;
+	for(int i=0; i<3; i++)
+	{
+		ex[i]=R[0][i];
+		ey[i]=R[1][i];
+	}
+	ex.normalize();
+	ey.normalize();
 
-    for(int i=0; i<3; i++)
-    {
-        R[0][i]=ex[i];
-        R[1][i]=ey[i];
-        R[2][i]=ez[i];
-    }
+	ez=cross(ex,ey);
+	ez.normalize();
+
+	ey=cross(ez,ex);
+	ey.normalize();
+
+	for(int i=0; i<3; i++)
+	{
+		R[0][i]=ex[i];
+		R[1][i]=ey[i];
+		R[2][i]=ez[i];
+	}
 }
 
 template <class DataTypes>
@@ -1319,9 +1321,9 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::draw(const core::visual::V
 
 
     std::vector< defaulttype::Vector3 > points[4];
-    for(int i = 0 ; i<_topology->getNbTetrahedra(); ++i)
-    {
-        const core::topology::BaseMeshTopology::Tetrahedron t=_topology->getTetrahedron(i);
+	_topology->foreach_cell([&](Volume w)
+	{
+		const auto& t = _topology->get_dofs(w);
 
         Index a = t[0];
         Index b = t[1];
@@ -1352,7 +1354,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::draw(const core::visual::V
         points[3].push_back(pd);
         points[3].push_back(pa);
         points[3].push_back(pb);
-    }
+	});
 
     vparams->drawTool()->drawTriangles(points[0], drawColor1.getValue());
     vparams->drawTool()->drawTriangles(points[1], drawColor2.getValue());

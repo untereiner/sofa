@@ -54,8 +54,8 @@ VolumeTopologyContainer::~VolumeTopologyContainer()
 void VolumeTopologyContainer::initFromMeshLoader()
 {
 	helper::ReadAccessor< Data< VecCoord > > m_position = d_initPoints;
-	helper::ReadAccessor< Data< helper::vector< Tetra > > > m_tetra = d_tetra;
-	helper::ReadAccessor< Data< helper::vector< Hexa > > > m_hexa = d_hexa;
+	helper::ReadAccessor< Data< helper::vector< TetraIds > > > m_tetra = d_tetra;
+	helper::ReadAccessor< Data< helper::vector< HexaIds > > > m_hexa = d_hexa;
 
 	cgogn::io::VolumeImport<Topo_Traits::MapTraits> volume_import;
 	volume_import.reserve(m_tetra.size() + m_hexa.size());
@@ -71,9 +71,9 @@ void VolumeTopologyContainer::initFromMeshLoader()
 		dest[2] = src[2];
 	}
 
-	for(const Tetra& t : m_tetra.ref())
+	for(const TetraIds& t : m_tetra.ref())
 		volume_import.add_tetra(*pos_att, t[0], t[1], t[2], t[3], true);
-	for(const Hexa& h : m_hexa.ref())
+	for(const HexaIds& h : m_hexa.ref())
 		volume_import.add_hexa(*pos_att, h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], true);
 
 	volume_import.create_map(topology_);

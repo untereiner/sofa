@@ -52,7 +52,7 @@ MapTetrahedronSetTopologyContainer::~MapTetrahedronSetTopologyContainer()
 
 int MapTetrahedronSetTopologyContainer::getNbPoints() const
 {
-	return map_->getNbPoints();
+	return map_->nb_cells<Vertex::ORBIT>();
 }
 
 void MapTetrahedronSetTopologyContainer::init()
@@ -138,12 +138,12 @@ const TetrahedronSetTopologyContainer::SeqTetrahedra&MapTetrahedronSetTopologyCo
 
 int MapTetrahedronSetTopologyContainer::getNbEdges()
 {
-	return map_->getNbEdges();
+	return map_->nb_cells<Edge::ORBIT>();
 }
 
 int MapTetrahedronSetTopologyContainer::getNbTriangles()
 {
-	return map_->getNbTriangles();
+	return map_->nb_cells<Face::ORBIT>();
 }
 
 int MapTetrahedronSetTopologyContainer::getNbTetrahedra()

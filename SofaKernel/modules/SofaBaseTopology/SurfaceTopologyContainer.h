@@ -63,6 +63,11 @@ public:
 	SurfaceTopologyContainer();
 	~SurfaceTopologyContainer() override;
 
+	virtual unsigned int getNbPoints() const override
+	{
+		return this->nb_cells<Vertex::ORBIT>();
+	}
+
 	template<Orbit ORBIT>
 	inline unsigned int nb_cells() const
 	{
@@ -179,46 +184,6 @@ public:
 
 protected:
 	virtual void initFromMeshLoader() override;
-
-	// Topology interface
-public:
-	virtual bool hasPos() const override;
-	virtual SReal getPX(int) const override;
-	virtual SReal getPY(int) const override;
-	virtual SReal getPZ(int) const override;
-
-	// BaseMeshTopology interface
-public:
-	virtual const SeqEdges&getEdges() override;
-	virtual const SeqTriangles&getTriangles() override;
-	virtual const SeqQuads&getQuads() override;
-
-	virtual const EdgesAroundVertex&getEdgesAroundVertex(PointID i) override;
-	virtual const EdgesInTriangle&getEdgesInTriangle(TriangleID i) override;
-	virtual const EdgesInQuad&getEdgesInQuad(QuadID i) override;
-	virtual const TrianglesAroundVertex&getTrianglesAroundVertex(PointID i) override;
-	virtual const TrianglesAroundEdge&getTrianglesAroundEdge(EdgeID i) override;
-	virtual const QuadsAroundVertex&getQuadsAroundVertex(PointID i) override;
-	virtual const QuadsAroundEdge&getQuadsAroundEdge(EdgeID i) override;
-	virtual const VerticesAroundVertex getVerticesAroundVertex(PointID i) override;
-	virtual const sofa::helper::vector<index_type> getElementAroundElement(index_type elem) override;
-	virtual const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems) override;
-	virtual int getEdgeIndex(PointID v1, PointID v2) override;
-	virtual int getTriangleIndex(PointID v1, PointID v2, PointID v3) override;
-	virtual int getQuadIndex(PointID v1, PointID v2, PointID v3, PointID v4) override;
-	virtual int getVertexIndexInTriangle(const Triangle& t, PointID vertexIndex) const override;
-	virtual int getEdgeIndexInTriangle(const EdgesInTriangle& t, EdgeID edgeIndex) const override;
-	virtual int getVertexIndexInQuad(const Quad& t, PointID vertexIndex) const override;
-	virtual int getEdgeIndexInQuad(const EdgesInQuad& t, EdgeID edgeIndex) const override;
-	virtual void clear() override;
-	virtual void addPoint(SReal px, SReal py, SReal pz) override;
-	virtual void addEdge(int a, int b) override;
-	virtual void addTriangle(int a, int b, int c) override;
-	virtual void addQuad(int a, int b, int c, int d) override;
-	virtual bool checkConnexity() override;
-	virtual unsigned int getNumberOfConnectedComponent() override;
-	virtual const sofa::helper::vector<index_type> getConnectedElement(index_type elem) override;
-	virtual void reOrientateTriangle(TriangleID id) override;
 
 private:
 	Topology topology_;
