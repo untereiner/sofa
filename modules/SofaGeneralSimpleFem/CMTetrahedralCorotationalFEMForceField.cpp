@@ -43,7 +43,7 @@ namespace cm_forcefield
 using namespace sofa::defaulttype;
 
 
-SOFA_DECL_CLASS(TetrahedralCorotationalFEMForceField)
+//SOFA_DECL_CLASS(TetrahedralCorotationalFEMForceField)
 
 // Register in the Factory
 int TetrahedralCorotationalFEMForceFieldClass = core::RegisterObject("Corotational FEM Tetrahedral finite elements")

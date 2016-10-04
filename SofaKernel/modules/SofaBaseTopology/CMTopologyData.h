@@ -6,7 +6,7 @@
 #include <sofa/helper/vector.h>
 
 #include <sofa/core/topology/CMBaseTopologyData.h>
-#include <SofaBaseTopology/CMTopologyEngine.h>
+#include <SofaBaseTopology/CMTopologyEngine.inl>
 #include <SofaBaseTopology/CMTopologyDataHandler.h>
 
 
