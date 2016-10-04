@@ -256,8 +256,20 @@ public:
 	const SeqTetrahedra& getTetrahedra();
 	const SeqHexahedra& getHexahedra();
 
-	const SeqEdges& getEdgeArray();
+	/** \brief Returns a reference to the Data of points array container. */
+	inline Data<VecCoord>& getPointDataArray() {return d_initPoints;}
+	/** \brief Returns a reference to the Data of edges array container. */
+	inline Data< SeqEdges >& getEdgeDataArray() {return d_edge;}
+	/** \brief Returns a reference to the Data of triangles array container. */
+	inline Data< SeqTriangles >& getTriangleDataArray() {return d_triangle;}
+	/** \brief Returns a reference to the Data of quads array container. */
+	inline Data< SeqQuads >& getQuadDataArray() {return d_quad;}
+	/** \brief Returns a reference to the Data of tetrahedra array container. */
+	inline Data< SeqTetrahedra >& getTetrahedronDataArray() {return d_tetra;}
+	/** \brief Get the Data which contains the array of hexahedra. */
+	inline Data< SeqHexahedra >& getHexahedronDataArray() {return d_hexa;}
 
+	const SeqEdges& getEdgeArray();
 
 	const EdgesAroundVertex&getEdgesAroundVertex(PointID i);
 	const EdgesInTriangle&getEdgesInTriangle(TriangleID i);

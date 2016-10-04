@@ -28,7 +28,7 @@
 
 #include <sofa/core/behavior/ForceField.h>
 #include <SofaBaseTopology/VolumeTopologyContainer.h>
-#include <SofaBaseTopology/CMTopologyData.h>
+#include <SofaBaseTopology/CMTopologyData.inl>
 #include <sofa/helper/vector.h>
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/Mat.h>

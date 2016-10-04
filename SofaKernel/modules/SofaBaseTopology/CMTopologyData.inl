@@ -161,4 +161,4 @@ void TopologyDataImpl <TopologyElementType, VecT>::linkToHexahedronDataArray()
 
 } // namespace sofa
 
-#endif // SOFA_COMPONENT_TOPOLOGY_TOPOLOGYDATA_INL
+#endif // SOFA_COMPONENT_CMTOPOLOGY_TOPOLOGYDATA_INL

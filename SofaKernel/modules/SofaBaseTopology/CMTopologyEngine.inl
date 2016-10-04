@@ -117,131 +117,89 @@ void TopologyEngineImpl< VecT>::ApplyTopologyChanges()
 }
 
 
-///// Function to link DataEngine with Data array from topology
-//template <typename VecT>
-//void TopologyEngineImpl< VecT>::linkToPointDataArray()
-//{
-//    if (m_pointsLinked) // avoid second registration
-//        return;
+/// Function to link DataEngine with Data array from topology
+template <typename VecT>
+void TopologyEngineImpl< VecT>::linkToPointDataArray()
+{
+	if (m_pointsLinked) // avoid second registration
+		return;
 
-//    sofa::component::topology::PointSetTopologyContainer* _container = dynamic_cast<sofa::component::topology::PointSetTopologyContainer*>(m_topology);
-
-//    if (_container == NULL)
-//    {
-//#ifndef NDEBUG
-//        serr <<"Error: Can't dynamic cast topology as PointSetTopologyContainer" << sendl;
-//#endif
-//        return;
-//    }
-
-//    (_container->getPointDataArray()).addOutput(this);
-//    m_pointsLinked = true;
-//}
+	if (m_topology->getPointDataArray().getValue().size() > 0)
+	{
+		m_topology->getPointDataArray().addOutput(this);
+		m_pointsLinked = true;
+	}
+}
 
 
-//template <typename VecT>
-//void TopologyEngineImpl< VecT>::linkToEdgeDataArray()
-//{
-//    if (m_edgesLinked) // avoid second registration
-//        return;
+template <typename VecT>
+void TopologyEngineImpl< VecT>::linkToEdgeDataArray()
+{
+    if (m_edgesLinked) // avoid second registration
+        return;
 
-//    sofa::component::topology::EdgeSetTopologyContainer* _container = dynamic_cast<sofa::component::topology::EdgeSetTopologyContainer*>(m_topology);
-
-//    if (_container == NULL)
-//    {
-//#ifndef NDEBUG
-//        serr <<"Error: Can't dynamic cast topology as EdgeSetTopologyContainer" << sendl;
-//#endif
-//        return;
-//    }
-
-//    (_container->getEdgeDataArray()).addOutput(this);
-//    m_edgesLinked = true;
-//}
+	if (m_topology->getTetrahedronDataArray().getValue().size() > 0)
+	{
+		m_topology->getEdgeDataArray().addOutput(this);
+		m_edgesLinked = true;
+	}
+}
 
 
-//template <typename VecT>
-//void TopologyEngineImpl< VecT>::linkToTriangleDataArray()
-//{
-//    if (m_trianglesLinked) // avoid second registration
-//        return;
+template <typename VecT>
+void TopologyEngineImpl< VecT>::linkToTriangleDataArray()
+{
+	if (m_trianglesLinked) // avoid second registration
+		return;
 
-//    sofa::component::topology::TriangleSetTopologyContainer* _container = dynamic_cast<sofa::component::topology::TriangleSetTopologyContainer*>(m_topology);
-
-//    if (_container == NULL)
-//    {
-//#ifndef NDEBUG
-//        serr <<"Error: Can't dynamic cast topology as TriangleSetTopologyContainer" << sendl;
-//#endif
-//        return;
-//    }
-
-//    (_container->getTriangleDataArray()).addOutput(this);
-//    m_trianglesLinked = true;
-//}
+	if (m_topology->getTetrahedronDataArray().getValue().size() > 0)
+	{
+		m_topology->getTriangleDataArray().addOutput(this);
+		m_trianglesLinked = true;
+	}
+}
 
 
-//template <typename VecT>
-//void TopologyEngineImpl< VecT>::linkToQuadDataArray()
-//{
-//    if (m_quadsLinked) // avoid second registration
-//        return;
+template <typename VecT>
+void TopologyEngineImpl< VecT>::linkToQuadDataArray()
+{
+    if (m_quadsLinked) // avoid second registration
+        return;
 
-//    sofa::component::topology::QuadSetTopologyContainer* _container = dynamic_cast<sofa::component::topology::QuadSetTopologyContainer*>(m_topology);
-
-//    if (_container == NULL)
-//    {
-//#ifndef NDEBUG
-//        serr <<"Error: Can't dynamic cast topology as QuadSetTopologyContainer" << sendl;
-//#endif
-//        return;
-//    }
-
-//    (_container->getQuadDataArray()).addOutput(this);
-//    m_quadsLinked = true;
-//}
+	if (m_topology->getTetrahedronDataArray().getValue().size() > 0)
+	{
+		m_topology->getQuadDataArray().addOutput(this);
+		m_quadsLinked = true;
+	}
+}
 
 
-//template <typename VecT>
-//void TopologyEngineImpl< VecT>::linkToTetrahedronDataArray()
-//{
-//    if (m_tetrahedraLinked) // avoid second registration
-//        return;
+template <typename VecT>
+void TopologyEngineImpl< VecT>::linkToTetrahedronDataArray()
+{
+    if (m_tetrahedraLinked) // avoid second registration
+        return;
 
-//    sofa::component::topology::TetrahedronSetTopologyContainer* _container = dynamic_cast<sofa::component::topology::TetrahedronSetTopologyContainer*>(m_topology);
-
-//    if (_container == NULL)
-//    {
-//#ifndef NDEBUG
-//        serr <<"Error: Can't dynamic cast topology as TetrahedronSetTopologyContainer" << sendl;
-//#endif
-//        return;
-//    }
-
-//    (_container->getTetrahedronDataArray()).addOutput(this);
-//    m_tetrahedraLinked = true;
-//}
+	if (m_topology->getTetrahedronDataArray().getValue().size() > 0)
+	{
+		m_topology->getTetrahedronDataArray().addOutput(this);
+		m_tetrahedraLinked = true;
+	}
+}
 
 
-//template <typename VecT>
-//void TopologyEngineImpl< VecT>::linkToHexahedronDataArray()
-//{
-//    if (m_hexahedraLinked) // avoid second registration
-//        return;
+template <typename VecT>
+void TopologyEngineImpl< VecT>::linkToHexahedronDataArray()
+{
+    if (m_hexahedraLinked) // avoid second registration
+        return;
 
-//    sofa::component::topology::HexahedronSetTopologyContainer* _container = dynamic_cast<sofa::component::topology::HexahedronSetTopologyContainer*>(m_topology);
-
-//    if (_container == NULL)
-//    {
-//#ifndef NDEBUG
-//        serr <<"Error: Can't dynamic cast topology as HexahedronSetTopologyContainer" << sendl;
-//#endif
-//        return;
-//    }
-
-//    (_container->getHexahedronDataArray()).addOutput(this);
-//    m_hexahedraLinked = true;
-//}
+	if (m_topology->getTetrahedronDataArray().getValue().size() > 0)
+	{
+		m_topology->getHexahedronDataArray().addOutput(this);
+		m_hexahedraLinked = true;
+	}
+}
 
 
 
