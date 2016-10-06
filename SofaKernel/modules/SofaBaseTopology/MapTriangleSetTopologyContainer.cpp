@@ -429,6 +429,24 @@ void MapTriangleSetTopologyContainer::reOrientateTriangle(TriangleSetTopologyCon
 	return map_->reOrientateTriangle(id);
 }
 
+const sofa::helper::vector<TriangleSetTopologyContainer::TriangleID>&MapTriangleSetTopologyContainer::getTrianglesOnBorder()
+{
+	static const sofa::helper::vector<TriangleSetTopologyContainer::TriangleID> empty;
+	return empty;
+}
+
+const sofa::helper::vector<TriangleSetTopologyContainer::EdgeID>&MapTriangleSetTopologyContainer::getEdgesOnBorder()
+{
+	static const sofa::helper::vector<TriangleSetTopologyContainer::EdgeID> empty;
+	return empty;
+}
+
+const sofa::helper::vector<TriangleSetTopologyContainer::PointID>&MapTriangleSetTopologyContainer::getPointsOnBorder()
+{
+	static const sofa::helper::vector<TriangleSetTopologyContainer::PointID> empty;
+	return empty;
+}
+
 void MapTriangleSetTopologyContainer::updateTopologyEngineGraph()
 {
 	Inherit1::updateTopologyEngineGraph();
