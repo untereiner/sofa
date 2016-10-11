@@ -83,6 +83,30 @@ void SurfaceTopologyContainer::init()
 	topology_.clear_and_remove_attributes();
 	Inherit1::init();
 	initFromMeshLoader();
+
+	if (!this->edge_dofs_.is_valid())
+	{
+		this->edge_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 2>, Edge::ORBIT>("edge_dofs_");
+		this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
+		{
+			this->edge_dofs_[e.dart] = helper::fixed_array<unsigned int, 2>(get_dof(Vertex(e.dart)), get_dof(Vertex(phi2(e.dart))));
+		});
+	}
+
+
+	if (!this->face_dofs_.is_valid())
+	{
+		this->face_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 4>, Face::ORBIT>("face_dofs_");
+		this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+		{
+			auto & dofs = this->face_dofs_[f.dart];
+			unsigned int i = 0u;
+			foreach_incident_vertex(f, [&](Vertex v)
+			{
+				dofs[i++] = get_dof(v);
+			});
+		});
+	}
 }
 
 void SurfaceTopologyContainer::bwdInit()
@@ -97,7 +121,7 @@ void SurfaceTopologyContainer::reinit()
 
 void SurfaceTopologyContainer::reset()
 {
-	topology_.clear_and_remove_attributes();
+//	topology_.clear_and_remove_attributes(); // reset() seems to be called after init() at the beginning of the scene (?!)
 	Inherit1::reset();
 }
 

@@ -218,15 +218,14 @@ protected:
 	Data< helper::vector< HexaIds > > d_hexa;
 
 	SingleLink< MapTopology, core::State< Vec3Types >, BaseLink::FLAG_STOREPATH | BaseLink::FLAG_STRONGLINK > mech_state_;
-private:
-	Attribute_T<Dart> first_vertex_of_edge_;
-	Attribute_T<Dart> first_vertex_of_face_;
-	Attribute_T<Dart> first_vertex_of_volume_;
 
 	// compatibility
 protected:
 	Attribute_T<EdgesAroundVertex>			m_edgesAroundVertex;
 	Attribute_T<EdgesInQuad>				m_edgesInQuad;
+	Attribute_T<TrianglesAroundVertex>		m_trianglesAroundVertex;
+	Attribute_T<TrianglesAroundEdge>		m_trianglesAroundEdge;
+	Attribute_T<EdgesInTriangle>			m_edgesInTriangle;
 	Attribute_T<QuadsAroundEdge>			m_quadsAroundEdge;
 	Attribute_T<QuadsAroundVertex>			m_quadsAroundVertex;
 	Attribute_T<QuadsAroundVertex>			m_orientedQuadsAroundVertex;
@@ -241,6 +240,16 @@ protected:
 	Attribute_T<HexahedraAroundVertex>		m_hexahedraAroundVertex;
 	Attribute_T<HexahedraAroundEdge>		m_hexahedraAroundEdge;
 	Attribute_T<HexahedraAroundQuad>		m_hexahedraAroundQuad;
+
+
+	virtual void createEdgesInTriangleArray() = 0;
+	virtual void createTrianglesAroundVertexArray() = 0;
+	virtual void createTrianglesAroundEdgeArray() = 0;
+	virtual void createEdgesAroundVertexArray() = 0;
+
+	Attribute_T<helper::fixed_array<unsigned int, 2>> edge_dofs_;
+	Attribute_T<helper::fixed_array<unsigned int, 4>> face_dofs_;
+	Attribute_T<helper::fixed_array<unsigned int, 8>> volume_dofs_;
 
 	// compatibility
 public:

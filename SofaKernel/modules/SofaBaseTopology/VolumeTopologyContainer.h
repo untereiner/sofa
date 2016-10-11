@@ -207,22 +207,56 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		return topology_.nb_cells<ORBIT>();
 	}
 
-	inline const std::vector<unsigned int>& get_dofs(Volume /*w*/) const
+	inline unsigned int get_dof(Vertex v)
 	{
-		// TODO
-		static const std::vector<unsigned int> empty;
-		return empty;
+		return topology_.embedding(v);
 	}
 
-	inline const std::vector<unsigned int>& get_dofs(Face /*f*/) const
+	inline const helper::fixed_array<unsigned int, 2>& get_dofs(Edge e) const
 	{
-		// TODO
-		static const std::vector<unsigned int> empty;
-		return empty;
+		return this->edge_dofs_[e.dart];
+	}
+
+	inline const helper::fixed_array<unsigned int, 4>& get_dofs(Face f) const
+	{
+		return this->face_dofs_[f.dart];
+	}
+
+	inline const helper::fixed_array<unsigned int, 8>& get_dofs(Volume w) const
+	{
+		return this->volume_dofs_[w.dart];
 	}
 
 protected:
 	virtual void initFromMeshLoader() override;
+
+	virtual void createEdgesInTriangleArray() override
+	{
+
+	}
+	virtual void createTrianglesAroundVertexArray() override
+	{
+
+	}
+	virtual void createTrianglesAroundEdgeArray() override
+	{
+
+	}
+
+	virtual void createEdgesAroundVertexArray() override
+	{
+		if (!this->m_edgesAroundVertex.is_valid())
+			this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
+		assert(this->m_edgesAroundVertex.is_valid());
+		this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+		{
+			auto & edges = this->m_edgesAroundVertex[v.dart];
+			foreach_incident_edge(v, [this,&edges](Edge e)
+			{
+				edges.push_back(topology_.embedding(e));
+			});
+		});
+	}
 
 	// BaseObject interface
 public:
