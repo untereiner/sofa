@@ -97,6 +97,12 @@ public:
         topology_.foreach_cell(f);
     }
 
+	template<typename FUNC>
+	inline void parallel_foreach_cell(const FUNC& f)
+	{
+		topology_.parallel_foreach_cell(f);
+	}
+
 
     virtual void foreach_incident_vertex_of_edge(BaseEdge e, const std::function<void (BaseVertex)>& func) override
     {
@@ -145,34 +151,84 @@ public:
     {
 	topology_.foreach_incident_edge(Volume(w.id_),[&func](Edge e) { func(e.dart); });
     }
-    template<typename FUNC>
-    inline void foreach_incident_edge(Volume vol,const FUNC& func)
-    {
-        topology_.foreach_incident_edge(vol,func);
-    }
+
+	template<typename FUNC>
+	inline void foreach_incident_edge(Vertex v,const FUNC& func)
+	{
+		topology_.foreach_incident_edge(v,func);
+	}
+
+
+	template<typename FUNC>
+	inline void foreach_incident_edge(Volume vol,const FUNC& func)
+	{
+		topology_.foreach_incident_edge(vol,func);
+	}
 
 
     virtual void foreach_incident_face_of_volume(BaseVolume w, const std::function<void (BaseFace)>& func) override
     {
 	topology_.foreach_incident_face(Volume(w.id_),[&func](Face f) { func(f.dart); });
     }
-    template<typename FUNC>
-    inline void foreach_incident_face(Volume vol,const FUNC& func)
-    {
-        topology_.foreach_incident_face(vol,func);
-    }
+	template<typename FUNC>
+	inline void foreach_incident_face(Volume vol,const FUNC& func)
+	{
+		topology_.foreach_incident_face(vol,func);
+	}
+
+	template<typename FUNC>
+	inline void foreach_incident_face(Vertex v,const FUNC& func)
+	{
+		topology_.foreach_incident_face(v,func);
+	}
+
+	template<typename FUNC>
+	inline void foreach_incident_face(Edge e,const FUNC& func)
+	{
+		topology_.foreach_incident_face(e,func);
+	}
 
 	// attributes
 	template<typename T, Orbit ORB>
 	inline Attribute<T,ORB> add_attribute(const std::string& attribute_name)
 	{
-		topology_.add_attribute<T,ORB>(attribute_name);
+		return topology_.add_attribute<T,ORB>(attribute_name);
 	}
 
 	template<typename T, Orbit ORB>
 	inline void add_attribute(Attribute<T,ORB>& dest_attribute, const std::string& attribute_name)
 	{
 		dest_attribute = topology_.add_attribute<T,ORB>(attribute_name);
+	}
+
+	inline unsigned int get_dof(Vertex v)
+	{
+		return topology_.embedding(v);
+	}
+
+	inline const helper::fixed_array<unsigned int, 2>& get_dofs(Edge e) const
+	{
+		return this->edge_dofs_[e.dart];
+	}
+
+	inline const helper::fixed_array<unsigned int, 4>& get_dofs(Face f) const
+	{
+		return this->face_dofs_[f.dart];
+	}
+
+	inline Dart phi1(Dart d) const
+	{
+		return topology_.phi1(d);
+	}
+
+	inline Dart phi_1(Dart d) const
+	{
+		return topology_.phi_1(d);
+	}
+
+	inline Dart phi2(Dart d) const
+	{
+		return topology_.phi2(d);
 	}
 
 public:
@@ -184,6 +240,66 @@ public:
 
 protected:
 	virtual void initFromMeshLoader() override;
+
+	virtual void createEdgesInTriangleArray() override
+	{
+		if (!this->m_edgesInTriangle.is_valid())
+			this->m_edgesInTriangle = this->template add_attribute<EdgesInTriangle, Face::ORBIT>("EdgesInTriangleArray");
+//			this->add_attribute(this->m_edgesInTriangle, "SurfaceTopologyContainer::EdgesInTriangleArray");
+		assert(this->m_edgesInTriangle.is_valid());
+		this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+		{
+			auto & edges = this->m_edgesInTriangle[f.dart];
+			unsigned int i = 0;
+			this->foreach_incident_edge(f, [&](Edge e)
+			{
+				edges[i++] = topology_.embedding(e);
+			});
+		});
+	}
+	virtual void createTrianglesAroundVertexArray() override
+	{
+		if (!this->m_trianglesAroundVertex.is_valid())
+			this->m_trianglesAroundVertex = this->template add_attribute<TrianglesAroundVertex, Vertex::ORBIT>("TrianglesAroundVertexArray");
+		assert(this->m_trianglesAroundVertex.is_valid());
+		this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+		{
+			auto & triangles = this->m_trianglesAroundVertex[v.dart];
+			foreach_incident_face(v, [this,&triangles](Face f)
+			{
+				triangles.push_back(topology_.embedding(f));
+			});
+		});
+	}
+	virtual void createTrianglesAroundEdgeArray() override
+	{
+		if (!this->m_trianglesAroundEdge.is_valid())
+			this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge::ORBIT>("TrianglesAroundEdgeArray");
+		assert(this->m_trianglesAroundEdge.is_valid());
+		this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
+		{
+			auto & triangles = this->m_trianglesAroundEdge[e.dart];
+			foreach_incident_face(e, [this,&triangles](Face f)
+			{
+				triangles.push_back(topology_.embedding(f));
+			});
+		});
+	}
+
+	virtual void createEdgesAroundVertexArray() override
+	{
+		if (!this->m_edgesAroundVertex.is_valid())
+			this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
+		assert(this->m_edgesAroundVertex.is_valid());
+		this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+		{
+			auto & edges = this->m_edgesAroundVertex[v.dart];
+			foreach_incident_edge(v, [this,&edges](Edge e)
+			{
+				edges.push_back(topology_.embedding(e));
+			});
+		});
+	}
 
 private:
 	Topology topology_;

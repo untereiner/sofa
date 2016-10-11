@@ -57,10 +57,6 @@ void MapTriangleSetTopologyContainer::init()
 	this->getContext()->get(map_);
 	if (!map_)
 		return;
-	map_->add_attribute(m_edgesInTriangle, "edgesInTriangle");
-	map_->add_attribute(m_trianglesAroundVertex, "trianglesAroundVertex");
-	map_->add_attribute(m_trianglesAroundEdge, "trianglesAroundEdge");
-	map_->add_attribute(m_orientedTrianglesAroundVertex, "orientedTrianglesAroundVertex");
 	this->nbPoints.setValue(map_->nb_cells<Vertex::ORBIT>());
 }
 
@@ -91,22 +87,7 @@ const EdgeSetTopologyContainer::SeqEdges&MapTriangleSetTopologyContainer::getEdg
 
 const TriangleSetTopologyContainer::SeqTriangles&MapTriangleSetTopologyContainer::getTriangles()
 {
-        return map_->getTriangles();
-}
-
-const core::topology::BaseMeshTopology::SeqQuads&MapTriangleSetTopologyContainer::getQuads()
-{
-    return Inherit1::getQuads();
-}
-
-const core::topology::BaseMeshTopology::SeqTetrahedra&MapTriangleSetTopologyContainer::getTetrahedra()
-{
-    return Inherit1::getTetrahedra();
-}
-
-const core::topology::BaseMeshTopology::SeqHexahedra&MapTriangleSetTopologyContainer::getHexahedra()
-{
-    return Inherit1::getHexahedra();
+	return map_->getTriangles();
 }
 
 int MapTriangleSetTopologyContainer::getNbEdges()
@@ -116,23 +97,10 @@ int MapTriangleSetTopologyContainer::getNbEdges()
 
 int MapTriangleSetTopologyContainer::getNbTriangles()
 {
+	std::cout << "map_->nb_cells<Face::ORBIT>() : " << map_->nb_cells<Face::ORBIT>() << std::endl;
 	return map_->nb_cells<Face::ORBIT>();
 }
 
-int MapTriangleSetTopologyContainer::getNbQuads()
-{
-    return 0;
-}
-
-int MapTriangleSetTopologyContainer::getNbTetrahedra()
-{
-    return 0;
-}
-
-int MapTriangleSetTopologyContainer::getNbHexahedra()
-{
-    return 0;
-}
 
 const TriangleSetTopologyContainer::Edge MapTriangleSetTopologyContainer::getEdge(TriangleSetTopologyContainer::EdgeID i)
 {
@@ -144,54 +112,10 @@ const TriangleSetTopologyContainer::Triangle MapTriangleSetTopologyContainer::ge
     return map_->getTriangles()[i];
 }
 
-const core::topology::Topology::Quad MapTriangleSetTopologyContainer::getQuad(core::topology::Topology::QuadID i)
-{
-    return Inherit1::getQuad(i);
-}
-
-const core::topology::Topology::Tetra MapTriangleSetTopologyContainer::getTetrahedron(core::topology::Topology::TetraID i)
-{
-    return Inherit1::getTetrahedron(i);
-}
-
-const core::topology::Topology::Hexa MapTriangleSetTopologyContainer::getHexahedron(core::topology::Topology::HexaID i)
-{
-    return Inherit1::getHexahedron(i);
-}
-
-int MapTriangleSetTopologyContainer::getNbTetras()
-{
-    return 0;
-}
-
-int MapTriangleSetTopologyContainer::getNbHexas()
-{
-    return 0;
-}
-
-core::topology::Topology::Tetra MapTriangleSetTopologyContainer::getTetra(core::topology::Topology::TetraID i)
-{
-    return Inherit1::getTetra(i);
-}
-
-core::topology::Topology::Hexa MapTriangleSetTopologyContainer::getHexa(core::topology::Topology::HexaID i)
-{
-	return Inherit1::getHexa(i);
-}
-
-const core::topology::BaseMeshTopology::SeqTetrahedra&MapTriangleSetTopologyContainer::getTetras()
-{
-	return Inherit1::getTetras();
-}
-
-const core::topology::BaseMeshTopology::SeqHexahedra&MapTriangleSetTopologyContainer::getHexas()
-{
-	return Inherit1::getHexas();
-}
 
 const EdgeSetTopologyContainer::EdgesAroundVertex&MapTriangleSetTopologyContainer::getEdgesAroundVertex(TriangleSetTopologyContainer::PointID i)
 {
-	return m_edgesAroundVertex[i];
+	return map_->getEdgesAroundVertex(i);
 }
 
 const TriangleSetTopologyContainer::EdgesInTriangle&MapTriangleSetTopologyContainer::getEdgesInTriangle(TriangleSetTopologyContainer::TriangleID i)
@@ -199,20 +123,6 @@ const TriangleSetTopologyContainer::EdgesInTriangle&MapTriangleSetTopologyContai
 	return m_edgesInTriangle[i];
 }
 
-const core::topology::BaseMeshTopology::EdgesInQuad&MapTriangleSetTopologyContainer::getEdgesInQuad(core::topology::Topology::QuadID i)
-{
-	return Inherit1::getEdgesInQuad(i);
-}
-
-const core::topology::BaseMeshTopology::EdgesInTetrahedron&MapTriangleSetTopologyContainer::getEdgesInTetrahedron(core::topology::Topology::TetraID i)
-{
-	return Inherit1::getEdgesInTetrahedron(i);
-}
-
-const core::topology::BaseMeshTopology::EdgesInHexahedron&MapTriangleSetTopologyContainer::getEdgesInHexahedron(core::topology::Topology::HexaID i)
-{
-	return Inherit1::getEdgesInHexahedron(i);
-}
 
 const TriangleSetTopologyContainer::TrianglesAroundVertex&MapTriangleSetTopologyContainer::getTrianglesAroundVertex(TriangleSetTopologyContainer::PointID i)
 {
@@ -224,159 +134,32 @@ const TriangleSetTopologyContainer::TrianglesAroundEdge&MapTriangleSetTopologyCo
 	return m_trianglesAroundEdge[i];
 }
 
-const core::topology::BaseMeshTopology::TrianglesInTetrahedron&MapTriangleSetTopologyContainer::getTrianglesInTetrahedron(core::topology::Topology::TetraID i)
-{
-	return Inherit1::getTrianglesInTetrahedron(i);
-}
+//const core::topology::BaseMeshTopology::VerticesAroundVertex MapTriangleSetTopologyContainer::getVerticesAroundVertex(TriangleSetTopologyContainer::PointID i)
+//{
+//	return Inherit1::getVerticesAroundVertex(i);
+//}
 
-const core::topology::BaseMeshTopology::QuadsAroundVertex&MapTriangleSetTopologyContainer::getQuadsAroundVertex(TriangleSetTopologyContainer::PointID i)
-{
-	return Inherit1::getQuadsAroundVertex(i);
-}
+//int MapTriangleSetTopologyContainer::getEdgeIndex(TriangleSetTopologyContainer::PointID v1, TriangleSetTopologyContainer::PointID v2)
+//{
+//	return map_->getEdgeIndex(v1, v2);
+//}
 
-const core::topology::BaseMeshTopology::QuadsAroundEdge&MapTriangleSetTopologyContainer::getQuadsAroundEdge(TriangleSetTopologyContainer::EdgeID i)
-{
-	return Inherit1::getQuadsAroundEdge(i);
-}
+//int MapTriangleSetTopologyContainer::getTriangleIndex(TriangleSetTopologyContainer::PointID v1, TriangleSetTopologyContainer::PointID v2, TriangleSetTopologyContainer::PointID v3)
+//{
+//	return map_->getTriangleIndex(v1, v2, v3);
+//}
 
-const core::topology::BaseMeshTopology::QuadsInHexahedron&MapTriangleSetTopologyContainer::getQuadsInHexahedron(core::topology::Topology::HexaID i)
-{
-	return Inherit1::getQuadsInHexahedron(i);
-}
+//int MapTriangleSetTopologyContainer::getVertexIndexInTriangle(const TriangleSetTopologyContainer::Triangle& t, TriangleSetTopologyContainer::PointID vertexIndex) const
+//{
+//	return map_->getVertexIndexInTriangle(t, vertexIndex);
+//}
 
-const core::topology::BaseMeshTopology::TetrahedraAroundVertex&MapTriangleSetTopologyContainer::getTetrahedraAroundVertex(TriangleSetTopologyContainer::PointID i)
-{
-	return Inherit1::getTetrahedraAroundVertex(i);
-}
+//int MapTriangleSetTopologyContainer::getEdgeIndexInTriangle(const TriangleSetTopologyContainer::EdgesInTriangle& t, TriangleSetTopologyContainer::EdgeID edgeIndex) const
+//{
+//	return map_->getEdgeIndexInTriangle(t,edgeIndex);
+//}
 
-const core::topology::BaseMeshTopology::TetrahedraAroundEdge&MapTriangleSetTopologyContainer::getTetrahedraAroundEdge(TriangleSetTopologyContainer::EdgeID i)
-{
-	return Inherit1::getTetrahedraAroundEdge(i);
-}
 
-const core::topology::BaseMeshTopology::TetrahedraAroundTriangle&MapTriangleSetTopologyContainer::getTetrahedraAroundTriangle(TriangleSetTopologyContainer::TriangleID i)
-{
-	return Inherit1::getTetrahedraAroundTriangle(i);
-}
-
-const core::topology::BaseMeshTopology::HexahedraAroundVertex&MapTriangleSetTopologyContainer::getHexahedraAroundVertex(TriangleSetTopologyContainer::PointID i)
-{
-	return Inherit1::getHexahedraAroundVertex(i);
-}
-
-const core::topology::BaseMeshTopology::HexahedraAroundEdge&MapTriangleSetTopologyContainer::getHexahedraAroundEdge(TriangleSetTopologyContainer::EdgeID i)
-{
-	return Inherit1::getHexahedraAroundEdge(i);
-}
-
-const core::topology::BaseMeshTopology::HexahedraAroundQuad&MapTriangleSetTopologyContainer::getHexahedraAroundQuad(core::topology::Topology::QuadID i)
-{
-	return Inherit1::getHexahedraAroundQuad(i);
-}
-
-const core::topology::BaseMeshTopology::VerticesAroundVertex MapTriangleSetTopologyContainer::getVerticesAroundVertex(TriangleSetTopologyContainer::PointID i)
-{
-	return Inherit1::getVerticesAroundVertex(i);
-}
-
-int MapTriangleSetTopologyContainer::getEdgeIndex(TriangleSetTopologyContainer::PointID v1, TriangleSetTopologyContainer::PointID v2)
-{
-	return map_->getEdgeIndex(v1, v2);
-}
-
-int MapTriangleSetTopologyContainer::getTriangleIndex(TriangleSetTopologyContainer::PointID v1, TriangleSetTopologyContainer::PointID v2, TriangleSetTopologyContainer::PointID v3)
-{
-	return map_->getTriangleIndex(v1, v2, v3);
-}
-
-int MapTriangleSetTopologyContainer::getQuadIndex(TriangleSetTopologyContainer::PointID, TriangleSetTopologyContainer::PointID, TriangleSetTopologyContainer::PointID,
-												  TriangleSetTopologyContainer::PointID)
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getTetrahedronIndex(TriangleSetTopologyContainer::PointID, TriangleSetTopologyContainer::PointID,
-														 TriangleSetTopologyContainer::PointID, TriangleSetTopologyContainer::PointID)
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getHexahedronIndex(TriangleSetTopologyContainer::PointID , TriangleSetTopologyContainer::PointID , TriangleSetTopologyContainer::PointID ,
-														TriangleSetTopologyContainer::PointID , TriangleSetTopologyContainer::PointID , TriangleSetTopologyContainer::PointID ,
-														TriangleSetTopologyContainer::PointID , TriangleSetTopologyContainer::PointID)
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getVertexIndexInTriangle(const TriangleSetTopologyContainer::Triangle& t, TriangleSetTopologyContainer::PointID vertexIndex) const
-{
-	return map_->getVertexIndexInTriangle(t, vertexIndex);
-}
-
-int MapTriangleSetTopologyContainer::getEdgeIndexInTriangle(const TriangleSetTopologyContainer::EdgesInTriangle& t, TriangleSetTopologyContainer::EdgeID edgeIndex) const
-{
-	return map_->getEdgeIndexInTriangle(t,edgeIndex);
-}
-
-int MapTriangleSetTopologyContainer::getVertexIndexInQuad(const core::topology::Topology::Quad& , TriangleSetTopologyContainer::PointID) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getEdgeIndexInQuad(const core::topology::BaseMeshTopology::EdgesInQuad& , TriangleSetTopologyContainer::EdgeID ) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getVertexIndexInTetrahedron(const core::topology::Topology::Tetra& , TriangleSetTopologyContainer::PointID ) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getEdgeIndexInTetrahedron(const core::topology::BaseMeshTopology::EdgesInTetrahedron& , TriangleSetTopologyContainer::EdgeID ) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getTriangleIndexInTetrahedron(const core::topology::BaseMeshTopology::TrianglesInTetrahedron& , TriangleSetTopologyContainer::TriangleID ) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getVertexIndexInHexahedron(const core::topology::Topology::Hexa& , TriangleSetTopologyContainer::PointID ) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getEdgeIndexInHexahedron(const core::topology::BaseMeshTopology::EdgesInHexahedron& , TriangleSetTopologyContainer::EdgeID ) const
-{
-	return -1;
-}
-
-int MapTriangleSetTopologyContainer::getQuadIndexInHexahedron(const core::topology::BaseMeshTopology::QuadsInHexahedron& , core::topology::Topology::QuadID ) const
-{
-	return -1;
-}
-
-TriangleSetTopologyContainer::Edge MapTriangleSetTopologyContainer::getLocalEdgesInTetrahedron(const TriangleSetTopologyContainer::PointID i) const
-{
-	return Inherit1::getLocalEdgesInTetrahedron(i);
-}
-
-TriangleSetTopologyContainer::Triangle MapTriangleSetTopologyContainer::getLocalTrianglesInTetrahedron(const TriangleSetTopologyContainer::PointID i) const
-{
-	return Inherit1::getLocalTrianglesInTetrahedron(i);
-}
-
-TriangleSetTopologyContainer::Edge MapTriangleSetTopologyContainer::getLocalEdgesInHexahedron(const TriangleSetTopologyContainer::PointID i) const
-{
-	return Inherit1::getLocalEdgesInHexahedron(i);
-}
-
-core::topology::Topology::Quad MapTriangleSetTopologyContainer::getLocalQuadsInHexahedron(const TriangleSetTopologyContainer::PointID i) const
-{
-	return Inherit1::getLocalQuadsInHexahedron(i);
-}
 
 void MapTriangleSetTopologyContainer::clear()
 {
@@ -391,21 +174,6 @@ void MapTriangleSetTopologyContainer::addEdge(int, int)
 void MapTriangleSetTopologyContainer::addTriangle(int, int, int)
 {
 //	map_->addTriangle(a,b,c);
-}
-
-void MapTriangleSetTopologyContainer::addQuad(int, int, int, int)
-{
-//	map_->addQuad(a,b,c,d);
-}
-
-void MapTriangleSetTopologyContainer::addTetra(int, int, int, int)
-{
-//	map_->addTetra(a,b,c,d);
-}
-
-void MapTriangleSetTopologyContainer::addHexa(int, int, int, int, int, int, int, int)
-{
-//	map_->addHexa(a,b,c,d,e,f,g,h);
 }
 
 bool MapTriangleSetTopologyContainer::checkConnexity()

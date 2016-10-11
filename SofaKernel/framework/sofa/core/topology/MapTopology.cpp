@@ -38,7 +38,6 @@ void MapTopology::cleanup()
 	Inherit1::cleanup();
 }
 
-
 const BaseMeshTopology::SeqEdges&MapTopology::getEdges()
 {
 	return d_edge.getValue();
@@ -66,6 +65,8 @@ const BaseMeshTopology::SeqHexahedra&MapTopology::getHexahedra()
 
 const BaseMeshTopology::EdgesAroundVertex&MapTopology::getEdgesAroundVertex(Topology::PointID i)
 {
+	if (!m_edgesAroundVertex.is_valid())
+		createEdgesAroundVertexArray();
 	return m_edgesAroundVertex[i];
 }
 
