@@ -77,7 +77,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	template<typename T, Orbit ORB>
 	inline Attribute<T,ORB> add_attribute(const std::string& attribute_name)
 	{
-		topology_.add_attribute<T,ORB>(attribute_name);
+		return topology_.add_attribute<T,ORB>(attribute_name);
 	}
 
 	template<typename T, Orbit ORB>
@@ -201,6 +201,18 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		topology_.foreach_incident_volume(v,func);
 	}
 
+	template<typename FUNC>
+	inline void foreach_incident_volume(Face f,const FUNC& func)
+	{
+		topology_.foreach_incident_volume(f,func);
+	}
+
+	template<typename FUNC>
+	inline void foreach_incident_face(Edge e,const FUNC& func)
+	{
+		topology_.foreach_incident_face(e,func);
+	}
+
 	template<Orbit ORBIT>
 	inline unsigned int nb_cells() const
 	{
@@ -238,25 +250,19 @@ protected:
 	{
 
 	}
-	virtual void createTrianglesAroundEdgeArray() override
-	{
+	virtual void createTrianglesAroundEdgeArray() override;
 
-	}
+	virtual void createEdgesInQuadArray() override;
 
-	virtual void createEdgesAroundVertexArray() override
-	{
-		if (!this->m_edgesAroundVertex.is_valid())
-			this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
-		assert(this->m_edgesAroundVertex.is_valid());
-		this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
-		{
-			auto & edges = this->m_edgesAroundVertex[v.dart];
-			foreach_incident_edge(v, [this,&edges](Edge e)
-			{
-				edges.push_back(topology_.embedding(e));
-			});
-		});
-	}
+	virtual void createEdgesAroundVertexArray() override;
+
+	virtual void createEdgesInTetrahedronArray() override;
+
+	virtual void createTrianglesInTetrahedronArray() override;
+
+	virtual void createTetrahedraAroundTriangleArray() override;
+
+	virtual void createTriangleSetArray() override;
 
 	// BaseObject interface
 public:

@@ -95,25 +95,16 @@ public:
 	virtual const TetrahedraAroundEdge&getTetrahedraAroundEdge(EdgeID i) override;
 	virtual const TetrahedraAroundTriangle&getTetrahedraAroundTriangle(TriangleID i) override;
 	virtual const VerticesAroundVertex getVerticesAroundVertex(PointID i) override;
+
+
 	virtual const sofa::helper::vector<index_type> getElementAroundElement(index_type elem) override;
 	virtual const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems) override;
-	virtual int getEdgeIndex(PointID v1, PointID v2) override;
-	virtual int getTriangleIndex(PointID v1, PointID v2, PointID v3) override;
-	virtual int getTetrahedronIndex(PointID v1, PointID v2, PointID v3, PointID v4) override;
-	virtual int getVertexIndexInTriangle(const Triangle& t, PointID vertexIndex) const override;
-	virtual int getEdgeIndexInTriangle(const EdgesInTriangle& t, EdgeID edgeIndex) const override;
-	virtual int getVertexIndexInTetrahedron(const Tetra& t, PointID vertexIndex) const override;
-	virtual int getEdgeIndexInTetrahedron(const EdgesInTetrahedron& t, EdgeID edgeIndex) const override;
-	virtual int getTriangleIndexInTetrahedron(const TrianglesInTetrahedron& t, TriangleID triangleIndex) const override;
-	virtual  core::topology::Topology::Edge getLocalEdgesInTetrahedron(const PointID i) const override;
-	virtual Triangle getLocalTrianglesInTetrahedron(const PointID i) const override;
+
 	virtual void clear() override;
 	virtual void addPoint(SReal px, SReal py, SReal pz) override;
 	virtual void addEdge(int a, int b) override;
 	virtual void addTriangle(int a, int b, int c) override;
-	virtual void addQuad(int a, int b, int c, int d) override;
 	virtual void addTetra(int a, int b, int c, int d) override;
-	virtual void addHexa(int a, int b, int c, int d, int e, int f, int g, int h) override;
 	virtual bool checkConnexity() override;
 	virtual unsigned int getNumberOfConnectedComponent() override;
 	virtual const sofa::helper::vector<index_type> getConnectedElement(index_type elem) override;
@@ -127,28 +118,8 @@ public:
 	virtual unsigned int getNumberOfElements() const override;
 	virtual bool checkTopology() const override;
 
-	// TetrahedronSetTopologyContainer interface
-protected:
-	bool hasEdgesAroundVertex() const;
-	void createEdgesAroundVertexArray() override;
-	virtual void createEdgesInTetrahedronArray() override;
-	virtual void createTrianglesInTetrahedronArray() override;
-	virtual void createTetrahedraAroundVertexArray() override;
-	virtual void createTetrahedraAroundEdgeArray() override;
-	virtual void createTetrahedraAroundTriangleArray() override;
-
 private:
-	VolumeTopologyContainer*							map_;
-	Attribute<EdgesAroundVertex, Vertex::ORBIT>			edges_around_vertex_;
-	Attribute<EdgesInTriangle, Face::ORBIT>				edges_in_triangle_;
-	Attribute<TrianglesAroundVertex, Vertex::ORBIT>		triangles_around_vertex_;
-	Attribute<TrianglesAroundEdge, Edge::ORBIT>			triangles_around_edge_;
-	Attribute<TrianglesAroundVertex, Vertex::ORBIT>		oriented_triangles_around_vertex_;
-	Attribute<TetrahedraAroundVertex, Vertex::ORBIT>	tetrahedra_around_vertex_;
-	Attribute<TetrahedraAroundEdge, Edge::ORBIT>		tetrahedra_around_edge_;
-	Attribute<TetrahedraAroundTriangle, Face::ORBIT>	tetrahedra_around_triangle_;
-	Attribute<EdgesInTetrahedron, Volume::ORBIT>		edges_in_tetrahedron_;
-	Attribute<TrianglesInTetrahedron, Volume::ORBIT>	triangles_in_tetrahedron_;
+	VolumeTopologyContainer* map_;
 };
 
 } // namespace topology

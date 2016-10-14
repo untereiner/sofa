@@ -242,10 +242,16 @@ protected:
 	Attribute_T<HexahedraAroundQuad>		m_hexahedraAroundQuad;
 
 
+	virtual void createTriangleSetArray() = 0;
+
 	virtual void createEdgesInTriangleArray() = 0;
+	virtual void createEdgesInQuadArray() = 0;
 	virtual void createTrianglesAroundVertexArray() = 0;
 	virtual void createTrianglesAroundEdgeArray() = 0;
 	virtual void createEdgesAroundVertexArray() = 0;
+	virtual void createTrianglesInTetrahedronArray() = 0;
+	virtual void createEdgesInTetrahedronArray() = 0;
+	virtual void createTetrahedraAroundTriangleArray() = 0;
 
 	Attribute_T<helper::fixed_array<unsigned int, 2>> edge_dofs_;
 	Attribute_T<helper::fixed_array<unsigned int, 4>> face_dofs_;
@@ -288,6 +294,10 @@ public:
 	const QuadsAroundVertex&getQuadsAroundVertex(PointID i);
 	const QuadsAroundEdge&getQuadsAroundEdge(EdgeID i);
 	const VerticesAroundVertex getVerticesAroundVertex(PointID i);
+	const TrianglesInTetrahedron& getTrianglesInTetrahedron(TetrahedronID i);
+	const EdgesInTetrahedron& getEdgesInTetrahedron(TetrahedronID i);
+	const TetrahedraAroundTriangle& getTetrahedraAroundTriangle(TetrahedronID i);
+
 	const sofa::helper::vector<index_type> getElementAroundElement(index_type elem);
 	const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems);
 	int getEdgeIndex(PointID v1, PointID v2);

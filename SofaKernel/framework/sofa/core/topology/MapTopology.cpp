@@ -43,8 +43,10 @@ const BaseMeshTopology::SeqEdges&MapTopology::getEdges()
 	return d_edge.getValue();
 }
 
-const BaseMeshTopology::SeqTriangles&MapTopology::getTriangles()
+const BaseMeshTopology::SeqTriangles& MapTopology::getTriangles()
 {
+	if (d_triangle.getValue().empty())
+		createTriangleSetArray();
 	return d_triangle.getValue();
 }
 
@@ -72,12 +74,19 @@ const BaseMeshTopology::EdgesAroundVertex&MapTopology::getEdgesAroundVertex(Topo
 
 const BaseMeshTopology::EdgesInTriangle&MapTopology::getEdgesInTriangle(Topology::TriangleID i)
 {
-//	return m_edgesInTriangle[i];
+	const static EdgesInTriangle empty;
+	if (!m_edgesInTriangle.is_valid())
+		createEdgesInTriangleArray();
+	return m_edgesInTriangle.is_valid() ? m_edgesInTriangle[i] : empty;
+
 }
 
 const BaseMeshTopology::EdgesInQuad&MapTopology::getEdgesInQuad(Topology::QuadID i)
 {
-	return m_edgesInQuad[i];
+	const static EdgesInQuad empty;
+	if (!m_edgesInQuad.is_valid())
+		createEdgesInQuadArray();
+	return m_edgesInQuad.is_valid() ? m_edgesInQuad[i] : empty;
 }
 
 const BaseMeshTopology::TrianglesAroundVertex&MapTopology::getTrianglesAroundVertex(Topology::PointID i)
@@ -104,6 +113,30 @@ const BaseMeshTopology::VerticesAroundVertex MapTopology::getVerticesAroundVerte
 {
 //	return m_ver[i];
 	return VerticesAroundVertex();
+}
+
+const MapTopology::TrianglesInTetrahedron&MapTopology::getTrianglesInTetrahedron(MapTopology::TetrahedronID i)
+{
+	const static TrianglesInTetrahedron empty;
+	if (!m_trianglesInTetrahedron.is_valid())
+		createTrianglesInTetrahedronArray();
+	return m_trianglesInTetrahedron.is_valid()? m_trianglesInTetrahedron[i] : empty;
+}
+
+const MapTopology::EdgesInTetrahedron&MapTopology::getEdgesInTetrahedron(MapTopology::TetrahedronID i)
+{
+	const static EdgesInTetrahedron empty;
+	if (!m_edgesInTetrahedron.is_valid())
+		createEdgesInTetrahedronArray();
+	return m_edgesInTetrahedron.is_valid()? m_edgesInTetrahedron[i] : empty;
+}
+
+const MapTopology::TetrahedraAroundTriangle& MapTopology::getTetrahedraAroundTriangle(MapTopology::TetrahedronID i)
+{
+	const static TetrahedraAroundTriangle empty;
+	if (!m_tetrahedraAroundTriangle.is_valid())
+		createTetrahedraAroundTriangleArray();
+	return m_tetrahedraAroundTriangle.is_valid()? m_tetrahedraAroundTriangle[i] : empty;
 }
 
 const sofa::helper::vector<Topology::index_type> MapTopology::getElementAroundElement(Topology::index_type elem)

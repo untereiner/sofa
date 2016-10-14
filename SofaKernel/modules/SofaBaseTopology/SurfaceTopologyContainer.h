@@ -241,65 +241,17 @@ public:
 protected:
 	virtual void initFromMeshLoader() override;
 
-	virtual void createEdgesInTriangleArray() override
-	{
-		if (!this->m_edgesInTriangle.is_valid())
-			this->m_edgesInTriangle = this->template add_attribute<EdgesInTriangle, Face::ORBIT>("EdgesInTriangleArray");
-//			this->add_attribute(this->m_edgesInTriangle, "SurfaceTopologyContainer::EdgesInTriangleArray");
-		assert(this->m_edgesInTriangle.is_valid());
-		this->parallel_foreach_cell([&](Face f, cgogn::uint32)
-		{
-			auto & edges = this->m_edgesInTriangle[f.dart];
-			unsigned int i = 0;
-			this->foreach_incident_edge(f, [&](Edge e)
-			{
-				edges[i++] = topology_.embedding(e);
-			});
-		});
-	}
-	virtual void createTrianglesAroundVertexArray() override
-	{
-		if (!this->m_trianglesAroundVertex.is_valid())
-			this->m_trianglesAroundVertex = this->template add_attribute<TrianglesAroundVertex, Vertex::ORBIT>("TrianglesAroundVertexArray");
-		assert(this->m_trianglesAroundVertex.is_valid());
-		this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
-		{
-			auto & triangles = this->m_trianglesAroundVertex[v.dart];
-			foreach_incident_face(v, [this,&triangles](Face f)
-			{
-				triangles.push_back(topology_.embedding(f));
-			});
-		});
-	}
-	virtual void createTrianglesAroundEdgeArray() override
-	{
-		if (!this->m_trianglesAroundEdge.is_valid())
-			this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge::ORBIT>("TrianglesAroundEdgeArray");
-		assert(this->m_trianglesAroundEdge.is_valid());
-		this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
-		{
-			auto & triangles = this->m_trianglesAroundEdge[e.dart];
-			foreach_incident_face(e, [this,&triangles](Face f)
-			{
-				triangles.push_back(topology_.embedding(f));
-			});
-		});
-	}
 
-	virtual void createEdgesAroundVertexArray() override
-	{
-		if (!this->m_edgesAroundVertex.is_valid())
-			this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
-		assert(this->m_edgesAroundVertex.is_valid());
-		this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
-		{
-			auto & edges = this->m_edgesAroundVertex[v.dart];
-			foreach_incident_edge(v, [this,&edges](Edge e)
-			{
-				edges.push_back(topology_.embedding(e));
-			});
-		});
-	}
+	virtual void createTriangleSetArray() override;
+
+	virtual void createEdgesInTriangleArray() override;
+	virtual void createTrianglesAroundVertexArray() override;
+	virtual void createTrianglesAroundEdgeArray() override;
+	virtual void createEdgesAroundVertexArray() override;
+	virtual void createTrianglesInTetrahedronArray() override;
+	virtual void createEdgesInQuadArray() override;
+	virtual void createEdgesInTetrahedronArray() override;
+	virtual void createTetrahedraAroundTriangleArray() override;
 
 private:
 	Topology topology_;
