@@ -97,19 +97,18 @@ int MapTriangleSetTopologyContainer::getNbEdges()
 
 int MapTriangleSetTopologyContainer::getNbTriangles()
 {
-	std::cout << "map_->nb_cells<Face::ORBIT>() : " << map_->nb_cells<Face::ORBIT>() << std::endl;
 	return map_->nb_cells<Face::ORBIT>();
 }
 
 
 const TriangleSetTopologyContainer::Edge MapTriangleSetTopologyContainer::getEdge(TriangleSetTopologyContainer::EdgeID i)
 {
-    return map_->getEdges()[i];
+	return map_->getEdges()[i];
 }
 
 const TriangleSetTopologyContainer::Triangle MapTriangleSetTopologyContainer::getTriangle(TriangleSetTopologyContainer::TriangleID i)
 {
-    return map_->getTriangles()[i];
+	return map_->getTriangles()[i];
 }
 
 
@@ -120,18 +119,18 @@ const EdgeSetTopologyContainer::EdgesAroundVertex&MapTriangleSetTopologyContaine
 
 const TriangleSetTopologyContainer::EdgesInTriangle&MapTriangleSetTopologyContainer::getEdgesInTriangle(TriangleSetTopologyContainer::TriangleID i)
 {
-	return m_edgesInTriangle[i];
+	return map_->getEdgesInTriangle(i);
 }
 
 
 const TriangleSetTopologyContainer::TrianglesAroundVertex&MapTriangleSetTopologyContainer::getTrianglesAroundVertex(TriangleSetTopologyContainer::PointID i)
 {
-	return m_trianglesAroundVertex[i];
+	return map_->getTrianglesAroundVertex(i);
 }
 
 const TriangleSetTopologyContainer::TrianglesAroundEdge&MapTriangleSetTopologyContainer::getTrianglesAroundEdge(TriangleSetTopologyContainer::EdgeID i)
 {
-	return m_trianglesAroundEdge[i];
+	return map_->getTrianglesAroundEdge(i);
 }
 
 //const core::topology::BaseMeshTopology::VerticesAroundVertex MapTriangleSetTopologyContainer::getVerticesAroundVertex(TriangleSetTopologyContainer::PointID i)

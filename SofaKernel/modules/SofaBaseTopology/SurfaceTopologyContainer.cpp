@@ -78,6 +78,106 @@ void SurfaceTopologyContainer::initFromMeshLoader()
 	surface_import.create_map(topology_);
 }
 
+void SurfaceTopologyContainer::createTriangleSetArray()
+{
+
+}
+
+void SurfaceTopologyContainer::createEdgesInTriangleArray()
+{
+	if (!this->m_edgesInTriangle.is_valid())
+		this->m_edgesInTriangle = this->template add_attribute<EdgesInTriangle, Face::ORBIT>("EdgesInTriangleArray");
+	//			this->add_attribute(this->m_edgesInTriangle, "SurfaceTopologyContainer::EdgesInTriangleArray");
+	assert(this->m_edgesInTriangle.is_valid());
+	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	{
+		auto & edges = this->m_edgesInTriangle[f.dart];
+		unsigned int i = 0;
+		this->foreach_incident_edge(f, [&](Edge e)
+		{
+			edges[i++] = topology_.embedding(e);
+		});
+	});
+}
+
+void SurfaceTopologyContainer::createTrianglesAroundVertexArray()
+{
+	if (!this->m_trianglesAroundVertex.is_valid())
+		this->m_trianglesAroundVertex = this->template add_attribute<TrianglesAroundVertex, Vertex::ORBIT>("TrianglesAroundVertexArray");
+	assert(this->m_trianglesAroundVertex.is_valid());
+	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	{
+		auto & triangles = this->m_trianglesAroundVertex[v.dart];
+		foreach_incident_face(v, [this,&triangles](Face f)
+		{
+			triangles.push_back(topology_.embedding(f));
+		});
+	});
+}
+
+void SurfaceTopologyContainer::createTrianglesAroundEdgeArray()
+{
+	if (!this->m_trianglesAroundEdge.is_valid())
+		this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge::ORBIT>("TrianglesAroundEdgeArray");
+	assert(this->m_trianglesAroundEdge.is_valid());
+	this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
+	{
+		auto & triangles = this->m_trianglesAroundEdge[e.dart];
+		foreach_incident_face(e, [this,&triangles](Face f)
+		{
+			triangles.push_back(topology_.embedding(f));
+		});
+	});
+}
+
+void SurfaceTopologyContainer::createEdgesAroundVertexArray()
+{
+	if (!this->m_edgesAroundVertex.is_valid())
+		this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
+	assert(this->m_edgesAroundVertex.is_valid());
+	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	{
+		auto & edges = this->m_edgesAroundVertex[v.dart];
+		foreach_incident_edge(v, [this,&edges](Edge e)
+		{
+			edges.push_back(topology_.embedding(e));
+		});
+	});
+}
+
+
+
+void SurfaceTopologyContainer::createEdgesInQuadArray()
+{
+	if (!this->m_edgesInQuad.is_valid())
+		this->m_edgesInQuad = this->template add_attribute<EdgesInQuad, Face::ORBIT>("EdgesInQuadArray");
+	assert(this->m_edgesInQuad.is_valid());
+	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	{
+		auto & edges = this->m_edgesInQuad[f.dart];
+		unsigned int i = 0;
+		this->foreach_incident_edge(f, [&](Edge e)
+		{
+			edges[i++] = topology_.embedding(e);
+		});
+	});
+}
+
+void SurfaceTopologyContainer::createTrianglesInTetrahedronArray()
+{
+
+}
+
+void SurfaceTopologyContainer::createEdgesInTetrahedronArray()
+{
+
+}
+
+void SurfaceTopologyContainer::createTetrahedraAroundTriangleArray()
+{
+
+}
+
 void SurfaceTopologyContainer::init()
 {
 	topology_.clear_and_remove_attributes();

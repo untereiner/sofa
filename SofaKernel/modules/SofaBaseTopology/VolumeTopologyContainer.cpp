@@ -79,11 +79,131 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	volume_import.create_map(topology_);
 }
 
+void VolumeTopologyContainer::createTrianglesAroundEdgeArray()
+{
+	if (!this->m_trianglesAroundEdge.is_valid())
+		this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge::ORBIT>("TrianglesAroundEdgeArray");
+	assert(this->m_trianglesAroundEdge.is_valid());
+	this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
+	{
+		auto & tris = this->m_trianglesAroundEdge[e.dart];
+		foreach_incident_face(e, [this,&tris](Face f)
+		{
+			tris.push_back(topology_.embedding(f));
+		});
+	});
+}
+
+void VolumeTopologyContainer::createEdgesInQuadArray()
+{
+	if (!this->m_edgesInQuad.is_valid())
+		this->m_edgesInQuad = this->template add_attribute<EdgesInQuad, Face::ORBIT>("EdgesInQuadArray");
+	//			this->add_attribute(this->m_edgesInTriangle, "SurfaceTopologyContainer::EdgesInTriangleArray");
+	assert(this->m_edgesInQuad.is_valid());
+	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	{
+		auto & edges = this->m_edgesInQuad[f.dart];
+		unsigned int i = 0;
+		this->foreach_incident_edge(f, [&](Edge e)
+		{
+			edges[i++] = topology_.embedding(e);
+		});
+	});
+}
+
+void VolumeTopologyContainer::createEdgesAroundVertexArray()
+{
+	if (!this->m_edgesAroundVertex.is_valid())
+		this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
+	assert(this->m_edgesAroundVertex.is_valid());
+	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	{
+		auto & edges = this->m_edgesAroundVertex[v.dart];
+		foreach_incident_edge(v, [this,&edges](Edge e)
+		{
+			edges.push_back(topology_.embedding(e));
+		});
+	});
+}
+
+void VolumeTopologyContainer::createEdgesInTetrahedronArray()
+{
+	if (!this->m_edgesInTetrahedron.is_valid())
+		this->m_edgesInTetrahedron = this->template add_attribute<EdgesInTetrahedron, Volume::ORBIT>("EdgesInTetrahedronArray");
+	assert(this->m_edgesInTetrahedron.is_valid());
+	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	{
+		auto & edges = this->m_edgesInTetrahedron[w.dart];
+		unsigned int i = 0u;
+		foreach_incident_edge(w, [this,&edges,&i](Edge e)
+		{
+			edges[i++] = topology_.embedding(e);
+		});
+	});
+}
+
+void VolumeTopologyContainer::createTrianglesInTetrahedronArray()
+{
+	if (!this->m_trianglesInTetrahedron.is_valid())
+		this->m_trianglesInTetrahedron = this->template add_attribute<TrianglesInTetrahedron, Volume::ORBIT>("TrianglesInTetrahedronArray");
+	assert(this->m_trianglesInTetrahedron.is_valid());
+	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	{
+		auto & faces = this->m_trianglesInTetrahedron[w.dart];
+		unsigned int i = 0u;
+		foreach_incident_face(w, [this,&faces,&i](Face f)
+		{
+			faces[i++] = topology_.embedding(f);
+		});
+	});
+}
+
+void VolumeTopologyContainer::createTetrahedraAroundTriangleArray()
+{
+	if (!this->m_tetrahedraAroundTriangle.is_valid())
+		this->m_tetrahedraAroundTriangle = this->template add_attribute<TetrahedraAroundTriangle, Face::ORBIT>("TetrahedraAroundTriangleArray");
+	assert(this->m_tetrahedraAroundTriangle.is_valid());
+	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	{
+		auto & tetras = this->m_tetrahedraAroundTriangle[f.dart];
+		foreach_incident_volume(f, [this,&tetras](Volume w)
+		{
+			tetras.push_back(topology_.embedding(w));
+		});
+	});
+}
+
+void VolumeTopologyContainer::createTriangleSetArray()
+{
+	helper::WriteAccessor< Data< helper::vector< TriangleIds > > > m_tri = d_triangle;
+	m_tri.clear();
+	m_tri.reserve(this->template nb_cells<Face::ORBIT>());
+	this->foreach_cell([&](Face f)
+	{
+		const auto& dofs = this->get_dofs(f);
+		m_tri.push_back(TriangleIds(dofs[0], dofs[1], dofs[2]));
+	});
+}
+
 void VolumeTopologyContainer::init()
 {
-//	topology_.clear_and_remove_attributes();
+	//	topology_.clear_and_remove_attributes();
 	Inherit1::init();
 	initFromMeshLoader();
+
+	this->face_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 4>, Face::ORBIT>("Face_dofs");
+	this->volume_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 8>, Volume::ORBIT>("Volume_dofs");
+	assert(face_dofs_.is_valid());
+
+	this->foreach_cell([&](Face f)
+	{
+		auto& dofs = this->face_dofs_[f.dart];
+		unsigned int i = 0u;
+		this->foreach_incident_vertex(f,[&](Vertex v)
+		{
+			dofs[i++] = this->embedding(v);
+		});
+	});
 }
 
 void VolumeTopologyContainer::bwdInit()
@@ -98,7 +218,7 @@ void VolumeTopologyContainer::reinit()
 
 void VolumeTopologyContainer::reset()
 {
-//	topology_.clear_and_remove_attributes();
+	//	topology_.clear_and_remove_attributes();
 	Inherit1::reset();
 }
 
