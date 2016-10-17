@@ -199,6 +199,20 @@ void MapTopology::reOrientateTriangle(Topology::TriangleID id)
 
 }
 
+void MapTopology::addTopologyChange(const cm_topology::TopologyChange* topologyChange)
+{
+	auto& my_changeList = *(m_changeList.beginEdit());
+	my_changeList.push_back(topologyChange);
+	m_changeList.endEdit();
+}
+
+void MapTopology::addStateChange(const cm_topology::TopologyChange* topologyChange)
+{
+	auto& my_stateChangeList = *(m_stateChangeList.beginEdit());
+	my_stateChangeList.push_back(topologyChange);
+	m_stateChangeList.endEdit();
+}
+
 void MapTopology::addTopologyEngine(cm_topology::TopologyEngine* _topologyEngine)
 {
 	m_topologyEngineList.push_back(_topologyEngine);

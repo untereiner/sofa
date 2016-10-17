@@ -138,6 +138,7 @@ set(HEADER_FILES
     topology/CMTopologyElementHandler.h
     topology/CMBaseTopologyData.h
     topology/CMBaseTopologyEngine.h
+    topology/CMBaseTopology.h
     visual/DisplayFlags.h
     visual/DrawTool.h
     visual/Shader.h
@@ -237,6 +238,8 @@ set(SOURCE_FILES
     topology/MapTopology.cpp
     topology/CMTopologyHandler.cpp
     topology/CMTopologyElementHandler.cpp
+    topology/CMBaseTopology.cpp
+    topology/CMTopologyChange.cpp
     visual/Shader.cpp
     visual/DisplayFlags.cpp
     visual/VisualLoop.cpp

@@ -26,7 +26,7 @@
 #define SOFA_CORE_TOPOLOGY_MAPTOPOLOGY_H
 
 #include <functional>
-#include <sofa/core/topology/BaseTopology.h>
+#include <sofa/core/topology/BaseMeshTopology.h>
 #include <sofa/core/State.h>
 
 #include <cgogn/core/cmap/cmap3.h>
@@ -46,6 +46,10 @@ namespace cm_topology
 class TopologyEngine;
 // fw declaration of cm_topology::TopologyChange
 class TopologyChange;
+
+template<typename T>
+class TopologyElementInfo;
+
 }
 namespace topology
 {
@@ -134,6 +138,10 @@ public:
 
 	using Vec3Types = sofa::defaulttype::Vec3Types;
 	using VecCoord = Vec3Types::VecCoord;
+	using TopologyChanger = cm_topology::TopologyChange;
+	using TopologyEngine = cm_topology::TopologyEngine;
+	template<typename T>
+	using TopologyElementInfo = cm_topology::TopologyElementInfo<T>;
 
 
 	// compatibility
@@ -176,6 +184,10 @@ public:
 	using TrianglesAroundEdge = core::topology::BaseMeshTopology::TrianglesAroundEdge;
 	using VerticesAroundVertex = core::topology::BaseMeshTopology::VerticesAroundVertex;
 
+
+	using EdgeDOFs = helper::fixed_array<unsigned int, 2>;
+	using FaceDOFs = helper::fixed_array<unsigned int, 4>;
+	using VolumeDOFs = helper::fixed_array<unsigned int, 8>;
 
 	MapTopology();
 	~MapTopology() override;
@@ -253,9 +265,9 @@ protected:
 	virtual void createEdgesInTetrahedronArray() = 0;
 	virtual void createTetrahedraAroundTriangleArray() = 0;
 
-	Attribute_T<helper::fixed_array<unsigned int, 2>> edge_dofs_;
-	Attribute_T<helper::fixed_array<unsigned int, 4>> face_dofs_;
-	Attribute_T<helper::fixed_array<unsigned int, 8>> volume_dofs_;
+	Attribute_T<EdgeDOFs> edge_dofs_;
+	Attribute_T<FaceDOFs> face_dofs_;
+	Attribute_T<VolumeDOFs> volume_dofs_;
 
 	// compatibility
 public:
@@ -319,6 +331,8 @@ public:
 
 	// TOPOLOGY CONTAINER
 public:
+	virtual void addTopologyChange(const cm_topology::TopologyChange *topologyChange);
+	virtual void addStateChange(const cm_topology::TopologyChange *topologyChange);
 	void addTopologyEngine(cm_topology::TopologyEngine* _topologyEngine);
 
 protected:
@@ -329,6 +343,9 @@ protected:
 protected:
 	/// Array of topology modifications that have already occured (addition) or will occur next (deletion).
     Data <sofa::helper::list<const cm_topology::TopologyChange *> >m_changeList;
+
+	/// Array of state modifications that have already occured (addition) or will occur next (deletion).
+	Data <sofa::helper::list<const cm_topology::TopologyChange *> >m_stateChangeList;
 
 	/// List of topology engines which will interact on all topological Data.
     sofa::helper::list<cm_topology::TopologyEngine *> m_topologyEngineList;

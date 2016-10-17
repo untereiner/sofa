@@ -50,8 +50,8 @@ enum TopologyChangeType
 	TOPOLOGYCHANGE_LASTID      ///< user defined topology changes can start here
 };
 
-SOFA_CORE_API TopologyChangeType parseTopologyChangeTypeFromString(const std::string& s);
-SOFA_CORE_API std::string parseTopologyChangeTypeToString(TopologyChangeType t);
+//SOFA_CORE_API TopologyChangeType parseTopologyChangeTypeFromString(const std::string& s); // TODO
+//SOFA_CORE_API std::string parseTopologyChangeTypeToString(TopologyChangeType t); // TODO
 
 // forward declarations
 class SOFA_CORE_API TopologyChange;
@@ -857,23 +857,18 @@ public:
 class SOFA_CORE_API VolumesAdded : public core::cm_topology::TopologyChange
 {
 public:
-	VolumesAdded(const unsigned int nT) : core::cm_topology::TopologyChange(core::cm_topology::VOLUMESADDED),
-		nVolumes(nT)
-	{ }
-
-	VolumesAdded(const unsigned int nT,
-			const sofa::helper::vector< Volume >& _tetrahedronArray)
+	VolumesAdded(const sofa::helper::vector< Volume >& tetrahedronArray)
 		: core::cm_topology::TopologyChange(core::cm_topology::VOLUMESADDED),
-		  nVolumes(nT),
-		  volumeArray(_tetrahedronArray)
+		  nVolumes(tetrahedronArray.size()),
+		  volumeArray(tetrahedronArray)
 	{ }
 
-	VolumesAdded(const unsigned int nT,
+	VolumesAdded(
 			const sofa::helper::vector< Volume >& _tetrahedronArray,
 			const sofa::helper::vector< sofa::helper::vector< Volume > >& ancestors,
 			const sofa::helper::vector< sofa::helper::vector< double > >& baryCoefs)
 		: core::cm_topology::TopologyChange(core::cm_topology::VOLUMESADDED),
-		  nVolumes(nT),
+		  nVolumes(_tetrahedronArray.size()),
 		  volumeArray(_tetrahedronArray),
 		  ancestorsList(ancestors),
 		  coefs(baryCoefs)
