@@ -51,13 +51,14 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	using BaseEdge   = Inherit1::Edge;
 	using BaseFace   = Inherit1::Face;
 	using BaseVolume = Inherit1::Volume;
+	using Map = Topology;
 
-	using CellCache = cgogn::CellCache<Topology>;
-	using DartMarker = cgogn::DartMarker<Topology>;
+	using CellCache = cgogn::CellCache<Map>;
+	using DartMarker = cgogn::DartMarker<Map>;
 	template<Orbit ORB>
-	using CellMarker = cgogn::CellMarker<Topology, ORB>;
+	using CellMarker = cgogn::CellMarker<Map, ORB>;
 	template <typename T, Orbit ORBIT>
-	using Attribute = Topology::Attribute<T,ORBIT>;
+	using Attribute = Map::Attribute<T,ORBIT>;
 
 	VolumeTopologyContainer();
 	~VolumeTopologyContainer() override;

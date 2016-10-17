@@ -72,6 +72,8 @@ set(HEADER_FILES
     CMTopologyDataHandler.inl
     CMTopologyEngine.h
     CMTopologyEngine.inl
+    VolumeTopologyModifier.h
+    VolumeGeometryAlgorithms.h
 )
 
 set(SOURCE_FILES
@@ -109,6 +111,8 @@ set(SOURCE_FILES
     initBaseTopology.cpp
     SurfaceTopologyContainer.cpp
     VolumeTopologyContainer.cpp
+    VolumeTopologyModifier.cpp
+    VolumeGeometryAlgorithms.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})

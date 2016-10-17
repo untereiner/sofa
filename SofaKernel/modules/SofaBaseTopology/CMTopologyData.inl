@@ -54,7 +54,7 @@ template <typename TopologyElementType, typename VecT>
 void TopologyDataImpl <TopologyElementType, VecT>::createTopologicalEngine(sofa::core::topology::MapTopology *_topology, sofa::component::cm_topology::TopologyDataHandler<TopologyElementType,VecT>* _topologyHandler, bool deleteHandler)
 {
     this->m_topology = _topology;
-    if (_topology && dynamic_cast<sofa::core::topology::TopologyContainer*>(_topology))
+    if (_topology /*&& dynamic_cast<sofa::core::topology::TopologyContainer*>(_topology)*/)
     {
         this->m_topologicalEngine = sofa::core::objectmodel::New<TopologyEngineImpl<VecT> >((sofa::component::cm_topology::TopologyDataImpl<TopologyElementType, VecT>*)this, _topology, _topologyHandler);
         this->m_topologicalEngine->setNamePrefix(std::string(sofa::core::cm_topology::TopologyElementInfo<TopologyElementType>::name()) + std::string("Engine_"));
