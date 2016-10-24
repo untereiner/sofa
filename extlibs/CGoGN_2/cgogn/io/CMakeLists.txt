@@ -35,6 +35,8 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+	map_export.cpp
+	map_import.cpp
 	surface_import.cpp
 	surface_export.cpp
 	volume_import.cpp
@@ -44,7 +46,6 @@ set(SOURCE_FILES
 	io_utils.cpp
 	vtk_io.cpp
 	lm6_io.cpp
-	data_io.cpp
 	msh_io.cpp
 	obj_io.cpp
 	off_io.cpp

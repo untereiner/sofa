@@ -33,7 +33,6 @@ namespace cgogn
 namespace topology
 {
 
-
 template <typename MAP>
 class AdjacencyCache
 {
@@ -63,13 +62,11 @@ public:
 	const AdjacencyCache& operator=(const AdjacencyCache& ) = delete;
 
 	inline ~AdjacencyCache()
-	{
-//		map_.remove_attribute(adjacency_);
-	}
+	{}
 
 	void init()
 	{
-		map_.add_attribute(adjacency_, "__adjacency__");
+		adjacency_ = map_.template add_attribute<VertexArray, Vertex>("__adjacency__");
 		map_.foreach_cell([&](Vertex v)
 		{
 			map_.foreach_adjacent_vertex_through_edge(v, [&](Vertex u)
@@ -86,16 +83,15 @@ public:
 		for (Vertex u : adjacency_[v]) f(u);
 	}
 
-
 private:
+
 	MAP& map_;
 	VertexAttribute<VertexArray> adjacency_;
 };
 
-
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_TOPOLOGY_TYPES_ADJACENCY_CACHE_CPP_))
-extern template class CGOGN_TOPLOGY_API AdjacencyCache<CMap2<DefaultMapTraits>>;
-extern template class CGOGN_TOPLOGY_API AdjacencyCache<CMap3<DefaultMapTraits>>;
+extern template class CGOGN_TOPLOGY_API AdjacencyCache<CMap2>;
+extern template class CGOGN_TOPLOGY_API AdjacencyCache<CMap3>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_TOPOLOGY_TYPES_ADJACENCY_CACHE_CPP_))
 
 } // namespace topology

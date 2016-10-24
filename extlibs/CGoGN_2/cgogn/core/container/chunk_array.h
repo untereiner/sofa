@@ -39,6 +39,8 @@
 #include <cgogn/core/utils/endian.h>
 #include <cgogn/core/utils/string.h>
 
+#include <cgogn/core/cmap/map_traits.h>
+
 namespace cgogn
 {
 
@@ -175,17 +177,17 @@ public:
 	 * @param byte_chunk_size filled with CHUNK_SIZE*sizeof(T)
 	 * @return addr.size()
 	 */
-	uint32 chunks_pointers(std::vector<void*>& addr, uint32& byte_chunk_size) const override
+	std::vector<const void*> chunks_pointers(uint32& byte_chunk_size) const override
 	{
+		std::vector<const void*> addr;
 		byte_chunk_size = CHUNK_SIZE * sizeof(T);
 
 		addr.reserve(table_data_.size());
-		addr.clear();
 
 		for (typename std::vector<T*>::const_iterator it = table_data_.begin(); it != table_data_.end(); ++it)
 			addr.push_back(*it);
 
-		return uint32(addr.size());
+		return addr;
 	}
 
 	/**
@@ -483,7 +485,7 @@ public:
 protected:
 
 	// ensure we can use CHUNK_SIZE value < 32
-	const int BOOLS_PER_INT = (CHUNK_SIZE<32u) ? CHUNK_SIZE : 32u;
+	const uint32 BOOLS_PER_INT = (CHUNK_SIZE<32u) ? CHUNK_SIZE : 32u;
 
 	// vector of block pointers
 	std::vector<uint32*> table_data_;
@@ -595,17 +597,17 @@ public:
 	 * @param byte_block_size filled with CHUNK_SIZE*sizeof(T)
 	 * @return addr.size()
 	 */
-	inline uint32 chunks_pointers(std::vector<void*>& addr, uint32& byte_block_size) const override
+	inline std::vector<const void*> chunks_pointers(uint32& byte_block_size) const override
 	{
+		std::vector<const void*> addr;
 		byte_block_size = CHUNK_SIZE / 8u;
 
 		addr.reserve(table_data_.size());
-		addr.clear();
 
 		for (typename std::vector<uint32*>::const_iterator it = table_data_.begin(); it != table_data_.end(); ++it)
 			addr.push_back(*it);
 
-		return uint32(addr.size());
+		return addr;
 	}
 
 	/**
@@ -846,12 +848,12 @@ public:
 };
 
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_CORE_CONTAINER_CHUNK_ARRAY_CPP_))
-extern template class CGOGN_CORE_API ChunkArray<DEFAULT_CHUNK_SIZE, bool>;
-extern template class CGOGN_CORE_API ChunkArray<DEFAULT_CHUNK_SIZE, uint32>;
-extern template class CGOGN_CORE_API ChunkArray<DEFAULT_CHUNK_SIZE, unsigned char>;
-extern template class CGOGN_CORE_API ChunkArray<DEFAULT_CHUNK_SIZE, std::array<float32, 3>>;
-extern template class CGOGN_CORE_API ChunkArray<DEFAULT_CHUNK_SIZE, std::array<float64, 3>>;
-extern template class CGOGN_CORE_API ChunkArrayBool<DEFAULT_CHUNK_SIZE>;
+extern template class CGOGN_CORE_API ChunkArray<CGOGN_CHUNK_SIZE, bool>;
+extern template class CGOGN_CORE_API ChunkArray<CGOGN_CHUNK_SIZE, uint32>;
+extern template class CGOGN_CORE_API ChunkArray<CGOGN_CHUNK_SIZE, unsigned char>;
+extern template class CGOGN_CORE_API ChunkArray<CGOGN_CHUNK_SIZE, std::array<float32, 3>>;
+extern template class CGOGN_CORE_API ChunkArray<CGOGN_CHUNK_SIZE, std::array<float64, 3>>;
+extern template class CGOGN_CORE_API ChunkArrayBool<CGOGN_CHUNK_SIZE>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_CORE_CONTAINER_CHUNK_ARRAY_CPP_))
 
 } // namespace cgogn
