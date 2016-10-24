@@ -38,12 +38,13 @@ namespace cgogn
 namespace io
 {
 
-template <typename MAP_TRAITS, typename VEC3>
-class TetgenVolumeImport : public VolumeFileImport<MAP_TRAITS>
+template <typename VEC3>
+class TetgenVolumeImport : public VolumeFileImport<VEC3>
 {
 public:
-	using Inherit = VolumeFileImport<MAP_TRAITS>;
-	using Self = TetgenVolumeImport<MAP_TRAITS, VEC3>;
+
+	using Inherit = VolumeFileImport<VEC3>;
+	using Self = TetgenVolumeImport<VEC3>;
 	template <typename T>
 	using ChunkArray = typename Inherit::template ChunkArray<T>;
 
@@ -53,7 +54,7 @@ protected:
 		const std::string node_filename = filename.substr(0, filename.rfind('.')) + ".node";
 		const std::string ele_filename = filename.substr(0, filename.rfind('.')) + ".ele";
 
-		ChunkArray<VEC3>* position = this->template position_attribute<VEC3>();
+		ChunkArray<VEC3>* position = this->add_position_attribute();
 		std::ifstream node_file(node_filename, std::ios::in);
 		if (!node_file.good())
 		{
@@ -139,17 +140,17 @@ protected:
 			for (auto& id : ids)
 				id = old_new_ids_map[id];
 
-			this->add_tetra(*position, ids[0], ids[1], ids[2], ids[3], true);
+			this->add_tetra(ids[0], ids[1], ids[2], ids[3], true);
 		}
 		return true;
 	}
 };
 
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_TETGEN_IO_CPP_))
-extern template class CGOGN_IO_API TetgenVolumeImport<DefaultMapTraits, Eigen::Vector3d>;
-extern template class CGOGN_IO_API TetgenVolumeImport<DefaultMapTraits, Eigen::Vector3f>;
-extern template class CGOGN_IO_API TetgenVolumeImport<DefaultMapTraits, geometry::Vec_T<std::array<float64,3>>>;
-extern template class CGOGN_IO_API TetgenVolumeImport<DefaultMapTraits, geometry::Vec_T<std::array<float32,3>>>;
+extern template class CGOGN_IO_API TetgenVolumeImport<Eigen::Vector3d>;
+extern template class CGOGN_IO_API TetgenVolumeImport<Eigen::Vector3f>;
+extern template class CGOGN_IO_API TetgenVolumeImport<geometry::Vec_T<std::array<float64,3>>>;
+extern template class CGOGN_IO_API TetgenVolumeImport<geometry::Vec_T<std::array<float32,3>>>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_TETGEN_IO_CPP_))
 
 } // namespace io

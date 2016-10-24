@@ -25,53 +25,48 @@
 #define CGOGN_CORE_CMAP_CMAP3_TETRA_H_
 
 #include <cgogn/core/cmap/map_base.h>
+#include <cgogn/core/cmap/cmap3_builder.h>
 
 namespace cgogn
 {
 
-// forward declaration of CMap3TetraBuilder_T
-template <typename MAP_TRAITS> class CMap3TetraBuilder_T;
-
-template <typename MAP_TRAITS, typename MAP_TYPE>
-class CMap3Tetra_T : public MapBase<MAP_TRAITS, MAP_TYPE>
+template <typename MAP_TYPE>
+class CMap3Tetra_T : public MapBase<MAP_TYPE>
 {
 public:
+
 	static const uint8 DIMENSION = 3;
 	static const uint8 PRIM_SIZE = 12;
 
-	using MapTraits = MAP_TRAITS;
 	using MapType = MAP_TYPE;
-	using Inherit = MapBase<MAP_TRAITS, MAP_TYPE>;
-	using Self = CMap3Tetra_T<MAP_TRAITS, MAP_TYPE>;
+	using Inherit = MapBase<MAP_TYPE>;
+	using Self = CMap3Tetra_T<MAP_TYPE>;
 
-	using Builder = CMap3TetraBuilder_T<MapTraits>;
+	using Builder = CMap3Builder_T<Self>;
 
-
-	friend class MapBase<MAP_TRAITS, MAP_TYPE>;
-	friend class CMap3TetraBuilder_T<MapTraits>;
+	friend class MapBase<MAP_TYPE>;
+	friend class CMap3Builder_T<Self>;
 	friend class DartMarker_T<Self>;
 	friend class cgogn::DartMarkerStore<Self>;
 
-	using CDart		= Cell<Orbit::DART>;
-	using Vertex2	= Cell<Orbit::PHI21>;
-	using Vertex	= Cell<Orbit::PHI21_PHI31>;
-	using Edge2		= Cell<Orbit::PHI2>;
-	using Edge		= Cell<Orbit::PHI2_PHI3>;
-	using Face2		= Cell<Orbit::PHI1>;
-	using Face		= Cell<Orbit::PHI1_PHI3>;
-	using Volume	= Cell<Orbit::PHI1_PHI2>;
+	using CDart   = Cell<Orbit::DART>;
+	using Vertex2 = Cell<Orbit::PHI21>;
+	using Vertex  = Cell<Orbit::PHI21_PHI31>;
+	using Edge2   = Cell<Orbit::PHI2>;
+	using Edge    = Cell<Orbit::PHI2_PHI3>;
+	using Face2   = Cell<Orbit::PHI1>;
+	using Face    = Cell<Orbit::PHI1_PHI3>;
+	using Volume  = Cell<Orbit::PHI1_PHI2>;
 
-
-	using Boundary  = Face;
+	using Boundary = Face;
 	using ConnectedComponent = Cell<Orbit::PHI1_PHI2_PHI3>;
 
 	template <typename T>
-	using ChunkArray =  typename Inherit::template ChunkArray<T>;
+	using ChunkArrayContainer = typename Inherit::template ChunkArrayContainer<T>;
+	using typename Inherit::ChunkArrayGen;
 	template <typename T>
-	using ChunkArrayContainer =  typename Inherit::template ChunkArrayContainer<T>;
+	using ChunkArray = typename Inherit::template ChunkArray<T>;
 
-	template <typename T, Orbit ORBIT>
-	using Attribute = typename Inherit::template Attribute<T, ORBIT>;
 	template <typename T>
 	using VertexAttribute = Attribute<T, Vertex::ORBIT>;
 	template <typename T>
@@ -86,6 +81,8 @@ public:
 
 	template <Orbit ORBIT>
 	using CellMarker = typename cgogn::CellMarker<Self, ORBIT>;
+	template <Orbit ORBIT>
+	using CellMarkerNoUnmark = typename cgogn::CellMarkerNoUnmark<Self, ORBIT>;
 
 protected:
 
@@ -225,10 +222,10 @@ public:
 	 */
 	inline Dart phi1(Dart d) const
 	{
-		switch(d.index%3)
+		switch (d.index%3)
 		{
-		case 0: return Dart(d.index+1);break;
-		case 1: return Dart(d.index+1);break;
+			case 0: return Dart(d.index+1); break;
+			case 1: return Dart(d.index+1); break;
 		}
 		return Dart(d.index-2);
 	}
@@ -240,10 +237,10 @@ public:
 	 */
 	Dart phi_1(Dart d) const
 	{
-		switch(d.index%3)
+		switch (d.index%3)
 		{
-		case 2: return Dart(d.index-1);break;
-		case 1: return Dart(d.index-1);break;
+			case 2: return Dart(d.index-1); break;
+			case 1: return Dart(d.index-1); break;
 		}
 		return Dart(d.index+2);
 	}
@@ -265,7 +262,7 @@ public:
 	 */
 	inline Dart phi2(Dart d) const
 	{
-		return Dart(d.index + MapGen::tetra_phi2[d.index%12]);
+		return Dart(d.index + MapBaseData::tetra_phi2[d.index%12]);
 	}
 
 	/**
@@ -277,7 +274,6 @@ public:
 	{
 		return (*phi3_)[d.index];
 	}
-
 
 	/**
 	 * \brief Composition of PHI calls
@@ -318,6 +314,57 @@ protected:
 		Dart d = this->add_topology_element(); // in fact insert PRIM_SIZE darts
 		// no need to set phi1 & phi2
 		return d;
+	}
+
+	inline Dart add_pyramid_topo_fp(std::size_t size)
+	{
+		cgogn_message_assert(size == 3u, "Can create only tetra");
+		if (size != 3)
+		{
+			cgogn_log_warning("add_pyramid_topo_fp") << "Attempt to create a volume which is not a tetrahedron in CMap3Tetra";
+			return Dart();
+		}
+		return add_tetra_topo_fp();
+	}
+
+	inline Dart add_prism_topo_fp(std::size_t size)
+	{
+		unused_parameters(size);
+		cgogn_message_assert(false, "Can create only tetra");
+		cgogn_log_warning("add_prism_topo_fp") << "Attempt to create a volume which is not a tetrahedron in CMap3Tetra";
+		return Dart();
+	}
+
+	inline Dart add_stamp_volume_topo_fp()
+	{
+		cgogn_message_assert(false, "Can create only tetra");
+		cgogn_log_warning("add_stamp_volume_topo_fp") << "Attempt to create a volume which is not a tetrahedron in CMap3Tetra";
+		return Dart();
+	}
+
+	/**
+	 * @brief sew two volumes along a face
+	 * The darts given in the Volume parameters must be part of Face2 that have
+	 * a similar co-degree and whose darts are all phi3 fix points
+	 * @param v1 first volume
+	 * @param v2 second volume
+	 */
+	inline void sew_volumes_fp(Dart v1, Dart v2)
+	{
+		cgogn_message_assert(phi3(v1) == v1 &&
+							 phi3(v2) == v2 &&
+							 codegree(Face(v1)) == codegree(Face(v1)) &&
+							 !this->same_orbit(Face2(v1), Face2(v2)), "CMap3Builder sew_volumes: preconditions not respected");
+
+		Dart it1 = v1;
+		Dart it2 = v2;
+		const Dart begin = it1;
+		do
+		{
+			phi3_sew(it1, it2);
+			it1 = this->phi1(it1);
+			it2 = this->phi_1(it2);
+		} while (it1 != begin);
 	}
 
 	/**
@@ -412,6 +459,139 @@ public:
 		return vol;
 	}
 
+protected:
+
+	/**
+	 * @brief close_hole_topo closes the topological hole that contains Dart d (a fixed point of phi3 relation)
+	 * @param d a dart incident to the hole
+	 * @return a dart of the volume that closes the hole
+	 */
+	void close_hole_topo(Dart d, bool mark_boundary = false)
+	{
+		cgogn_message_assert(phi3(d) == d, "CMap3Tetra: close hole called on a dart that is not a phi3 fix point");
+
+		DartMarkerStore fmarker(*this);
+		DartMarkerStore boundary_marker(*this);
+
+		std::vector<Dart> visited_faces; // Faces that are traversed
+		visited_faces.reserve(1024u);
+
+		visited_faces.push_back(d);		// Start with the face of d
+		fmarker.mark_orbit(Face2(d));
+
+		auto local_func = [&] (Dart f)
+		{
+			Dart e = phi3(this->phi2(f));
+			bool found = false;
+			do
+			{
+				if (phi3(e) == e)
+				{
+					found = true;
+					if (!fmarker.is_marked(e))
+					{
+						visited_faces.push_back(e);
+						fmarker.mark_orbit(Face2(e));
+					}
+				}
+				else
+				{
+					if (boundary_marker.is_marked(e))
+					{
+						found = true;
+						sew_volumes_fp(phi<32>(f), this->phi2(e));
+					}
+					else
+						e = phi3(this->phi2(e));
+				}
+			} while (!found);
+		};
+
+		// For every face added to the list
+		for(uint32 i = 0u; i < visited_faces.size(); ++i)
+		{
+			Dart f = visited_faces[i];
+
+			const Dart tb = add_tetra_topo_fp();
+			boundary_marker.mark_orbit(Volume(tb));
+			sew_volumes_fp(tb, f);
+
+			local_func(f);
+			f = this->phi1(f);
+			local_func(f);
+			f = this->phi1(f);
+			local_func(f);
+		}
+
+		if (mark_boundary)
+		{
+			for (Dart d: *(boundary_marker.marked_darts()))
+				this->set_boundary(d, true);
+		}
+	}
+
+	/**
+	 * @brief close_map closes the map removing topological holes (only for import/creation)
+	 * Add volumes to the map that close every existing hole.
+	 * @return the number of closed holes
+	 */
+	inline uint32 close_map()
+	{
+		uint32 nb_holes = 0u;
+
+		// Search the map for topological holes (fix points of phi3)
+		std::vector<Dart>* fix_point_darts = dart_buffers()->buffer();
+		this->foreach_dart([&] (Dart d)
+		{
+			if (phi3(d) == d)
+				fix_point_darts->push_back(d);
+		});
+
+		for (Dart d : (*fix_point_darts))
+		{
+			if (phi3(d) == d)
+			{
+				close_hole_topo(d, true);
+				++nb_holes;
+			}
+		}
+
+		if (this->template is_embedded<Vertex>())
+		{
+			for (Dart d : (*fix_point_darts))
+			{
+				Dart e = phi3(d);
+				this->template copy_embedding<Vertex>(this->phi2(e), d);
+				e = this->phi1(e);
+				this->template copy_embedding<Vertex>(e, d);
+				this->template copy_embedding<Vertex>(phi<21>(e), d);
+			}
+		}
+
+		if (this->template is_embedded<Edge>())
+		{
+			for (Dart d : (*fix_point_darts))
+			{
+				Dart e = phi3(d);
+				this->template copy_embedding<Edge>(e, d);
+				this->template copy_embedding<Edge>(this->phi2(e), d);
+			}
+		}
+
+		if (this->template is_embedded<Face>())
+		{
+			for (Dart d : (*fix_point_darts))
+				this->template copy_embedding<Face>(phi3(d), d);
+		}
+
+		dart_buffers()->release_buffer(fix_point_darts);
+
+		return nb_holes;
+	}
+
+	/*******************************************************************************
+	 * Connectivity information
+	 *******************************************************************************/
 
 public:
 
@@ -698,16 +878,13 @@ protected:
 		cgogn::dart_buffers()->release_buffer(visited_vols);
 	}
 
-
-
-
 	template <Orbit ORBIT, typename FUNC>
 	inline void foreach_dart_of_orbit(Cell<ORBIT> c, const FUNC& f) const
 	{
 		static_assert(is_func_parameter_same<FUNC, Dart>::value, "Wrong function parameter type");
 
 		static_assert(ORBIT == Orbit::DART || ORBIT == Orbit::PHI1 || ORBIT == Orbit::PHI2 ||
-					  ORBIT == Orbit::PHI1_PHI2 || ORBIT == Orbit::PHI21 ||
+					  ORBIT == Orbit::PHI21 || ORBIT == Orbit::PHI1_PHI2 ||
 					  ORBIT == Orbit::PHI1_PHI3 || ORBIT == Orbit::PHI2_PHI3 ||
 					  ORBIT == Orbit::PHI21_PHI31 || ORBIT == Orbit::PHI1_PHI2_PHI3,
 					  "Orbit not supported in a CMap3Tetra");
@@ -717,8 +894,8 @@ protected:
 			case Orbit::DART: f(c.dart); break;
 			case Orbit::PHI1: foreach_dart_of_PHI1(c.dart, f); break;
 			case Orbit::PHI2: foreach_dart_of_PHI2(c.dart, f); break;
-			case Orbit::PHI1_PHI2: foreach_dart_of_PHI1_PHI2(c.dart, f); break;
 			case Orbit::PHI21: foreach_dart_of_PHI21(c.dart, f); break;
+			case Orbit::PHI1_PHI2: foreach_dart_of_PHI1_PHI2(c.dart, f); break;
 			case Orbit::PHI2_PHI3:foreach_dart_of_PHI2_PHI3(c.dart, f); break;
 			case Orbit::PHI1_PHI3:foreach_dart_of_PHI1_PHI3(c.dart, f); break;
 			case Orbit::PHI21_PHI31:foreach_dart_of_PHI21_PHI31(c.dart, f); break;
@@ -726,8 +903,6 @@ protected:
 			default: cgogn_assert_not_reached("Orbit not supported in a CMap3Tetra"); break;
 		}
 	}
-
-
 
 	template <typename FUNC>
 	inline void foreach_dart_of_PHI1_until(Dart d, const FUNC& f) const
@@ -802,7 +977,6 @@ protected:
 		if (!f(Dart(first++))) return;
 		if (!f(Dart(first))) return;
 	}
-
 
 	// foreach_until with phi3
 
@@ -914,9 +1088,6 @@ protected:
 		cgogn::dart_buffers()->release_buffer(visited_vols);
 	}
 
-
-
-
 	template <Orbit ORBIT, typename FUNC>
 	inline void foreach_dart_of_orbit_until(Cell<ORBIT> c, const FUNC& f) const
 	{
@@ -924,7 +1095,7 @@ protected:
 		static_assert(is_func_return_same<FUNC, bool>::value, "Wrong function return type");
 
 		static_assert(ORBIT == Orbit::DART || ORBIT == Orbit::PHI1 || ORBIT == Orbit::PHI2 ||
-					  ORBIT == Orbit::PHI1_PHI2 || ORBIT == Orbit::PHI21 ||
+					  ORBIT == Orbit::PHI21 || ORBIT == Orbit::PHI1_PHI2 ||
 					  ORBIT == Orbit::PHI1_PHI3 || ORBIT == Orbit::PHI2_PHI3 ||
 					  ORBIT == Orbit::PHI21_PHI31 || ORBIT == Orbit::PHI1_PHI2_PHI3,
 					  "Orbit not supported in a CMap3Tetra");
@@ -934,8 +1105,8 @@ protected:
 			case Orbit::DART: f(c.dart); break;
 			case Orbit::PHI1: foreach_dart_of_PHI1_until(c.dart, f); break;
 			case Orbit::PHI2: foreach_dart_of_PHI2_until(c.dart, f); break;
-			case Orbit::PHI1_PHI2: foreach_dart_of_PHI1_PHI2_until(c.dart, f); break;
 			case Orbit::PHI21: foreach_dart_of_PHI21_until(c.dart, f); break;
+			case Orbit::PHI1_PHI2: foreach_dart_of_PHI1_PHI2_until(c.dart, f); break;
 			case Orbit::PHI2_PHI3:foreach_dart_of_PHI2_PHI3_until(c.dart, f); break;
 			case Orbit::PHI1_PHI3:foreach_dart_of_PHI1_PHI3_until(c.dart, f); break;
 			case Orbit::PHI21_PHI31:foreach_dart_of_PHI21_PHI31_until(c.dart, f); break;
@@ -943,9 +1114,6 @@ protected:
 			default: cgogn_assert_not_reached("Orbit not supported in a CMap3Tetra"); break;
 		}
 	}
-
-
-
 
 	/*******************************************************************************
 	 * Incidence traversal (of dim 2)
@@ -1295,7 +1463,6 @@ public:
 			func(Face(f.dart));
 		});
 
-
 //		DartMarkerStore marker(*this);
 //		foreach_dart_of_orbit(v, [&] (Dart d)
 //		{
@@ -1306,8 +1473,6 @@ public:
 //			}
 //		});
 	}
-
-
 
 	/*******************************************************************************
 	 * Adjacence traversal (dim 3)
@@ -1534,8 +1699,6 @@ public:
 		});
 	}
 
-
-
 	inline std::pair<Vertex, Vertex> vertices(Edge e)
 	{
 		return std::pair<Vertex, Vertex>(Vertex(e.dart), Vertex(this->phi1(e.dart)));
@@ -1546,8 +1709,6 @@ public:
 		return std::pair<Vertex2, Vertex2>(Vertex2(e.dart), Vertex2(this->phi1(e.dart)));
 	}
 
-
-
 protected:
 	/**
 	 * @brief check if embedding of map is also embedded in this (create if not). Used by merge method
@@ -1555,27 +1716,27 @@ protected:
 	 */
 	void merge_check_embedding(const Self& map)
 	{
-		const static auto create_embedding = [=](Self* map, Orbit orb)
+		const static auto create_embedding = [=] (Self* map, Orbit orb)
 		{
-			switch (orb) {
-			case Orbit::DART: map->template create_embedding<Orbit::DART>(); break;
-			case Orbit::PHI1: map->template create_embedding<Orbit::PHI1>(); break;
-			case Orbit::PHI2:map->template create_embedding<Orbit::PHI2>(); break;
-			case Orbit::PHI1_PHI2: map->template create_embedding<Orbit::PHI1_PHI2>(); break;
-			case Orbit::PHI1_PHI3: map->template create_embedding<Orbit::PHI1_PHI3>(); break;
-			case Orbit::PHI2_PHI3: map->template create_embedding<Orbit::PHI2_PHI3>(); break;
-			case Orbit::PHI21: map->template create_embedding<Orbit::PHI21>(); break;
-			case Orbit::PHI21_PHI31: map->template create_embedding<Orbit::PHI21_PHI31>(); break;
-			case Orbit::PHI1_PHI2_PHI3: map->template create_embedding<Orbit::PHI1_PHI2_PHI3>(); break;
-			default: break;
+			switch (orb)
+			{
+				case Orbit::DART: map->template create_embedding<Orbit::DART>(); break;
+				case Orbit::PHI1: map->template create_embedding<Orbit::PHI1>(); break;
+				case Orbit::PHI2: map->template create_embedding<Orbit::PHI2>(); break;
+				case Orbit::PHI21: map->template create_embedding<Orbit::PHI21>(); break;
+				case Orbit::PHI1_PHI2: map->template create_embedding<Orbit::PHI1_PHI2>(); break;
+				case Orbit::PHI1_PHI3: map->template create_embedding<Orbit::PHI1_PHI3>(); break;
+				case Orbit::PHI2_PHI3: map->template create_embedding<Orbit::PHI2_PHI3>(); break;
+				case Orbit::PHI21_PHI31: map->template create_embedding<Orbit::PHI21_PHI31>(); break;
+				case Orbit::PHI1_PHI2_PHI3: map->template create_embedding<Orbit::PHI1_PHI2_PHI3>(); break;
+				default: break;
 			}
 		};
 
-		for (Orbit orb : {DART, PHI1, PHI2, PHI1_PHI2, PHI1_PHI3, PHI2_PHI3, PHI21, PHI21_PHI31, PHI1_PHI2_PHI3})
+		for (Orbit orb : { DART, PHI1, PHI2, PHI21, PHI1_PHI2, PHI1_PHI3, PHI2_PHI3, PHI21_PHI31, PHI1_PHI2_PHI3 })
 			if (!this->is_embedded(orb) && map.is_embedded(orb))
 				create_embedding(this, orb);
 	}
-
 
 	/**
 	 * @brief ensure all cells (introduced while merging) are embedded.
@@ -1583,64 +1744,63 @@ protected:
 	 */
 	void merge_finish_embedding(uint32 first)
 	{
-		const static auto new_orbit_embedding = [=](Self* map, Dart d, cgogn::Orbit orb)
+		const static auto new_orbit_embedding = [=] (Self* map, Dart d, cgogn::Orbit orb)
 		{
-			switch (orb) {
-			case Orbit::DART: map->new_orbit_embedding(Cell<Orbit::DART>(d)); break;
-			case Orbit::PHI1: map->new_orbit_embedding(Cell<Orbit::PHI1>(d)); break;
-			case Orbit::PHI2:map->new_orbit_embedding(Cell<Orbit::PHI2>(d)); break;
-			case Orbit::PHI1_PHI2: map->new_orbit_embedding(Cell<Orbit::PHI1_PHI2>(d)); break;
-			case Orbit::PHI1_PHI3: map->new_orbit_embedding(Cell<Orbit::PHI1_PHI3>(d)); break;
-			case Orbit::PHI2_PHI3: map->new_orbit_embedding(Cell<Orbit::PHI2_PHI3>(d)); break;
-			case Orbit::PHI21: map->new_orbit_embedding(Cell<Orbit::PHI21>(d)); break;
-			case Orbit::PHI21_PHI31: map->new_orbit_embedding(Cell<Orbit::PHI21_PHI31>(d)); break;
-			case Orbit::PHI1_PHI2_PHI3: map->new_orbit_embedding(Cell<Orbit::PHI1_PHI2_PHI3>(d)); break;
-			default: break;
+			switch (orb)
+			{
+				case Orbit::DART: map->new_orbit_embedding(Cell<Orbit::DART>(d)); break;
+				case Orbit::PHI1: map->new_orbit_embedding(Cell<Orbit::PHI1>(d)); break;
+				case Orbit::PHI2: map->new_orbit_embedding(Cell<Orbit::PHI2>(d)); break;
+				case Orbit::PHI21: map->new_orbit_embedding(Cell<Orbit::PHI21>(d)); break;
+				case Orbit::PHI1_PHI2: map->new_orbit_embedding(Cell<Orbit::PHI1_PHI2>(d)); break;
+				case Orbit::PHI1_PHI3: map->new_orbit_embedding(Cell<Orbit::PHI1_PHI3>(d)); break;
+				case Orbit::PHI2_PHI3: map->new_orbit_embedding(Cell<Orbit::PHI2_PHI3>(d)); break;
+				case Orbit::PHI21_PHI31: map->new_orbit_embedding(Cell<Orbit::PHI21_PHI31>(d)); break;
+				case Orbit::PHI1_PHI2_PHI3: map->new_orbit_embedding(Cell<Orbit::PHI1_PHI2_PHI3>(d)); break;
+				default: break;
 			}
 		};
 
-		for (Orbit orb : {DART, PHI1, PHI2, PHI1_PHI2, PHI1_PHI3, PHI2_PHI3, PHI21, PHI21_PHI31, PHI1_PHI2_PHI3})
+		for (uint32 j = first, end = this->topology_.end(); j != end; this->topology_.next(j))
 		{
-			if (this->is_embedded(orb))
+			for (Orbit orb : { DART, PHI1, PHI2, PHI21, PHI1_PHI2, PHI1_PHI3, PHI2_PHI3, PHI21_PHI31, PHI1_PHI2_PHI3 })
 			{
-				for (uint32 j = first, end = this->topology_.end(); j != end; this->topology_.next(j))
+				if (this->is_embedded(orb))
 				{
-					if (((orb != Boundary::ORBIT) && (orb != Orbit::DART)) || (!this->is_boundary(Dart(j))))
-						if ((*this->embeddings_[orb])[j] == INVALID_INDEX)
-							new_orbit_embedding(this, Dart(j), orb);
+					if (!this->is_boundary(Dart(j)) && (*this->embeddings_[orb])[j] == INVALID_INDEX)
+						new_orbit_embedding(this, Dart(j), orb);
 				}
 			}
 		}
 	}
-
 };
 
-template <typename MAP_TRAITS>
 struct CMap3TetraType
 {
-	using TYPE = CMap3Tetra_T<MAP_TRAITS, CMap3TetraType<MAP_TRAITS>>;
+	using TYPE = CMap3Tetra_T<CMap3TetraType>;
 };
 
-template <typename MAP_TRAITS>
-using CMap3Tetra = CMap3Tetra_T<MAP_TRAITS, CMap3TetraType<MAP_TRAITS>>;
+using CMap3Tetra = CMap3Tetra_T<CMap3TetraType>;
 
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_CORE_CMAP_CMAP3_TETRA_CPP_))
-extern template class CGOGN_CORE_API CMap3Tetra_T<DefaultMapTraits, CMap3TetraType<DefaultMapTraits>>;
-extern template class CGOGN_CORE_API DartMarker<CMap3Tetra<DefaultMapTraits>>;
-extern template class CGOGN_CORE_API DartMarkerStore<CMap3Tetra<DefaultMapTraits>>;
-extern template class CGOGN_CORE_API DartMarkerNoUnmark<CMap3Tetra<DefaultMapTraits>>;
-extern template class CGOGN_CORE_API CellMarker<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Vertex::ORBIT>;
-extern template class CGOGN_CORE_API CellMarker<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Edge::ORBIT>;
-extern template class CGOGN_CORE_API CellMarker<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Face::ORBIT>;
-extern template class CGOGN_CORE_API CellMarker<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Volume::ORBIT>;
-extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Vertex::ORBIT>;
-extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Edge::ORBIT>;
-extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Face::ORBIT>;
-extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra<DefaultMapTraits>, CMap3Tetra<DefaultMapTraits>::Volume::ORBIT>;
+extern template class CGOGN_CORE_API CMap3Builder_T<CMap3Tetra>;
+extern template class CGOGN_CORE_API DartMarker<CMap3Tetra>;
+extern template class CGOGN_CORE_API DartMarkerStore<CMap3Tetra>;
+extern template class CGOGN_CORE_API DartMarkerNoUnmark<CMap3Tetra>;
+extern template class CGOGN_CORE_API CellMarker<CMap3Tetra, CMap3Tetra::Vertex::ORBIT>;
+extern template class CGOGN_CORE_API CellMarker<CMap3Tetra, CMap3Tetra::Edge::ORBIT>;
+extern template class CGOGN_CORE_API CellMarker<CMap3Tetra, CMap3Tetra::Face::ORBIT>;
+extern template class CGOGN_CORE_API CellMarker<CMap3Tetra, CMap3Tetra::Volume::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerNoUnmark<CMap3Tetra, CMap3Tetra::Vertex::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerNoUnmark<CMap3Tetra, CMap3Tetra::Edge::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerNoUnmark<CMap3Tetra, CMap3Tetra::Face::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerNoUnmark<CMap3Tetra, CMap3Tetra::Volume::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra, CMap3Tetra::Vertex::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra, CMap3Tetra::Edge::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra, CMap3Tetra::Face::ORBIT>;
+extern template class CGOGN_CORE_API CellMarkerStore<CMap3Tetra, CMap3Tetra::Volume::ORBIT>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_CORE_MAP_MAP2_CPP_))
 
 } // namespace cgogn
-
-#include <cgogn/core/cmap/cmap3_tetra_builder.h>
 
 #endif // CGOGN_CORE_CMAP_CMAP3_TETRA_H_

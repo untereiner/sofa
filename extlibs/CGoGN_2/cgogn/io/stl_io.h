@@ -41,13 +41,13 @@ namespace cgogn
 namespace io
 {
 
-template <typename MAP_TRAITS, typename VEC3>
-class StlSurfaceImport : public SurfaceFileImport<MAP_TRAITS>
+template <typename VEC3>
+class StlSurfaceImport : public SurfaceFileImport<VEC3>
 {
 public:
 
-	using Self = StlSurfaceImport<MAP_TRAITS, VEC3>;
-	using Inherit = SurfaceFileImport<MAP_TRAITS>;
+	using Self = StlSurfaceImport<VEC3>;
+	using Inherit = SurfaceFileImport<VEC3>;
 	using Scalar = typename geometry::vector_traits<VEC3>::Scalar;
 	template <typename T>
 	using ChunkArray = typename Inherit::template ChunkArray<T>;
@@ -62,7 +62,7 @@ protected:
 	virtual bool import_file_impl(const std::string& filename) override
 	{
 		std::ifstream fp(filename, std::ios::in);
-		ChunkArray<VEC3>* position = this->vertex_attributes_.template add_chunk_array<VEC3>("position");
+		ChunkArray<VEC3>* position = this->add_position_attribute();
 		ChunkArray<VEC3>* normal = this->face_attributes_.template add_chunk_array<VEC3>("normal");
 		std::string word;
 		fp >> word;
@@ -289,7 +289,7 @@ private:
 };
 
 #if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_STL_IO_CPP_))
-extern template class CGOGN_IO_API StlSurfaceExport<CMap2<DefaultMapTraits>>;
+extern template class CGOGN_IO_API StlSurfaceExport<CMap2>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_IO_STL_IO_CPP_))
 
 } // namespace io
