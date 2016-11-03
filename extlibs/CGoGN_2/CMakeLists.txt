@@ -46,6 +46,7 @@ option(CGOGN_BUILD_EXAMPLES "Build some example apps." OFF)
 option(CGOGN_BUILD_BENCHS "Build the benchmarks using google benchmark framework." OFF)
 option(CGOGN_USE_OPENMP "Activate openMP directives." OFF)
 option(CGOGN_ENABLE_LTO "Enable link-time optimizations (only with gcc)" ON)
+option(CGOGN_INSANE_WARN_LEVEL "Set very very high warning compilation level." OFF)
 if (NOT MSVC)
 	option(CGOGN_USE_GLIBCXX_DEBUG "Use the debug version of STL (useful for bounds checking)." OFF)
 	option(CGOGN_USE_GLIBCXX_DEBUG_PEDANTIC "Use an extremely picky debug version of STL." OFF)
@@ -58,7 +59,7 @@ endif(NOT MSVC)
 if (${CGOGN_USE_PARALLEL_GLIBCXX})
 	set(CGOGN_USE_OPENMP "ON")
 endif()
-option(CGOGN_USE_QT "use Qt (5.4 min) for interface & rendering" ON)
+option(CGOGN_USE_QT "use Qt (5.4 min) for interface & rendering" OFF)
 
 #### Continuous integration options
 option(CGOGN_WITH_GPROF "Builds the project for performance analysis with gprof" OFF)
@@ -133,14 +134,15 @@ include(CMakePackageConfigHelpers)
 add_subdirectory(${CGOGN_THIRDPARTY_DIR})
 add_subdirectory(${CGOGN_SOURCE_DIR}/cgogn)
 
-# if(${CGOGN_BUILD_BENCHS})
-# 	add_subdirectory(benchmarks)
-# endif(${CGOGN_BUILD_BENCHS})
+if(${CGOGN_BUILD_BENCHS})
+	add_subdirectory(benchmarks)
+endif(${CGOGN_BUILD_BENCHS})
 
 if(CGOGN_BUILD_TESTS)
 	add_subdirectory(cgogn/core/tests)
 	add_subdirectory(cgogn/geometry/tests)
 	add_subdirectory(cgogn/modeling/tests)
+	add_subdirectory(cgogn/io/tests)
 endif()
 
 if(CGOGN_BUILD_EXAMPLES)
@@ -149,6 +151,7 @@ if(CGOGN_BUILD_EXAMPLES)
 	add_subdirectory(cgogn/io/examples)
 	add_subdirectory(cgogn/modeling/examples)
 	add_subdirectory(cgogn/rendering/examples)
+	add_subdirectory(cgogn/topology/examples)
 endif()
 
 
@@ -159,7 +162,7 @@ ENABLE_COVERAGE_REPORT(TARGETS ${CGOGN_SOURCE_DIR})
 
 # --- CPPCheck ---
 GENERATE_CPPCHECK( SOURCES ${CGOGN_SOURCE_DIR}
-		   ENABLE_IDS all
+	       ENABLE_IDS all
 		   INCLUDES ${CGOGN_SOURCE_DIR}
 		   PLATFORM_FLAGS "-UNDEBUG -UWIN32 -U__func__ -U__FUNCTION__ -U__GNUG__ -U__clang__ -U_MSC_VER"
 		   SYSTEM_INCLUDE_WARNING_SUPPRESSION
