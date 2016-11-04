@@ -56,10 +56,10 @@ void SurfaceTopologyContainer::initFromMeshLoader()
 	helper::ReadAccessor< Data< helper::vector< TriangleIds > > > m_tri = d_triangle;
 	helper::ReadAccessor< Data< helper::vector< QuadIds > > > m_quad = d_quad;
 
-	cgogn::io::SurfaceImport<Topo_Traits::MapTraits> surface_import;
+	cgogn::io::SurfaceImport<Eigen::Vector3d> surface_import;
 	surface_import.reserve(m_tri.size() + m_quad.size());
 
-	auto* pos_att = surface_import.template position_attribute<Eigen::Vector3d>();
+	auto* pos_att = surface_import.position_attribute();
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)
 	{
 		const auto id = surface_import.insert_line_vertex_container();
@@ -86,7 +86,7 @@ void SurfaceTopologyContainer::createTriangleSetArray()
 void SurfaceTopologyContainer::createEdgesInTriangleArray()
 {
 	if (!this->m_edgesInTriangle.is_valid())
-		this->m_edgesInTriangle = this->template add_attribute<EdgesInTriangle, Face::ORBIT>("EdgesInTriangleArray");
+		this->m_edgesInTriangle = this->template add_attribute<EdgesInTriangle, Face>("EdgesInTriangleArray");
 	//			this->add_attribute(this->m_edgesInTriangle, "SurfaceTopologyContainer::EdgesInTriangleArray");
 	assert(this->m_edgesInTriangle.is_valid());
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
@@ -103,7 +103,7 @@ void SurfaceTopologyContainer::createEdgesInTriangleArray()
 void SurfaceTopologyContainer::createTrianglesAroundVertexArray()
 {
 	if (!this->m_trianglesAroundVertex.is_valid())
-		this->m_trianglesAroundVertex = this->template add_attribute<TrianglesAroundVertex, Vertex::ORBIT>("TrianglesAroundVertexArray");
+		this->m_trianglesAroundVertex = this->template add_attribute<TrianglesAroundVertex, Vertex>("TrianglesAroundVertexArray");
 	assert(this->m_trianglesAroundVertex.is_valid());
 	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
 	{
@@ -118,7 +118,7 @@ void SurfaceTopologyContainer::createTrianglesAroundVertexArray()
 void SurfaceTopologyContainer::createTrianglesAroundEdgeArray()
 {
 	if (!this->m_trianglesAroundEdge.is_valid())
-		this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge::ORBIT>("TrianglesAroundEdgeArray");
+		this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge>("TrianglesAroundEdgeArray");
 	assert(this->m_trianglesAroundEdge.is_valid());
 	this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
 	{
@@ -133,7 +133,7 @@ void SurfaceTopologyContainer::createTrianglesAroundEdgeArray()
 void SurfaceTopologyContainer::createEdgesAroundVertexArray()
 {
 	if (!this->m_edgesAroundVertex.is_valid())
-		this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex::ORBIT>("EdgesAroundVertexArray");
+		this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex>("EdgesAroundVertexArray");
 	assert(this->m_edgesAroundVertex.is_valid());
 	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
 	{
@@ -150,7 +150,7 @@ void SurfaceTopologyContainer::createEdgesAroundVertexArray()
 void SurfaceTopologyContainer::createEdgesInQuadArray()
 {
 	if (!this->m_edgesInQuad.is_valid())
-		this->m_edgesInQuad = this->template add_attribute<EdgesInQuad, Face::ORBIT>("EdgesInQuadArray");
+		this->m_edgesInQuad = this->template add_attribute<EdgesInQuad, Face>("EdgesInQuadArray");
 	assert(this->m_edgesInQuad.is_valid());
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
 	{
@@ -186,7 +186,7 @@ void SurfaceTopologyContainer::init()
 
 	if (!this->edge_dofs_.is_valid())
 	{
-		this->edge_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 2>, Edge::ORBIT>("edge_dofs_");
+		this->edge_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 2>, Edge>("edge_dofs_");
 		this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
 		{
 			this->edge_dofs_[e.dart] = helper::fixed_array<unsigned int, 2>(get_dof(Vertex(e.dart)), get_dof(Vertex(phi2(e.dart))));
@@ -196,14 +196,13 @@ void SurfaceTopologyContainer::init()
 
 	if (!this->face_dofs_.is_valid())
 	{
-		this->face_dofs_ = this->template add_attribute<helper::fixed_array<unsigned int, 4>, Face::ORBIT>("face_dofs_");
+		face_dofs_ = this->template add_attribute<helper::vector<unsigned int>, Face>("face_dofs_");
 		this->parallel_foreach_cell([&](Face f, cgogn::uint32)
 		{
 			auto & dofs = this->face_dofs_[f.dart];
-			unsigned int i = 0u;
 			foreach_incident_vertex(f, [&](Vertex v)
 			{
-				dofs[i++] = get_dof(v);
+				dofs.push_back(get_dof(v));
 			});
 		});
 	}

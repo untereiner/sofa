@@ -37,8 +37,12 @@ namespace component
 namespace topology
 {
 
+//fw decl of VolumeTopologyModifier
+class VolumeTopologyModifier;
+
 class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::MapTopology
 {
+	friend class VolumeTopologyModifier;
 	public:
 
 	SOFA_CLASS(VolumeTopologyContainer, core::topology::MapTopology);
@@ -55,10 +59,8 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 
 	using CellCache = cgogn::CellCache<Map>;
 	using DartMarker = cgogn::DartMarker<Map>;
-	template<Orbit ORB>
-	using CellMarker = cgogn::CellMarker<Map, ORB>;
-	template <typename T, Orbit ORBIT>
-	using Attribute = Map::Attribute<T,ORBIT>;
+	template<Orbit ORBIT>
+	using CellMarker = cgogn::CellMarker<Map, ORBIT>;
 
 	VolumeTopologyContainer();
 	~VolumeTopologyContainer() override;
@@ -75,16 +77,25 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	}
 
 	// attributes
-	template<typename T, Orbit ORB>
-	inline Attribute<T,ORB> add_attribute(const std::string& attribute_name)
+	template<typename T, typename CellType>
+	inline Attribute<T,CellType::ORBIT> add_attribute(const std::string& attribute_name)
 	{
-		return topology_.add_attribute<T,ORB>(attribute_name);
+		return topology_.add_attribute<T,CellType>(attribute_name);
 	}
 
-	template<typename T, Orbit ORB>
-	inline void add_attribute(Attribute<T,ORB>& dest_attribute, const std::string& attribute_name)
+	template<typename T, typename CellType>
+	inline Attribute<T,CellType::ORBIT> get_attribute(const std::string& attribute_name)
 	{
-		dest_attribute = topology_.add_attribute<T,ORB>(attribute_name);
+		return topology_.get_attribute<T,CellType>(attribute_name);
+	}
+
+	template<typename T, typename CellType>
+	inline Attribute<T,CellType::ORBIT> check_attribute(const std::string& attribute_name)
+	{
+		if (topology_.has_attribute(CellType::ORBIT,attribute_name))
+			return topology_.get_attribute<T,CellType>(attribute_name);
+		else
+			return topology_.add_attribute<T,CellType>(attribute_name);
 	}
 
 	template<typename T, Orbit ORB>
@@ -209,6 +220,12 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	}
 
 	template<typename FUNC>
+	inline void foreach_incident_face(Vertex v,const FUNC& func)
+	{
+		topology_.foreach_incident_face(v,func);
+	}
+
+	template<typename FUNC>
 	inline void foreach_incident_face(Edge e,const FUNC& func)
 	{
 		topology_.foreach_incident_face(e,func);
@@ -230,12 +247,12 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		return this->edge_dofs_[e.dart];
 	}
 
-	inline const helper::fixed_array<unsigned int, 4>& get_dofs(Face f) const
+	inline const helper::vector<unsigned int>& get_dofs(Face f) const
 	{
 		return this->face_dofs_[f.dart];
 	}
 
-	inline const helper::fixed_array<unsigned int, 8>& get_dofs(Volume w) const
+	inline const helper::vector<unsigned int>& get_dofs(Volume w) const
 	{
 		return this->volume_dofs_[w.dart];
 	}
@@ -273,6 +290,20 @@ public:
 	virtual void reset() override;
 	virtual void cleanup() override;
 	virtual void draw(const core::visual::VisualParams*) override;
+
+public:
+	inline Dart phi1(Dart d) { return topology_.phi1(d); }
+	inline Dart phi_1(Dart d) { return topology_.phi_1(d); }
+	inline Dart phi2(Dart d) { return topology_.phi2(d); }
+	inline Dart phi3(Dart d) { return topology_.phi3(d); }
+
+	inline bool isBoundaryVertex(Vertex v) { return topology_.is_incident_to_boundary(v); }
+	inline bool isBoundaryEdge(Edge e) { return topology_.is_incident_to_boundary(e); }
+	inline bool isBoundaryFace(Face f) { return topology_.is_incident_to_boundary(f); }
+
+
+	inline Face findBoundaryFaceOfEdge(Edge e) { return topology_.boundary_face_of_edge(e); }
+	inline Face findBoundaryFaceOfVertex(Vertex v) { return topology_.boundary_face_of_Vertex(v); }
 
 private:
 	Topology topology_;

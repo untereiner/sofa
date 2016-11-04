@@ -57,9 +57,8 @@ namespace topology
 struct CGOGN_Traits
 {
 	using index_type = cgogn::Dart;
-	using MapTraits = cgogn::DefaultMapTraits;
-	using Topology2 = cgogn::CMap2<MapTraits>;
-	using Topology3 = cgogn::CMap3<MapTraits>;
+	using Topology2 = cgogn::CMap2;
+	using Topology3 = cgogn::CMap3;
 
 	using Vertex2	= Topology2::Vertex;
 	using Edge2		= Topology2::Edge;
@@ -72,7 +71,7 @@ struct CGOGN_Traits
 	using Volume3	= Topology3::Volume;
 
 	template<typename T>
-	using Attribute_T = cgogn::Attribute_T<MapTraits,T>;
+	using Attribute_T = cgogn::Attribute_T<T>;
 
 	struct Vertex
 	{
@@ -130,6 +129,8 @@ public:
 	using Orbit = cgogn::Orbit;
 	template<typename T>
 	using Attribute_T = CGOGN_Traits::Attribute_T<T>;
+	template <typename T, Orbit ORBIT>
+	using Attribute = cgogn::Attribute<T, ORBIT>;
 
 	using Vertex = Topo_Traits::Vertex;
 	using Edge = Topo_Traits::Edge;
@@ -186,8 +187,8 @@ public:
 
 
 	using EdgeDOFs = helper::fixed_array<unsigned int, 2>;
-	using FaceDOFs = helper::fixed_array<unsigned int, 4>;
-	using VolumeDOFs = helper::fixed_array<unsigned int, 8>;
+	using FaceDOFs = helper::vector<unsigned int>;
+	using VolumeDOFs = helper::vector<unsigned int>;
 
 	MapTopology();
 	~MapTopology() override;

@@ -44,6 +44,7 @@ namespace topology
 class SOFA_BASE_TOPOLOGY_API VolumeTopologyModifier : public sofa::core::cm_topology::TopologyModifier
 {
 public:
+	using Map = VolumeTopologyContainer::Map;
 	using Volume = core::topology::MapTopology::Volume;
     SOFA_CLASS(VolumeTopologyModifier,sofa::core::cm_topology::TopologyModifier);
 
@@ -215,6 +216,7 @@ public:
 //            const sofa::helper::vector<unsigned int> &/*inv_index*/);
 
 
+	Map& getMap() { return m_container->topology_; }
 private:
     VolumeTopologyContainer* 	m_container;
 };
