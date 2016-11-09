@@ -28,6 +28,7 @@
 
 #include <sofa/core/topology/CMBaseTopology.h>
 #include <SofaBaseTopology/VolumeTopologyContainer.h>
+#include <cgogn/modeling/algos/tetrahedralization.h>
 
 namespace sofa
 {
@@ -45,7 +46,11 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyModifier : public sofa::core::cm_topo
 {
 public:
 	using Map = VolumeTopologyContainer::Map;
-	using Volume = core::topology::MapTopology::Volume;
+	using BaseVolume = core::topology::MapTopology::Volume;
+	using Vertex = VolumeTopologyContainer::Vertex;
+	using Edge = VolumeTopologyContainer::Edge;
+	using Face = VolumeTopologyContainer::Face;
+	using Volume = VolumeTopologyContainer::Volume;
     SOFA_CLASS(VolumeTopologyModifier,sofa::core::cm_topology::TopologyModifier);
 
 
@@ -79,7 +84,7 @@ public:
     /** \brief add a set of tetrahedra
     @param tetrahedra an array of vertex indices describing the tetrahedra to be created
     */
-    virtual void addTetrahedra(const sofa::helper::vector< Volume > &vols);
+	virtual void addTetrahedra(const sofa::helper::vector< BaseVolume > &vols);
 
     /** \brief add a set of tetrahedra
     @param quads an array of vertex indices describing the tetrahedra to be created
@@ -87,8 +92,8 @@ public:
     @param baryCoefs for each tetrahedron provides the barycentric coordinates (sum to 1) associated with each ancestor (optional)
     *
     */
-    virtual void addTetrahedra(const sofa::helper::vector< Volume > &tetrahedra,
-            const sofa::helper::vector< sofa::helper::vector< Volume > > & ancestors,
+	virtual void addTetrahedra(const sofa::helper::vector< BaseVolume > &tetrahedra,
+			const sofa::helper::vector< sofa::helper::vector< BaseVolume > > & ancestors,
             const sofa::helper::vector< sofa::helper::vector< double > >& baryCoefs) ;
 
 
@@ -97,27 +102,27 @@ public:
     * \sa addTetrahedraProcess
     */
     void addTetrahedraWarning(
-            const sofa::helper::vector< Volume >& tetrahedraList);
+			const sofa::helper::vector< BaseVolume >& tetrahedraList);
 
     /** \brief Sends a message to warn that some tetrahedra were added in this topology.
     *
     * \sa addTetrahedraProcess
     */
     void addTetrahedraWarning(
-            const sofa::helper::vector< Volume >& tetrahedraList,
-            const sofa::helper::vector< sofa::helper::vector< Volume> > & ancestors,
+			const sofa::helper::vector< BaseVolume >& tetrahedraList,
+			const sofa::helper::vector< sofa::helper::vector< BaseVolume> > & ancestors,
             const sofa::helper::vector< sofa::helper::vector< double > >& baryCoefs);
 
     /** \brief Add a tetrahedron.
     *
     */
-    void addTetrahedronProcess(Volume e);
+	void addTetrahedronProcess(BaseVolume e);
 
     /** \brief Actually Add some tetrahedra to this topology.
     *
     * \sa addTetrahedraWarning
     */
-    virtual void addTetrahedraProcess(const sofa::helper::vector< Volume > &tetrahedra);
+	virtual void addTetrahedraProcess(const sofa::helper::vector< BaseVolume > &tetrahedra);
 
     /** \brief Sends a message to warn that some tetrahedra are about to be deleted.
     *
@@ -125,7 +130,7 @@ public:
     *
     * Important : parameter indices is not const because it is actually sorted from the highest index to the lowest one.
     */
-    void removeTetrahedraWarning( sofa::helper::vector<Volume> &tetrahedra);
+	void removeTetrahedraWarning( sofa::helper::vector<BaseVolume> &tetrahedra);
 
     /** \brief Remove a subset of tetrahedra
     *
@@ -135,7 +140,7 @@ public:
     * \sa removeTetrahedraWarning
     * @param removeIsolatedItems if true remove isolated triangles, edges and vertices
     */
-    virtual void removeTetrahedraProcess( const sofa::helper::vector<Volume> &indices,
+	virtual void removeTetrahedraProcess( const sofa::helper::vector<BaseVolume> &indices,
             const bool removeIsolatedItems=false);
 
     /** \brief Actually Add some triangles to this topology.
@@ -215,6 +220,41 @@ public:
 //    virtual void renumberPoints( const sofa::helper::vector<unsigned int> &/*index*/,
 //            const sofa::helper::vector<unsigned int> &/*inv_index*/);
 
+
+	inline Vertex split1to4(Volume w)
+	{
+		return cgogn::modeling::flip_14(getMap(), w);
+	}
+
+	inline Vertex trianguleFace(Face f)
+	{
+		return cgogn::modeling::triangule(getMap(), f);
+	}
+
+	inline Face splitVolume(const std::vector<cgogn::Dart>& edges)
+	{
+		return getMap().cut_volume(edges);
+	}
+
+	inline Edge splitFace(cgogn::Dart e, cgogn::Dart f)
+	{
+		return getMap().cut_face(e,f);
+	}
+
+	inline void deleteVolume(Volume w)
+	{
+		getMap().delete_volume(w);
+	}
+
+	inline cgogn::Dart edgeBissection(Edge e)
+	{
+		return cgogn::modeling::edge_bisection(getMap(),e);
+	}
+
+	inline void updateTetrahedraAroundVertexAttributeInFF(Vertex )
+	{
+		// TODO
+	}
 
 	Map& getMap() { return m_container->topology_; }
 private:

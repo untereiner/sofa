@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include <sofa/core/topology/MapTopology.h>
+#include <cgogn/io/map_export.h>
 
 namespace sofa
 {
@@ -47,6 +48,8 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 
 	SOFA_CLASS(VolumeTopologyContainer, core::topology::MapTopology);
 	using Topology = Topo_Traits::Topology3;
+	template<Orbit ORBIT>
+	using Cell = cgogn::Cell<ORBIT>;
 	using Vertex = Topo_Traits::Vertex3;
 	using Edge = Topo_Traits::Edge3;
 	using Face = Topo_Traits::Face3;
@@ -214,6 +217,12 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	}
 
 	template<typename FUNC>
+	inline void foreach_incident_volume(Edge e,const FUNC& func)
+	{
+		topology_.foreach_incident_volume(e,func);
+	}
+
+	template<typename FUNC>
 	inline void foreach_incident_volume(Face f,const FUNC& func)
 	{
 		topology_.foreach_incident_volume(f,func);
@@ -257,6 +266,12 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		return this->volume_dofs_[w.dart];
 	}
 
+	template<Orbit ORBIT>
+	inline bool same_cell(Cell<ORBIT> c1, Cell<ORBIT> c2)
+	{
+		return topology_.same_cell(c1, c2);
+	}
+
 protected:
 	virtual void initFromMeshLoader() override;
 
@@ -290,6 +305,11 @@ public:
 	virtual void reset() override;
 	virtual void cleanup() override;
 	virtual void draw(const core::visual::VisualParams*) override;
+
+	virtual void exportMesh(const std::string& filename) override
+	{
+		cgogn::io::export_volume(topology_, cgogn::io::ExportOptions(filename, std::make_pair(cgogn::Orbit(Vertex::ORBIT), std::string("position"))));
+	}
 
 public:
 	inline Dart phi1(Dart d) { return topology_.phi1(d); }

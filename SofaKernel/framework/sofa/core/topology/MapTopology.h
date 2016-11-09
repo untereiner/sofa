@@ -220,6 +220,8 @@ public:
 	virtual void reset() override;
 	virtual void cleanup() override;
 
+	virtual void exportMesh(const std::string& filename) = 0;
+
 protected:
 	virtual void initFromMeshLoader() = 0;
 
