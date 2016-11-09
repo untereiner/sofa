@@ -27,7 +27,9 @@
 
 #include "config.h"
 #include <sofa/core/topology/MapTopology.h>
-#include <cgogn/io/surface_import.h>
+#include <cgogn/io/map_import.h>
+#include <cgogn/io/map_export.h>
+
 namespace sofa
 {
 
@@ -245,6 +247,11 @@ public:
 	virtual void reinit() override;
 	virtual void reset() override;
 	virtual void cleanup() override;
+
+	virtual void exportMesh(const std::string& filename) override
+	{
+		cgogn::io::export_surface(topology_, cgogn::io::ExportOptions(filename, std::make_pair(cgogn::Orbit(Vertex::ORBIT), std::string("position"))));
+	}
 
 protected:
 	virtual void initFromMeshLoader() override;

@@ -63,7 +63,7 @@ void VolumeTopologyModifier::reinit()
 }
 
 
-void VolumeTopologyModifier::addTetrahedra(const sofa::helper::vector<Volume> &vols)
+void VolumeTopologyModifier::addTetrahedra(const sofa::helper::vector<BaseVolume> &vols)
 {
 
     /// effectively add triangles in the topology container
@@ -77,8 +77,8 @@ void VolumeTopologyModifier::addTetrahedra(const sofa::helper::vector<Volume> &v
 }
 
 
-void VolumeTopologyModifier::addTetrahedra(const sofa::helper::vector<Volume>& tetrahedra,
-        const sofa::helper::vector<sofa::helper::vector<Volume> >& ancestors,
+void VolumeTopologyModifier::addTetrahedra(const sofa::helper::vector<BaseVolume>& tetrahedra,
+        const sofa::helper::vector<sofa::helper::vector<BaseVolume> >& ancestors,
         const sofa::helper::vector<sofa::helper::vector<double> > &baryCoefs)
 {
     /// effectively add triangles in the topology container
@@ -91,13 +91,13 @@ void VolumeTopologyModifier::addTetrahedra(const sofa::helper::vector<Volume>& t
     propagateTopologicalChanges();
 }
 
-void VolumeTopologyModifier::addTetrahedronProcess(Volume t)
+void VolumeTopologyModifier::addTetrahedronProcess(BaseVolume t)
 {
  // TODO
 }
 
 
-void VolumeTopologyModifier::addTetrahedraProcess(const sofa::helper::vector< Volume > &tetrahedra)
+void VolumeTopologyModifier::addTetrahedraProcess(const sofa::helper::vector< BaseVolume > &tetrahedra)
 {
     for (unsigned int i = 0; i < tetrahedra.size(); ++i)
     {
@@ -107,7 +107,7 @@ void VolumeTopologyModifier::addTetrahedraProcess(const sofa::helper::vector< Vo
 
 
 void VolumeTopologyModifier::addTetrahedraWarning(
-		const sofa::helper::vector< Volume >& tetrahedraList)
+		const sofa::helper::vector< BaseVolume >& tetrahedraList)
 {
 	//    m_container->setTetrahedronTopologyToDirty(); // TODO
 	// Warning that tetrahedra just got created
@@ -117,8 +117,8 @@ void VolumeTopologyModifier::addTetrahedraWarning(
 
 
 void VolumeTopologyModifier::addTetrahedraWarning(
-		const sofa::helper::vector< Volume >& tetrahedraList,
-		const sofa::helper::vector< sofa::helper::vector< Volume> > & ancestors,
+		const sofa::helper::vector< BaseVolume >& tetrahedraList,
+		const sofa::helper::vector< sofa::helper::vector< BaseVolume> > & ancestors,
 		const sofa::helper::vector< sofa::helper::vector< double > >& baryCoefs)
 {
 	//    m_container->setTetrahedronTopologyToDirty(); // TODO
@@ -128,7 +128,7 @@ void VolumeTopologyModifier::addTetrahedraWarning(
 }
 
 
-void VolumeTopologyModifier::removeTetrahedraWarning( sofa::helper::vector<Volume> &tetrahedra )
+void VolumeTopologyModifier::removeTetrahedraWarning( sofa::helper::vector<BaseVolume> &tetrahedra )
 {
 //    m_container->setTetrahedronTopologyToDirty(); // TODO
     /// sort vertices to remove in a descendent order
@@ -139,7 +139,7 @@ void VolumeTopologyModifier::removeTetrahedraWarning( sofa::helper::vector<Volum
 	addTopologyChange(e);
 }
 
-void VolumeTopologyModifier::removeTetrahedraProcess( const sofa::helper::vector<Volume> &indices,
+void VolumeTopologyModifier::removeTetrahedraProcess( const sofa::helper::vector<BaseVolume> &indices,
         const bool removeIsolatedItems)
 {
  // TODO
