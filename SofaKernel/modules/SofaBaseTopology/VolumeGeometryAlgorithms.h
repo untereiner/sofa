@@ -74,6 +74,33 @@ public:
 
 	}
 
+	bool isInTriangle(const Coord& P, const helper::fixed_array< Coord, 3 >& triangle)
+	{
+	  //    const Coord & AP = P - triangle[0];
+	  //    const Coord & AB = triangle[1] - triangle[0];
+	  //    const Coord & AC = triangle[2] - triangle[0];
+	  //    const Coord & BA = -AB;
+	  //    const SReal & alpha = AB * AP ;
+	  //    const SReal & beta =  AC * AP ;
+	  //    const SReal & gamma = BA * (P - triangle[1]);
+	  //    return (alpha >= 0) && (beta >= 0) && (gamma >= 0);
+
+	  const Coord& v2 = P - triangle[0];
+	  const Coord& v1 = triangle[1] - triangle[0];
+	  const Coord& v0 = triangle[2] - triangle[0];
+
+	  const SReal& dot00 = v0 * v0;
+	  const SReal& dot01 = v0 * v1;
+	  const SReal& dot02 = v0 * v2;
+	  const SReal& dot11 = v1 * v1;
+	  const SReal& dot12 = v1 * v2;
+
+	  const SReal& invDenom = static_cast< SReal >(1) / (dot00 * dot11 - dot01 * dot01);
+	  const SReal& u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+	  const SReal& v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+	  return (u >= 0) && (v >= 0) && (u + v <= 1);
+	}
 
 protected:
     Data<bool> d_showVolumesIndices;

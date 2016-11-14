@@ -240,6 +240,13 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		topology_.foreach_incident_face(e,func);
 	}
 
+	template<typename FUNC>
+	inline void foreach_adjacent_vertex_through_edge(Vertex v,const FUNC& func)
+	{
+		topology_.foreach_adjacent_vertex_through_edge(v, func);
+
+	}
+
 	template<Orbit ORBIT>
 	inline unsigned int nb_cells() const
 	{
