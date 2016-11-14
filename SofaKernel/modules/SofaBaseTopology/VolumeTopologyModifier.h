@@ -221,13 +221,26 @@ public:
 //            const sofa::helper::vector<unsigned int> &/*inv_index*/);
 
 
-	inline Vertex split1to4(Volume w)
+	inline Vertex split1to4(Volume w, helper::vector< double > coeff = helper::vector< double >(), helper::vector< Vertex > ancestorsVertices = helper::vector< Vertex >())
 	{
+		cgogn::unused_parameters(coeff, ancestorsVertices);
 		return cgogn::modeling::flip_14(getMap(), w);
 	}
 
-	inline Vertex trianguleFace(Face f)
+	inline Vertex split1to3(Face f, helper::vector< double > coeff = helper::vector< double >(), helper::vector< Vertex > ancestorsVertices = helper::vector< Vertex >())
 	{
+		cgogn::unused_parameters(coeff, ancestorsVertices);
+		return cgogn::modeling::flip_13(getMap(), f);
+	}
+
+	inline Edge swap23(Face f)
+	{
+		return Edge(cgogn::modeling::swap_23(getMap(),f));
+	}
+
+	Vertex trianguleFace(Face f, helper::vector< Vertex > ancestorPoints = helper::vector< Vertex >(), sofa::helper::vector< double > coeffs = sofa::helper::vector< double >(), bool sendAddWarning = true, bool sendRemovalWarning = true )
+	{
+		cgogn::unused_parameters(ancestorPoints, coeffs, sendAddWarning, sendRemovalWarning);
 		return cgogn::modeling::triangule(getMap(), f);
 	}
 
@@ -241,19 +254,34 @@ public:
 		return getMap().cut_face(e,f);
 	}
 
-	inline void deleteVolume(Volume w)
+	inline helper::vector<Vertex> deleteVolume(Volume w)
 	{
 		getMap().delete_volume(w);
+		return helper::vector<Vertex>();
 	}
 
-	inline cgogn::Dart edgeBissection(Edge e)
+
+	Vertex edgeBissection(Edge e, helper::vector< Vertex > ancestorPoints = helper::vector< Vertex >(), helper::vector< double > coeff = helper::vector< double >(), bool sendAddWarning = true, bool sendRemovalWarning = true)
 	{
-		return cgogn::modeling::edge_bisection(getMap(),e);
+		cgogn::unused_parameters(ancestorPoints, coeff, sendAddWarning, sendRemovalWarning);
+		return Vertex(cgogn::modeling::edge_bisection(getMap(),e));
 	}
 
 	inline void updateTetrahedraAroundVertexAttributeInFF(Vertex )
 	{
 		// TODO
+	}
+
+	std::vector<Volume> swap32genOptimized(Edge e)
+	{
+		cgogn::modeling::swap_gen_32(getMap(),e);
+		return std::vector<Volume>();
+	}
+
+	std::vector<std::pair<Vertex, Vertex>> unsewVolumes(Face f)
+	{
+		getMap().unsew_volumes(f);
+		return std::vector<std::pair<Vertex, Vertex>>();
 	}
 
 	Map& getMap() { return m_container->topology_; }
