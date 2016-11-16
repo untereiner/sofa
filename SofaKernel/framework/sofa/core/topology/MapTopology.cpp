@@ -237,6 +237,12 @@ MapTopology::MapTopology() :
 	d_quad(initData(&d_quad, "quads", "List of quad indices")),
 	d_tetra(initData(&d_tetra, "tetrahedra", "List of tetrahedron indices")),
 	d_hexa(initData(&d_hexa, "hexahedra", "List of hexahedron indices")),
+
+	d_use_vertex_qt_(initData(&d_use_vertex_qt_, false, "vertices_quick_traversal", "toggle vertices quick traversal")),
+	d_use_edge_qt_(initData(&d_use_edge_qt_, false, "edges_quick_traversal", "toggle edges quick traversal")),
+	d_use_face_qt_(initData(&d_use_face_qt_, false, "faces_quick_traversal", "toggle faces quick traversal")),
+	d_use_volume_qt_(initData(&d_use_volume_qt_, false, "volumes_quick_traversal", "toggle volumes quick traversal")),
+
 	mech_state_(initLink("mstate", "mechanical state linked to the topology"))
 {
 

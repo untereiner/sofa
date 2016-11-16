@@ -225,6 +225,11 @@ public:
 protected:
 	virtual void initFromMeshLoader() = 0;
 
+	Data< bool > d_use_vertex_qt_;
+	Data< bool > d_use_edge_qt_;
+	Data< bool > d_use_face_qt_;
+	Data< bool > d_use_volume_qt_;
+
 	Data< VecCoord > d_initPoints;
 	Data< helper::vector< EdgeIds > > d_edge;
 	Data< helper::vector< TriangleIds > > d_triangle;

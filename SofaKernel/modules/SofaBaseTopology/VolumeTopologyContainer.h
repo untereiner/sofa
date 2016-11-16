@@ -65,6 +65,9 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	template<Orbit ORBIT>
 	using CellMarker = cgogn::CellMarker<Map, ORBIT>;
 
+	template<typename CellType>
+	using QuickTraversor = cgogn::QuickTraversor<Topology, CellType>;
+
 	VolumeTopologyContainer();
 	~VolumeTopologyContainer() override;
 
@@ -111,32 +114,105 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 
 	virtual void foreach_vertex(const std::function<void (BaseVertex)>& func) override
 	{
-		topology_.foreach_cell([&](Vertex v) { func((v.dart));});
+		if (d_use_vertex_qt_.getValue())
+			topology_.foreach_cell([&](Vertex v) { func((v.dart));}, *qt_vertex_);
+		else
+			topology_.foreach_cell([&](Vertex v) { func((v.dart));});
 	}
 	virtual void foreach_edge(const std::function<void (BaseEdge)>& func) override
 	{
-		topology_.foreach_cell([&](Edge e) { func((e.dart));});
+		if (d_use_edge_qt_.getValue())
+			topology_.foreach_cell([&](Edge e) { func((e.dart));}, *qt_edge_);
+		else
+			topology_.foreach_cell([&](Edge e) { func((e.dart));});
 	}
 	virtual void foreach_face(const std::function<void (BaseFace)>& func) override
 	{
-		topology_.foreach_cell([&](Face f) { func((f.dart));});
+		if (d_use_face_qt_.getValue())
+			topology_.foreach_cell([&](Face f) { func((f.dart));}, *qt_face_);
+		else
+			topology_.foreach_cell([&](Face f) { func((f.dart));});
 	}
 	virtual void foreach_volume(const std::function<void (BaseVolume)>& func) override
 	{
-		topology_.foreach_cell([&](Volume w) { func((w.dart));});
+		if (d_use_volume_qt_.getValue())
+			topology_.foreach_cell([&](Volume w) { func((w.dart));}, *qt_volume_);
+		else
+			topology_.foreach_cell([&](Volume w) { func((w.dart));});
 	}
 
 	template<typename FUNC>
-	inline void foreach_cell(const FUNC& f)
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Vertex>::value,void>::type foreach_cell(const FUNC& f)
 	{
-		topology_.foreach_cell(f);
+		if (d_use_vertex_qt_.getValue())
+			topology_.foreach_cell(f, *qt_vertex_);
+		else
+			topology_.foreach_cell(f);
 	}
 
 	template<typename FUNC>
-	inline void parallel_foreach_cell(const FUNC& f)
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Edge>::value,void>::type foreach_cell(const FUNC& f)
 	{
-		topology_.parallel_foreach_cell(f);
+		if (d_use_edge_qt_.getValue())
+			topology_.foreach_cell(f, *qt_edge_);
+		else
+			topology_.foreach_cell(f);
 	}
+
+	template<typename FUNC>
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Face>::value,void>::type foreach_cell(const FUNC& f)
+	{
+		if (d_use_face_qt_.getValue())
+			topology_.foreach_cell(f, *qt_face_);
+		else
+			topology_.foreach_cell(f);
+	}
+
+	template<typename FUNC>
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Volume>::value,void>::type foreach_cell(const FUNC& f)
+	{
+		if (d_use_volume_qt_.getValue())
+			topology_.foreach_cell(f, *qt_volume_);
+		else
+			topology_.foreach_cell(f);
+	}
+
+	template<typename FUNC>
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Vertex>::value,void>::type parallel_foreach_cell(const FUNC& f)
+	{
+		if (d_use_vertex_qt_.getValue())
+			topology_.parallel_foreach_cell(f, *qt_vertex_);
+		else
+			topology_.parallel_foreach_cell(f);
+	}
+
+	template<typename FUNC>
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Edge>::value,void>::type parallel_foreach_cell(const FUNC& f)
+	{
+		if (d_use_edge_qt_.getValue())
+			topology_.parallel_foreach_cell(f, *qt_edge_);
+		else
+			topology_.parallel_foreach_cell(f);
+	}
+
+	template<typename FUNC>
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Face>::value,void>::type parallel_foreach_cell(const FUNC& f)
+	{
+		if (d_use_face_qt_.getValue())
+			topology_.parallel_foreach_cell(f, *qt_face_);
+		else
+			topology_.parallel_foreach_cell(f);
+	}
+
+	template<typename FUNC>
+	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Volume>::value,void>::type parallel_foreach_cell(const FUNC& f)
+	{
+		if (d_use_volume_qt_.getValue())
+			topology_.parallel_foreach_cell(f, *qt_volume_);
+		else
+			topology_.parallel_foreach_cell(f);
+	}
+
 
 	virtual void foreach_incident_vertex_of_edge(BaseEdge e, const std::function<void (BaseVertex)>& func) override
 	{
@@ -334,7 +410,11 @@ public:
 
 private:
 	Topology topology_;
-	std::unique_ptr<CellCache> cache_;
+	std::unique_ptr<QuickTraversor<Vertex>> qt_vertex_;
+	std::unique_ptr<QuickTraversor<Edge>> qt_edge_;
+	std::unique_ptr<QuickTraversor<Face>> qt_face_;
+	std::unique_ptr<QuickTraversor<Volume>> qt_volume_;
+
 };
 
 } // namespace topology
