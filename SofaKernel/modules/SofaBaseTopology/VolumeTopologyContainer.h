@@ -355,7 +355,113 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		return topology_.same_cell(c1, c2);
 	}
 
+	void update_orbit(Vertex v)
+	{
+		if (d_use_vertex_qt_.getValue())
+			qt_vertex_->update(v);
+	}
+
+	void update_orbit(Edge e)
+	{
+		e.dart = lowest_dart_of_orbit(e);
+		if (d_use_edge_qt_.getValue())
+			qt_edge_->update(e);
+		update_dofs(e);
+	}
+
+	void update_orbit(Face f)
+	{
+		f.dart = lowest_dart_of_orbit(f);
+		if (d_use_face_qt_.getValue())
+			qt_face_->update(f);
+		update_dofs(f);
+	}
+
+	void update_orbit(Volume w)
+	{
+		w.dart = lowest_dart_of_orbit(w);
+		if (d_use_volume_qt_.getValue())
+			qt_volume_->update(w);
+		update_dofs(w);
+	}
+
+	template<typename CellType>
+	inline unsigned int nb_vertices(CellType c)
+	{
+		unsigned int res = 0u;
+		topology_.foreach_incident_vertex(c, [&res]
+		{
+			++res;
+		});
+		return res;
+	}
+
 protected:
+	inline bool is_triangle(Face f)
+	{
+		return phi1(phi1(f.dart)) == phi_1(f.dart);
+	}
+
+	/**
+	 * @brief is_tetra
+	 * @param w
+	 * @return true iff the volume is a tetrahedron. Actually we just check if every adjacent face (by an edge) is a triangle.
+	 */
+	inline bool is_tetra(Volume w)
+	{
+		return is_triangle(Face(w.dart)) &&
+				is_triangle(Face(phi2(w.dart))) &&
+				is_triangle(Face(phi2(phi1(w.dart)))) &&
+				is_triangle(Face(phi2(phi_1(w.dart))));
+	}
+
+	void update_dofs(Edge e)
+	{
+		edge_dofs_[e.dart]= EdgeDOFs(get_dof(Vertex(e.dart)), get_dof(Vertex(phi2(e.dart))));
+	}
+
+	void update_dofs(Face f)
+	{
+		auto& vertices = face_dofs_[f.dart];
+		vertices.clear();
+		foreach_incident_vertex(f, [this,&vertices](Vertex v)
+		{
+			vertices.push_back(get_dof(v));
+		});
+	}
+
+	void update_dofs(Volume w)
+	{
+		auto& vertices = volume_dofs_[w.dart];
+		vertices.clear();
+		if (is_tetra(w))
+		{
+			vertices.reserve(4);
+			vertices.push_back(get_dof(Vertex(w.dart)));
+			vertices.push_back(get_dof(Vertex(phi1(w.dart))));
+			vertices.push_back(get_dof(Vertex(phi_1(w.dart))));
+			vertices.push_back(get_dof(Vertex(phi_1(phi2(w.dart)))));
+		} else {
+			vertices.reserve(8);
+			foreach_incident_vertex(w, [this,&vertices](Vertex v)
+			{
+				vertices.push_back(get_dof(v));
+			});
+		}
+	}
+
+	template<typename CellType>
+	inline Dart lowest_dart_of_orbit(CellType c) const
+	{
+		Dart res = c.dart;
+		topology_.foreach_dart_of_orbit(c, [this,&res](Dart it)
+		{
+			if (it.index < res.index && !topology_.is_boundary(it))
+				res = it;
+		});
+		return res;
+	}
+
 	virtual void initFromMeshLoader() override;
 
 	virtual void createEdgesInTriangleArray() override

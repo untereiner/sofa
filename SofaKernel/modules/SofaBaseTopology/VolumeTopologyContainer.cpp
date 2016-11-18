@@ -82,7 +82,7 @@ void VolumeTopologyContainer::initFromMeshLoader()
 void VolumeTopologyContainer::createTrianglesAroundEdgeArray()
 {
 	if (!this->m_trianglesAroundEdge.is_valid())
-		this->m_trianglesAroundEdge = this->template add_attribute<TrianglesAroundEdge, Edge>("TrianglesAroundEdgeArray");
+		this->m_trianglesAroundEdge = this->template check_attribute<TrianglesAroundEdge, Edge>("TrianglesAroundEdgeArray");
 	assert(this->m_trianglesAroundEdge.is_valid());
 	this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
 	{
@@ -97,8 +97,7 @@ void VolumeTopologyContainer::createTrianglesAroundEdgeArray()
 void VolumeTopologyContainer::createEdgesInQuadArray()
 {
 	if (!this->m_edgesInQuad.is_valid())
-		this->m_edgesInQuad = this->template add_attribute<EdgesInQuad, Face>("EdgesInQuadArray");
-	//			this->add_attribute(this->m_edgesInTriangle, "SurfaceTopologyContainer::EdgesInTriangleArray");
+		this->m_edgesInQuad = this->template check_attribute<EdgesInQuad, Face>("EdgesInQuadArray");
 	assert(this->m_edgesInQuad.is_valid());
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
 	{
@@ -114,7 +113,7 @@ void VolumeTopologyContainer::createEdgesInQuadArray()
 void VolumeTopologyContainer::createEdgesAroundVertexArray()
 {
 	if (!this->m_edgesAroundVertex.is_valid())
-		this->m_edgesAroundVertex = this->template add_attribute<EdgesAroundVertex, Vertex>("EdgesAroundVertexArray");
+		this->m_edgesAroundVertex = this->template check_attribute<EdgesAroundVertex, Vertex>("EdgesAroundVertexArray");
 	assert(this->m_edgesAroundVertex.is_valid());
 	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
 	{
@@ -129,7 +128,7 @@ void VolumeTopologyContainer::createEdgesAroundVertexArray()
 void VolumeTopologyContainer::createEdgesInTetrahedronArray()
 {
 	if (!this->m_edgesInTetrahedron.is_valid())
-		this->m_edgesInTetrahedron = this->template add_attribute<EdgesInTetrahedron, Volume>("EdgesInTetrahedronArray");
+		this->m_edgesInTetrahedron = this->template check_attribute<EdgesInTetrahedron, Volume>("EdgesInTetrahedronArray");
 	assert(this->m_edgesInTetrahedron.is_valid());
 	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
 	{
@@ -145,7 +144,7 @@ void VolumeTopologyContainer::createEdgesInTetrahedronArray()
 void VolumeTopologyContainer::createTrianglesInTetrahedronArray()
 {
 	if (!this->m_trianglesInTetrahedron.is_valid())
-		this->m_trianglesInTetrahedron = this->template add_attribute<TrianglesInTetrahedron, Volume>("TrianglesInTetrahedronArray");
+		this->m_trianglesInTetrahedron = this->template check_attribute<TrianglesInTetrahedron, Volume>("TrianglesInTetrahedronArray");
 	assert(this->m_trianglesInTetrahedron.is_valid());
 	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
 	{
@@ -161,7 +160,7 @@ void VolumeTopologyContainer::createTrianglesInTetrahedronArray()
 void VolumeTopologyContainer::createTetrahedraAroundTriangleArray()
 {
 	if (!this->m_tetrahedraAroundTriangle.is_valid())
-		this->m_tetrahedraAroundTriangle = this->template add_attribute<TetrahedraAroundTriangle, Face>("TetrahedraAroundTriangleArray");
+		this->m_tetrahedraAroundTriangle = this->template check_attribute<TetrahedraAroundTriangle, Face>("TetrahedraAroundTriangleArray");
 	assert(this->m_tetrahedraAroundTriangle.is_valid());
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
 	{
@@ -191,8 +190,8 @@ void VolumeTopologyContainer::init()
 	Inherit1::init();
 	initFromMeshLoader();
 
-	face_dofs_ = this->template add_attribute<helper::vector<unsigned int>, Face>("Face_dofs");
-	volume_dofs_ = this->template add_attribute<helper::vector<unsigned int>, Volume>("Volume_dofs");
+	face_dofs_ = this->template check_attribute<helper::vector<unsigned int>, Face>("Face_dofs");
+	volume_dofs_ = this->template check_attribute<helper::vector<unsigned int>, Volume>("Volume_dofs");
 	assert(face_dofs_.is_valid());
 
 	if (d_use_vertex_qt_.getValue())

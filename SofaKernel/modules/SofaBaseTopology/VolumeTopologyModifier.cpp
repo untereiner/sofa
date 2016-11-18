@@ -145,6 +145,80 @@ void VolumeTopologyModifier::removeTetrahedraProcess( const sofa::helper::vector
  // TODO
 }
 
+VolumeTopologyModifier::Vertex VolumeTopologyModifier::split1to4(VolumeTopologyModifier::Volume w, helper::vector<double> coeff, helper::vector<VolumeTopologyModifier::Vertex> ancestorsVertices)
+{
+	static std::vector<std::future<void>> futures;
+	futures.clear();
+	cgogn::unused_parameters(coeff, ancestorsVertices);
+	const Vertex v = cgogn::modeling::flip_14(getMap(), w);
+
+	auto* tp = cgogn::thread_pool();
+	futures.push_back(tp->enqueue([&](cgogn::uint32)
+	{
+		;
+					  }));
+
+	return v;
+}
+
+VolumeTopologyModifier::Vertex VolumeTopologyModifier::split1to3(VolumeTopologyModifier::Face f, helper::vector<double> coeff, helper::vector<VolumeTopologyModifier::Vertex> ancestorsVertices)
+{
+	cgogn::unused_parameters(coeff, ancestorsVertices);
+	const Vertex v = cgogn::modeling::flip_13(getMap(), f);
+	return v;
+}
+
+VolumeTopologyModifier::Edge VolumeTopologyModifier::swap23(VolumeTopologyModifier::Face f)
+{
+	return Edge(cgogn::modeling::swap_23(getMap(),f));
+}
+
+VolumeTopologyModifier::Vertex VolumeTopologyModifier::trianguleFace(VolumeTopologyModifier::Face f, helper::vector<VolumeTopologyModifier::Vertex> ancestorPoints, sofa::helper::vector<double> coeffs, bool sendAddWarning, bool sendRemovalWarning)
+{
+	cgogn::unused_parameters(ancestorPoints, coeffs, sendAddWarning, sendRemovalWarning);
+	return cgogn::modeling::triangule(getMap(), f);
+}
+
+VolumeTopologyModifier::Face VolumeTopologyModifier::splitVolume(const std::vector<cgogn::Dart>& edges)
+{
+	return getMap().cut_volume(edges);
+}
+
+VolumeTopologyModifier::Edge VolumeTopologyModifier::splitFace(cgogn::Dart e, cgogn::Dart f)
+{
+	return getMap().cut_face(e,f);
+}
+
+helper::vector<VolumeTopologyModifier::Vertex> VolumeTopologyModifier::deleteVolume(VolumeTopologyModifier::Volume w)
+{
+	getMap().delete_volume(w);
+	return helper::vector<Vertex>();
+}
+
+VolumeTopologyModifier::Vertex VolumeTopologyModifier::edgeBissection(VolumeTopologyModifier::Edge e, helper::vector<VolumeTopologyModifier::Vertex> ancestorPoints, helper::vector<double> coeff, bool sendAddWarning, bool sendRemovalWarning)
+{
+	cgogn::unused_parameters(ancestorPoints, coeff, sendAddWarning, sendRemovalWarning);
+	return Vertex(cgogn::modeling::edge_bisection(getMap(),e));
+}
+
+void VolumeTopologyModifier::updateTetrahedraAroundVertexAttributeInFF(VolumeTopologyModifier::Vertex)
+{
+//	auto* tp = cgogn::thread_pool();
+	// TODO
+}
+
+std::vector<VolumeTopologyModifier::Volume> VolumeTopologyModifier::swap32genOptimized(VolumeTopologyModifier::Edge e)
+{
+	cgogn::modeling::swap_gen_32(getMap(),e);
+	return std::vector<Volume>();
+}
+
+std::vector<std::pair<VolumeTopologyModifier::Vertex, VolumeTopologyModifier::Vertex> > VolumeTopologyModifier::unsewVolumes(VolumeTopologyModifier::Face f)
+{
+	getMap().unsew_volumes(f);
+	return std::vector<std::pair<Vertex, Vertex>>();
+}
+
 //void VolumeTopologyModifier::addPointsProcess(const unsigned int nPoints)
 //{
 //    // start by calling the parent's method.
