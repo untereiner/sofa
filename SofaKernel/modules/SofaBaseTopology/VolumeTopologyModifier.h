@@ -237,7 +237,7 @@ public:
 
 	Vertex edgeBissection(Edge e, helper::vector< Vertex > ancestorPoints = helper::vector< Vertex >(), helper::vector< double > coeff = helper::vector< double >(), bool sendAddWarning = true, bool sendRemovalWarning = true);
 
-	inline void updateTetrahedraAroundVertexAttributeInFF(Vertex );
+	void updateTetrahedraAroundVertexAttributeInFF(Vertex );
 
 	std::vector<Volume> swap32genOptimized(Edge e);
 
