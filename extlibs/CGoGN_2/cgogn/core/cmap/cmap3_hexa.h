@@ -58,7 +58,7 @@ public:
 	using Face    = Cell<Orbit::PHI1_PHI3>;
 	using Volume  = Cell<Orbit::PHI1_PHI2>;
 
-	using Boundary = Face;
+	using Boundary = Volume;
 	using ConnectedComponent = Cell<Orbit::PHI1_PHI2_PHI3>;
 
 	template <typename T>
@@ -83,6 +83,8 @@ public:
 	using CellMarker = typename cgogn::CellMarker<Self, ORBIT>;
 	template <Orbit ORBIT>
 	using CellMarkerNoUnmark = typename cgogn::CellMarkerNoUnmark<Self, ORBIT>;
+
+	using BoundaryCache = typename cgogn::BoundaryCache<Self>;
 
 protected:
 
@@ -270,7 +272,7 @@ public:
 	 */
 	inline Dart phi2(Dart d) const
 	{
-		return Dart(d.index + MapBaseData::hexa_phi2[d.index%24]);
+		return Dart(d.index + MapBaseData::hexa_phi2[d.index%24u]);
 	}
 
 	/**
@@ -449,6 +451,14 @@ public:
 			});
 		}
 
+		if (this->template is_embedded<Vertex2>())
+		{
+			foreach_incident_vertex2(vol, [this] (Vertex2 v)
+			{
+				this->new_orbit_embedding(v);
+			});
+		}
+
 		if (this->template is_embedded<Vertex>())
 		{
 			foreach_incident_vertex(vol, [this] (Vertex v)
@@ -457,11 +467,27 @@ public:
 			});
 		}
 
+		if (this->template is_embedded<Edge2>())
+		{
+			foreach_incident_edge2(vol, [this] (Edge2 e)
+			{
+				this->new_orbit_embedding(e);
+			});
+		}
+
 		if (this->template is_embedded<Edge>())
 		{
 			foreach_incident_edge(vol, [this] (Edge e)
 			{
 				this->new_orbit_embedding(e);
+			});
+		}
+
+		if (this->template is_embedded<Face2>())
+		{
+			foreach_incident_face(vol, [this] (Face2 f)
+			{
+				this->new_orbit_embedding(f);
 			});
 		}
 
@@ -486,7 +512,7 @@ protected:
 	 * @param d a dart incident to the hole
 	 * @return a dart of the volume that closes the hole
 	 */
-	void close_hole_topo(Dart d, bool mark_boundary=false)
+	Dart close_hole_topo(Dart d, bool mark_boundary=false)
 	{
 		cgogn_message_assert(phi3(d) == d, "CMap3Hexa: close hole called on a dart that is not a phi3 fix point");
 
@@ -550,6 +576,8 @@ protected:
 			for (Dart db: *(boundary_marker.marked_darts()))
 				this->set_boundary(db, true);
 		}
+
+		return phi3(d);
 	}
 
 	/**
@@ -743,70 +771,61 @@ protected:
 			case 5:
 			case 16:
 				if (!internal::void_to_true_binder(f,Dart(first+0))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+5))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+16))) return;
+				if (internal::void_to_true_binder(f,Dart(first+5)))
+					f(Dart(first+16));
 				break;
 			case 1:
 			case 4:
 			case 9:
 				if (!internal::void_to_true_binder(f,Dart(first+1))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+4))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+9))) return;
+				if (internal::void_to_true_binder(f,Dart(first+4)))
+					f(Dart(first+9));
 				break;
 			case 2:
 			case 8:
 			case 13:
 				if (!internal::void_to_true_binder(f,Dart(first+2))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+8))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+13))) return;
+				if (internal::void_to_true_binder(f,Dart(first+8)))
+					f(Dart(first+13));
 				break;
 			case 3:
 			case 12:
 			case 17:
 				if (!internal::void_to_true_binder(f,Dart(first+3))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+12))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+17))) return;
+				if (internal::void_to_true_binder(f,Dart(first+12)))
+					f(Dart(first+17));
 				break;
 			case 6:
 			case 19:
 			case 20:
 				if (!internal::void_to_true_binder(f,Dart(first+6))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+19))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+20))) return;
+				if (internal::void_to_true_binder(f,Dart(first+19)))
+					f(Dart(first+20));
 				break;
 			case 7:
 			case 10:
 			case 23:
 				if (!internal::void_to_true_binder(f,Dart(first+7))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+10))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+23))) return;
+				if (internal::void_to_true_binder(f,Dart(first+10)))
+					f(Dart(first+23));
 				break;
 			case 11:
 			case 14:
 			case 22:
 				if (!internal::void_to_true_binder(f,Dart(first+11))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+14))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+22))) return;
+				if (internal::void_to_true_binder(f,Dart(first+14)))
+					f(Dart(first+22));
 				break;
 			case 15:
 			case 18:
 			case 21:
 				if (!internal::void_to_true_binder(f,Dart(first+15))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+18))) return;
-				if (!internal::void_to_true_binder(f,Dart(first+21))) return;
+				if (internal::void_to_true_binder(f,Dart(first+18)))
+					f(Dart(first+21));
 				break;
 			default:
 				break;
 		}
-
-		Dart it = d;
-		do
-		{
-			if ( !(this->is_boundary(it) && this->is_boundary(phi2(it))) )
-				if (!internal::void_to_true_binder(f, it))
-					break;
-			it = phi2(phi_1(it));
-		} while (it != d);
 	}
 
 	template <typename FUNC>

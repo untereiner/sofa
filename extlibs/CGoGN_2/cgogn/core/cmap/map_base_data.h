@@ -71,10 +71,10 @@ public:
 	template <typename T> friend class Attribute_T;
 	template <typename T, Orbit ORBIT> friend class Attribute;
 
-	template <typename T>
-	using Attribute_T = cgogn::Attribute_T<T>;
-	template<typename T, Orbit ORB>
-	using Attribute = cgogn::Attribute<T,ORB>;
+//	template <typename T>
+//	using Attribute_T = cgogn::Attribute_T<T>;
+//	template<typename T, Orbit ORB>
+//	using Attribute = cgogn::Attribute<T,ORB>;
 
 	template <typename T_REF>
 	using ChunkArrayContainer = cgogn::ChunkArrayContainer<CHUNK_SIZE, T_REF>;
@@ -111,14 +111,12 @@ protected:
 	mutable std::vector<std::thread::id> thread_ids_;
 
 	// vector of Map instances
-	static std::vector<MapBaseData*>* instances_;
-
-	static bool init_CA_factory;
+	static std::vector<const MapBaseData*>* instances_;
 
 	// table of tetra phi2 indices
-	static std::array<int, 12> tetra_phi2;
+	static const std::array<uint32, 12> tetra_phi2;
 	// table of hexa phi2 indices
-	static std::array<int, 24> hexa_phi2;
+	static const std::array<uint32, 24> hexa_phi2;
 
 public:
 
@@ -128,7 +126,7 @@ public:
 
 	virtual ~MapBaseData();
 
-	static inline bool is_alive(MapBaseData* map)
+	static inline bool is_alive(const MapBaseData* map)
 	{
 		return std::find(instances_->begin(), instances_->end(), map) != instances_->end();
 	}
@@ -213,7 +211,6 @@ public:
 		return embeddings_[ORBIT] != nullptr;
 	}
 
-
 	inline bool is_embedded(Orbit orb) const
 	{
 		cgogn_message_assert(orb < NB_ORBITS, "Unknown orbit parameter");
@@ -243,6 +240,15 @@ public:
 		cgogn_message_assert((*embeddings_[orb])[d.index] != INVALID_INDEX, "embedding result is INVALID_INDEX");
 
 		return (*embeddings_[orb])[d.index];
+	}
+
+	inline void swap_embeddings(Orbit orb1, Orbit orb2)
+	{
+		cgogn_message_assert(orb1 != orb2, "Cannot swap a container with itself");
+		cgogn_message_assert(orb1 != Orbit::DART && orb2 != Orbit::DART, "Cannot swap the darts container");
+
+		attributes_[orb1].swap(attributes_[orb2]);
+		embeddings_[orb1]->swap_data(embeddings_[orb2]);
 	}
 
 protected:
@@ -338,8 +344,6 @@ protected:
 		if (it == thread_ids_.end() || *it != thread_id)
 			thread_ids_.insert(it, thread_id);
 	}
-
-
 };
 
 } // namespace cgogn

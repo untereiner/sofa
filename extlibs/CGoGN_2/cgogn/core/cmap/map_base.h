@@ -142,7 +142,6 @@ protected:
 		return static_cast<const ConcreteMap*>(this);
 	}
 
-
 	/*******************************************************************************
 	 * Container elements management
 	 *******************************************************************************/
@@ -275,13 +274,10 @@ public:
 	 * @param ah a handler to the attribute to remove
 	 * @return true if remove succeed else false
 	 */
-	template <typename T, Orbit ORBIT>
-	inline bool remove_attribute(const Attribute<T, ORBIT>& ah)
+	template <typename T>
+	inline bool remove_attribute(const Attribute_T<T>& ah)
 	{
-		static_assert(ORBIT < NB_ORBITS, "Unknown orbit parameter");
-
-		const ChunkArray<T>* ca = ah.data();
-		return this->attributes_[ORBIT].remove_chunk_array(ca);
+		return this->attributes_[ah.orbit()].remove_chunk_array(ah.data());
 	}
 
 	/**
@@ -326,7 +322,6 @@ public:
 		return Attribute_T<T>(const_cast<Self*>(this), ca, orbit);
 	}
 
-
 	/**
 	* \brief search an attribute for a given orbit and change its type (if size is compatible). First template arg is asked type, second is real type.
 	* @param attribute_name attribute name
@@ -350,7 +345,7 @@ public:
 		cgogn_message_assert(ah1.is_linked_to(this), "swap_attributes: wrong map");
 		cgogn_message_assert(ah2.is_linked_to(this), "swap_attributes: wrong map");
 
-		this->attributes_[ORBIT].swap_data(ah1.data(), ah2.data());
+		this->attributes_[ORBIT].swap_chunk_arrays(ah1.data(), ah2.data());
 	}
 
 	template <typename T, Orbit ORBIT>
@@ -361,7 +356,7 @@ public:
 		cgogn_message_assert(dest.is_linked_to(this), "copy_attribute: wrong map");
 		cgogn_message_assert(src.is_linked_to(this), "copy_attribute: wrong map");
 
-		this->attributes_[ORBIT].copy_data(dest.data(), src.data());
+		this->attributes_[ORBIT].copy_chunk_array_data(dest.data(), src.data());
 	}
 
 protected:
@@ -531,11 +526,17 @@ public:
 			{
 				const uint32 emb_d = this->embedding(CellType(d));
 				if (emb_d != idx)
+				{
 					cgogn_log_error("is_well_embedded") << "Different indices (" << idx << " and " << emb_d << ") in orbit " << orbit_name(ORBIT);
+					result = false;
+				}
 				refs++;
 			});
 			if (refs != container.nb_refs(this->embedding(c)))
+			{
 				cgogn_log_error("is_well_embedded") << "Wrong reference number of embedding " << this->embedding(c) << " in orbit " << orbit_name(ORBIT);
+				result = false;
+			}
 
 		});
 		// check that all cells present in the attribute handler are used
@@ -649,7 +650,7 @@ public:
 			return this->attributes_[ORBIT].size();
 		else
 		{
-			uint32 result = 0;
+			uint32 result = 0u;
 			foreach_cell([&result] (Cell<ORBIT>) { ++result; });
 			return result;
 		}
@@ -658,8 +659,32 @@ public:
 	template <Orbit ORBIT, typename MASK>
 	uint32 nb_cells(const MASK& mask) const
 	{
-		uint32 result = 0;
+		uint32 result = 0u;
 		foreach_cell([&result] (Cell<ORBIT>) { ++result; }, mask);
+		return result;
+	}
+
+	/**
+	 * \brief return the number of boundaries of the map
+	 */
+	uint32 nb_boundaries() const
+	{
+		uint32 result = 0u;
+		DartMarker m(*to_concrete());
+#if defined(_MSC_VER) && _MSC_VER < 1900 // MSVC 2013 fix
+		using Boundary = ConcreteMap::Boundary;
+#else
+		using Boundary = typename ConcreteMap::Boundary;
+#endif
+		foreach_dart([&m, &result, this] (Dart d)
+		{
+			if (!m.is_marked(d))
+			{
+				Boundary c(d);
+				m.mark_orbit(c);
+				if (this->is_boundary_cell(c)) ++result;
+			}
+		});
 		return result;
 	}
 
@@ -840,11 +865,12 @@ public:
 		futures[1].reserve(nb_threads_pool);
 
 		Buffers<Dart>* dbuffs = cgogn::dart_buffers();
+		const ConcreteMap* cmap = to_concrete();
 
 		uint32 i = 0u; // buffer id (0/1)
 		uint32 j = 0u; // thread id (0..nb_threads_pool)
-		Dart it = Dart(this->topology_.begin());
-		Dart last = Dart(this->topology_.end());
+		Dart it = cmap->all_begin();
+		Dart last = cmap->all_end();
 
 		while (it != last)
 		{
@@ -855,7 +881,7 @@ public:
 			for (unsigned k = 0u; k < PARALLEL_BUFFER_SIZE && it.index < last.index; ++k)
 			{
 				darts.push_back(it);
-				this->topology_.next(it.index);
+				cmap->all_next(it);
 			}
 
 			futures[i].push_back(thread_pool->enqueue([&darts, &f] (uint32 th_id)
@@ -890,7 +916,6 @@ public:
 
 	}
 
-
 	/**
 	 * \brief apply a function on each dart of the map (including boundary darts) and stops when the function returns false
 	 * @tparam FUNC type of the callable
@@ -901,7 +926,8 @@ public:
 	{
 		static_assert(is_func_parameter_same<FUNC, Dart>::value, "Wrong function parameter type");
 
-		for (Dart it = Dart(this->topology_.begin()), last = Dart(this->topology_.end()); it != last; this->topology_.next(it.index))
+		const ConcreteMap* cmap = to_concrete();
+		for (Dart it = cmap->all_begin(), last = cmap->all_end(); it != last; cmap->all_next(it))
 		{
 			if (!internal::void_to_true_binder(f, it))
 				break;
@@ -935,6 +961,25 @@ protected:
 	}
 
 	inline Dart end() const
+	{
+		return Dart(this->topology_.end());
+	}
+
+	/*!
+	 * \Brief Methods to iterate over darts.
+	 * These functions browses over all darts.
+	 */
+	inline Dart all_begin() const
+	{
+		return Dart(this->topology_.begin());
+	}
+
+	inline void all_next(Dart& d) const
+	{
+		this->topology_.next(d.index);
+	}
+
+	inline Dart all_end() const
 	{
 		return Dart(this->topology_.end());
 	}
@@ -1035,6 +1080,9 @@ public:
 	{
 		using CellType = func_parameter_type<FUNC>;
 
+		if ((filters.filtered_cells() & orbit_mask<CellType>()) == 0u)
+			cgogn_log_warning("foreach_cell") << "Using a CellFilter for a non-filtered CellType";
+
 		foreach_cell(f, [&filters] (CellType c) { return filters.filter(c); });
 	}
 
@@ -1044,6 +1092,9 @@ public:
 	inline void parallel_foreach_cell(const FUNC& f, const Filters& filters) const
 	{
 		using CellType = func_parameter_type<FUNC>;
+
+		if ((filters.filtered_cells() & orbit_mask<CellType>()) == 0u)
+			cgogn_log_warning("foreach_cell") << "Using a CellFilter for a non-filtered CellType";
 
 		parallel_foreach_cell(f, [&filters] (CellType c) { return filters.filter(c); });
 	}
@@ -1061,6 +1112,9 @@ public:
 	{
 		using CellType = func_parameter_type<FUNC>;
 
+		if (!t.template is_traversed<CellType>())
+			cgogn_log_warning("foreach_cell") << "Using a CellTraversor for a non-traversed CellType";
+
 		for(typename Traversor::const_iterator it = t.template begin<CellType>(), end = t.template end<CellType>() ;it != end; ++it)
 			if (!internal::void_to_true_binder(f, CellType(*it)))
 				break;
@@ -1077,6 +1131,9 @@ public:
 
 		using VecCell = std::vector<CellType>;
 		using Future = std::future<typename std::result_of<FUNC(CellType, uint32)>::type>;
+
+		if (!t.template is_traversed<CellType>())
+			cgogn_log_warning("foreach_cell") << "Using a CellTraversor for a non-traversed CellType";
 
 		ThreadPool* thread_pool = cgogn::thread_pool();
 		const std::size_t nb_threads_pool = thread_pool->nb_threads();

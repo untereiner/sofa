@@ -24,7 +24,6 @@
 #ifndef CGOGN_MODELING_ALGOS_TETRAHEDRALIZATION_H_
 #define CGOGN_MODELING_ALGOS_TETRAHEDRALIZATION_H_
 
-#include <cgogn/topology/dll.h>
 #include <cgogn/modeling/algos/refinements.h>
 #include <cgogn/geometry/algos/ear_triangulation.h>
 

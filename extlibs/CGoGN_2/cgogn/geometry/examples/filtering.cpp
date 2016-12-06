@@ -66,9 +66,14 @@ public:
 
 	CustomFilter(const VertexAttribute<Vec3>& p) : position_(p) {}
 
-	bool filter(Vertex v) const
+	inline bool filter(Vertex v) const
 	{
 		return position_[v][0] > 0;
+	}
+
+	inline cgogn::uint32 filtered_cells() const
+	{
+		return cgogn::orbit_mask<Vertex>();
 	}
 
 protected:
@@ -189,12 +194,12 @@ Viewer::Viewer() :
 	cell_cache_(map_),
 	bb_(),
 	render_(nullptr),
-	drawer_rend_(nullptr),
 	vbo_pos_(nullptr),
 	vbo_norm_(nullptr),
 	vbo_color_(nullptr),
 	vbo_sphere_sz_(nullptr),
 	drawer_(nullptr),
+	drawer_rend_(nullptr),
 	phong_rendering_(true),
 	flat_rendering_(false),
 	vertices_rendering_(false),
