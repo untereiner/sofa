@@ -194,22 +194,27 @@ void VolumeTopologyContainer::init()
 	volume_dofs_ = this->template check_attribute<helper::vector<unsigned int>, Volume>("Volume_dofs");
 	assert(face_dofs_.is_valid());
 
+	if (d_use_vertex_qt_.getValue() || d_use_edge_qt_.getValue() || d_use_face_qt_.getValue() || d_use_volume_qt_.getValue())
+		qt_ = cgogn::make_unique<QuickTraversor>(topology_);
+
 	if (d_use_vertex_qt_.getValue())
 	{
-		qt_vertex_ = cgogn::make_unique<QuickTraversor<Vertex>>(topology_);
-		qt_vertex_->build();
+		qt_->build<Vertex>();
 	}
 
 	if (d_use_edge_qt_.getValue())
 	{
-		qt_edge_ = cgogn::make_unique<QuickTraversor<Edge>>(topology_);
-		qt_edge_->build();
+		qt_->build<Edge>();
 	}
 
 	if (d_use_face_qt_.getValue())
 	{
-		qt_face_ = cgogn::make_unique<QuickTraversor<Face>>(topology_);
-		qt_face_->build();
+		qt_->build<Face>();
+	}
+
+	if (d_use_volume_qt_.getValue())
+	{
+		qt_->build<Volume>();
 	}
 
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)

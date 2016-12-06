@@ -250,7 +250,7 @@ public:
 
 	virtual void exportMesh(const std::string& filename) override
 	{
-		cgogn::io::export_surface(topology_, cgogn::io::ExportOptions(filename, std::make_pair(cgogn::Orbit(Vertex::ORBIT), std::string("position"))));
+		cgogn::io::export_surface(topology_, cgogn::io::ExportOptions::create().filename(filename).position_attribute(Vertex::ORBIT, "position"));
 	}
 
 protected:
