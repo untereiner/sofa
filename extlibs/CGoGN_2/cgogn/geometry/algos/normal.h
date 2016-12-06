@@ -52,7 +52,7 @@ inline VEC3 normal(
 
 	if (map.codegree(f) == 3)
 	{
-		VEC3 n = normal<VEC3>(
+		VEC3 n = normal(
 			position[Vertex(f.dart)],
 			position[Vertex(map.phi1(f.dart))],
 			position[Vertex(map.phi_1(f.dart))]
@@ -151,7 +151,7 @@ inline void compute_normal(
 	Attribute<VEC3, Orbit::PHI1>& face_normal
 )
 {
-	compute_normal<VEC3>(map, CellFilters(), position, face_normal);
+	compute_normal<VEC3>(map, AllCellsFilter(), position, face_normal);
 }
 
 template <typename VEC3, typename MAP, typename MASK>
@@ -176,7 +176,7 @@ inline void compute_normal(
 	Attribute<VEC3, Orbit::PHI21>& vertex_normal
 )
 {
-	compute_normal<VEC3>(map, CellFilters(), position, vertex_normal);
+	compute_normal<VEC3>(map, AllCellsFilter(), position, vertex_normal);
 }
 
 template <typename VEC3, typename MAP, typename MASK>
@@ -203,7 +203,7 @@ inline void compute_normal(
 	Attribute<VEC3, Orbit::PHI21>& vertex_normal
 )
 {
-	compute_normal<VEC3>(map, CellFilters(), position, face_normal, vertex_normal);
+	compute_normal<VEC3>(map, AllCellsFilter(), position, face_normal, vertex_normal);
 }
 
 } // namespace geometry

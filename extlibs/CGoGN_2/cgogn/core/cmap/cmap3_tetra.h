@@ -58,7 +58,7 @@ public:
 	using Face    = Cell<Orbit::PHI1_PHI3>;
 	using Volume  = Cell<Orbit::PHI1_PHI2>;
 
-	using Boundary = Face;
+	using Boundary = Volume;
 	using ConnectedComponent = Cell<Orbit::PHI1_PHI2_PHI3>;
 
 	template <typename T>
@@ -83,6 +83,8 @@ public:
 	using CellMarker = typename cgogn::CellMarker<Self, ORBIT>;
 	template <Orbit ORBIT>
 	using CellMarkerNoUnmark = typename cgogn::CellMarkerNoUnmark<Self, ORBIT>;
+
+	using BoundaryCache = typename cgogn::BoundaryCache<Self>;
 
 protected:
 
@@ -262,7 +264,7 @@ public:
 	 */
 	inline Dart phi2(Dart d) const
 	{
-		return Dart(d.index + MapBaseData::tetra_phi2[d.index%12]);
+		return Dart(d.index + MapBaseData::tetra_phi2[d.index%12u]);
 	}
 
 	/**
@@ -466,7 +468,7 @@ protected:
 	 * @param d a dart incident to the hole
 	 * @return a dart of the volume that closes the hole
 	 */
-	void close_hole_topo(Dart d, bool mark_boundary = false)
+	inline Dart close_hole_topo(Dart d, bool mark_boundary = false)
 	{
 		cgogn_message_assert(phi3(d) == d, "CMap3Tetra: close hole called on a dart that is not a phi3 fix point");
 
@@ -528,6 +530,8 @@ protected:
 			for (Dart db: *(boundary_marker.marked_darts()))
 				this->set_boundary(db, true);
 		}
+
+		return phi3(d);
 	}
 
 	/**

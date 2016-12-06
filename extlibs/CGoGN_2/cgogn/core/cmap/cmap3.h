@@ -86,6 +86,8 @@ public:
 	template <Orbit ORBIT>
 	using CellMarkerStore = typename cgogn::CellMarkerStore<Self, ORBIT>;
 
+	using BoundaryCache = typename cgogn::BoundaryCache<Self>;
+
 protected:
 
 	ChunkArray<Dart>* phi3_;
@@ -1794,6 +1796,7 @@ protected:
 	}
 
 public:
+
 	/*******************************************************************************
 	 * Incidence traversal
 	 *******************************************************************************/
@@ -1899,7 +1902,6 @@ public:
 		const Dart d3 = phi3(f.dart);
 		if (!this->is_boundary(d3) && res1)
 			func(Volume(d3));
-
 	}
 
 	template <typename FUNC>
@@ -1933,6 +1935,70 @@ public:
 			{
 				marker.mark_orbit(Face2(d));
 				return internal::void_to_true_binder(func, Face(d));
+			}
+			return true;
+		});
+	}
+
+	template <typename FUNC>
+	inline void foreach_incident_vertex(ConnectedComponent cc, const FUNC& func) const
+	{
+		static_assert(is_func_parameter_same<FUNC, Vertex>::value, "Wrong function cell parameter type");
+		DartMarkerStore marker(*this);
+		foreach_dart_of_orbit(cc, [&] (Dart d) -> bool
+		{
+			if (!marker.is_marked(d))
+			{
+				marker.mark_orbit(Vertex(d));
+				return internal::void_to_true_binder(func, Vertex(d));
+			}
+			return true;
+		});
+	}
+
+	template <typename FUNC>
+	inline void foreach_incident_edge(ConnectedComponent cc, const FUNC& func) const
+	{
+		static_assert(is_func_parameter_same<FUNC, Edge>::value, "Wrong function cell parameter type");
+		DartMarkerStore marker(*this);
+		foreach_dart_of_orbit(cc, [&] (Dart d) -> bool
+		{
+			if (!marker.is_marked(d))
+			{
+				marker.mark_orbit(Edge(d));
+				return internal::void_to_true_binder(func, Edge(d));
+			}
+			return true;
+		});
+	}
+
+	template <typename FUNC>
+	inline void foreach_incident_face(ConnectedComponent cc, const FUNC& func) const
+	{
+		static_assert(is_func_parameter_same<FUNC, Face>::value, "Wrong function cell parameter type");
+		DartMarkerStore marker(*this);
+		foreach_dart_of_orbit(cc, [&] (Dart d) -> bool
+		{
+			if (!marker.is_marked(d))
+			{
+				marker.mark_orbit(Face(d));
+				return internal::void_to_true_binder(func, Face(d));
+			}
+			return true;
+		});
+	}
+
+	template <typename FUNC>
+	inline void foreach_incident_volume(ConnectedComponent cc, const FUNC& func) const
+	{
+		static_assert(is_func_parameter_same<FUNC, Volume>::value, "Wrong function cell parameter type");
+		DartMarkerStore marker(*this);
+		foreach_dart_of_orbit(cc, [&] (Dart d) -> bool
+		{
+			if (!marker.is_marked(d))
+			{
+				marker.mark_orbit(Volume(d));
+				return internal::void_to_true_binder(func, Volume(d));
 			}
 			return true;
 		});
@@ -2571,6 +2637,7 @@ extern template class CGOGN_CORE_API CellMarkerStore<CMap3, CMap3::Face::ORBIT>;
 extern template class CGOGN_CORE_API CellMarkerStore<CMap3, CMap3::Volume::ORBIT>;
 extern template class CGOGN_CORE_API CellCache<CMap3>;
 extern template class CGOGN_CORE_API BoundaryCache<CMap3>;
+extern template class CGOGN_CORE_API QuickTraversor<CMap3>;
 #endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_CORE_MAP_MAP3_CPP_))
 
 } // namespace cgogn
