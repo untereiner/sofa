@@ -65,8 +65,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	template<Orbit ORBIT>
 	using CellMarker = cgogn::CellMarker<Map, ORBIT>;
 
-	template<typename CellType>
-	using QuickTraversor = cgogn::QuickTraversor<Topology, CellType>;
+	using QuickTraversor = cgogn::QuickTraversor<Topology>;
 
 	VolumeTopologyContainer();
 	~VolumeTopologyContainer() override;
@@ -115,28 +114,28 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	virtual void foreach_vertex(const std::function<void (BaseVertex)>& func) override
 	{
 		if (d_use_vertex_qt_.getValue())
-			topology_.foreach_cell([&](Vertex v) { func((v.dart));}, *qt_vertex_);
+			topology_.foreach_cell([&](Vertex v) { func((v.dart));}, *qt_);
 		else
 			topology_.foreach_cell([&](Vertex v) { func((v.dart));});
 	}
 	virtual void foreach_edge(const std::function<void (BaseEdge)>& func) override
 	{
 		if (d_use_edge_qt_.getValue())
-			topology_.foreach_cell([&](Edge e) { func((e.dart));}, *qt_edge_);
+			topology_.foreach_cell([&](Edge e) { func((e.dart));}, *qt_);
 		else
 			topology_.foreach_cell([&](Edge e) { func((e.dart));});
 	}
 	virtual void foreach_face(const std::function<void (BaseFace)>& func) override
 	{
 		if (d_use_face_qt_.getValue())
-			topology_.foreach_cell([&](Face f) { func((f.dart));}, *qt_face_);
+			topology_.foreach_cell([&](Face f) { func((f.dart));}, *qt_);
 		else
 			topology_.foreach_cell([&](Face f) { func((f.dart));});
 	}
 	virtual void foreach_volume(const std::function<void (BaseVolume)>& func) override
 	{
 		if (d_use_volume_qt_.getValue())
-			topology_.foreach_cell([&](Volume w) { func((w.dart));}, *qt_volume_);
+			topology_.foreach_cell([&](Volume w) { func((w.dart));}, *qt_);
 		else
 			topology_.foreach_cell([&](Volume w) { func((w.dart));});
 	}
@@ -145,7 +144,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Vertex>::value,void>::type foreach_cell(const FUNC& f)
 	{
 		if (d_use_vertex_qt_.getValue())
-			topology_.foreach_cell(f, *qt_vertex_);
+			topology_.foreach_cell(f, *qt_);
 		else
 			topology_.foreach_cell(f);
 	}
@@ -154,7 +153,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Edge>::value,void>::type foreach_cell(const FUNC& f)
 	{
 		if (d_use_edge_qt_.getValue())
-			topology_.foreach_cell(f, *qt_edge_);
+			topology_.foreach_cell(f, *qt_);
 		else
 			topology_.foreach_cell(f);
 	}
@@ -163,7 +162,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Face>::value,void>::type foreach_cell(const FUNC& f)
 	{
 		if (d_use_face_qt_.getValue())
-			topology_.foreach_cell(f, *qt_face_);
+			topology_.foreach_cell(f, *qt_);
 		else
 			topology_.foreach_cell(f);
 	}
@@ -172,7 +171,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Volume>::value,void>::type foreach_cell(const FUNC& f)
 	{
 		if (d_use_volume_qt_.getValue())
-			topology_.foreach_cell(f, *qt_volume_);
+			topology_.foreach_cell(f, *qt_);
 		else
 			topology_.foreach_cell(f);
 	}
@@ -181,7 +180,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Vertex>::value,void>::type parallel_foreach_cell(const FUNC& f)
 	{
 		if (d_use_vertex_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_vertex_);
+			topology_.parallel_foreach_cell(f, *qt_);
 		else
 			topology_.parallel_foreach_cell(f);
 	}
@@ -190,7 +189,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Edge>::value,void>::type parallel_foreach_cell(const FUNC& f)
 	{
 		if (d_use_edge_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_edge_);
+			topology_.parallel_foreach_cell(f, *qt_);
 		else
 			topology_.parallel_foreach_cell(f);
 	}
@@ -199,7 +198,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Face>::value,void>::type parallel_foreach_cell(const FUNC& f)
 	{
 		if (d_use_face_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_face_);
+			topology_.parallel_foreach_cell(f, *qt_);
 		else
 			topology_.parallel_foreach_cell(f);
 	}
@@ -208,7 +207,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Volume>::value,void>::type parallel_foreach_cell(const FUNC& f)
 	{
 		if (d_use_volume_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_volume_);
+			topology_.parallel_foreach_cell(f, *qt_);
 		else
 			topology_.parallel_foreach_cell(f);
 	}
@@ -358,14 +357,14 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	void update_orbit(Vertex v)
 	{
 		if (d_use_vertex_qt_.getValue())
-			qt_vertex_->update(v);
+			qt_->update(v);
 	}
 
 	void update_orbit(Edge e)
 	{
 		e.dart = lowest_dart_of_orbit(e);
 		if (d_use_edge_qt_.getValue())
-			qt_edge_->update(e);
+			qt_->update(e);
 		update_dofs(e);
 	}
 
@@ -373,7 +372,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	{
 		f.dart = lowest_dart_of_orbit(f);
 		if (d_use_face_qt_.getValue())
-			qt_face_->update(f);
+			qt_->update(f);
 		update_dofs(f);
 	}
 
@@ -381,7 +380,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	{
 		w.dart = lowest_dart_of_orbit(w);
 		if (d_use_volume_qt_.getValue())
-			qt_volume_->update(w);
+			qt_->update(w);
 		update_dofs(w);
 	}
 
@@ -497,7 +496,7 @@ public:
 
 	virtual void exportMesh(const std::string& filename) override
 	{
-		cgogn::io::export_volume(topology_, cgogn::io::ExportOptions(filename, std::make_pair(cgogn::Orbit(Vertex::ORBIT), std::string("position"))));
+		cgogn::io::export_volume(topology_, cgogn::io::ExportOptions::create().filename(filename).position_attribute(Vertex::ORBIT, "position"));
 	}
 
 public:
@@ -516,10 +515,7 @@ public:
 
 private:
 	Topology topology_;
-	std::unique_ptr<QuickTraversor<Vertex>> qt_vertex_;
-	std::unique_ptr<QuickTraversor<Edge>> qt_edge_;
-	std::unique_ptr<QuickTraversor<Face>> qt_face_;
-	std::unique_ptr<QuickTraversor<Volume>> qt_volume_;
+	std::unique_ptr<QuickTraversor> qt_;
 
 };
 
