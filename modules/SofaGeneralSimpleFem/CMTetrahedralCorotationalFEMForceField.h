@@ -261,6 +261,13 @@ protected:
 
 	void printStiffnessMatrix(Volume idTetra);
 
+public:
+	virtual std::string getClassName() const { return "CMTetrahedralCorotationalFEMForceField"; }
+
+	static std::string className(const TetrahedralCorotationalFEMForceField* ptr = nullptr)
+	{
+	  return "CMTetrahedralCorotationalFEMForceField";
+	}
 };
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMTETRAHEDRALCOROTATIONALFEMFORCEFIELD_CPP)
