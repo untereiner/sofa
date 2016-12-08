@@ -141,74 +141,34 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 	}
 
 	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Vertex>::value,void>::type foreach_cell(const FUNC& f)
+	inline void foreach_cell(const FUNC& f)
 	{
-		if (d_use_vertex_qt_.getValue())
+		using CellType = cgogn::func_parameter_type<FUNC>;
+
+		if ((std::is_same<CellType,Vertex>::value && d_use_vertex_qt_.getValue()) ||
+				(std::is_same<CellType,Edge>::value && d_use_edge_qt_.getValue()) ||
+				(std::is_same<CellType,Face>::value && d_use_face_qt_.getValue()) ||
+				(std::is_same<CellType,Volume>::value && d_use_volume_qt_.getValue())
+				)
+		{
 			topology_.foreach_cell(f, *qt_);
-		else
+		} else
 			topology_.foreach_cell(f);
 	}
 
 	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Edge>::value,void>::type foreach_cell(const FUNC& f)
+	inline void parallel_foreach_cell(const FUNC& f)
 	{
-		if (d_use_edge_qt_.getValue())
-			topology_.foreach_cell(f, *qt_);
-		else
-			topology_.foreach_cell(f);
-	}
+		using CellType = cgogn::func_parameter_type<FUNC>;
 
-	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Face>::value,void>::type foreach_cell(const FUNC& f)
-	{
-		if (d_use_face_qt_.getValue())
-			topology_.foreach_cell(f, *qt_);
-		else
-			topology_.foreach_cell(f);
-	}
-
-	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Volume>::value,void>::type foreach_cell(const FUNC& f)
-	{
-		if (d_use_volume_qt_.getValue())
-			topology_.foreach_cell(f, *qt_);
-		else
-			topology_.foreach_cell(f);
-	}
-
-	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Vertex>::value,void>::type parallel_foreach_cell(const FUNC& f)
-	{
-		if (d_use_vertex_qt_.getValue())
+		if ((std::is_same<CellType,Vertex>::value && d_use_vertex_qt_.getValue()) ||
+				(std::is_same<CellType,Edge>::value && d_use_edge_qt_.getValue()) ||
+				(std::is_same<CellType,Face>::value && d_use_face_qt_.getValue()) ||
+				(std::is_same<CellType,Volume>::value && d_use_volume_qt_.getValue())
+				)
+		{
 			topology_.parallel_foreach_cell(f, *qt_);
-		else
-			topology_.parallel_foreach_cell(f);
-	}
-
-	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Edge>::value,void>::type parallel_foreach_cell(const FUNC& f)
-	{
-		if (d_use_edge_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_);
-		else
-			topology_.parallel_foreach_cell(f);
-	}
-
-	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Face>::value,void>::type parallel_foreach_cell(const FUNC& f)
-	{
-		if (d_use_face_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_);
-		else
-			topology_.parallel_foreach_cell(f);
-	}
-
-	template<typename FUNC>
-	inline typename std::enable_if<std::is_same<cgogn::func_parameter_type<FUNC>, Volume>::value,void>::type parallel_foreach_cell(const FUNC& f)
-	{
-		if (d_use_volume_qt_.getValue())
-			topology_.parallel_foreach_cell(f, *qt_);
-		else
+		} else
 			topology_.parallel_foreach_cell(f);
 	}
 
