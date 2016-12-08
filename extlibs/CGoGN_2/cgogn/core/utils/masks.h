@@ -166,7 +166,8 @@ public:
 	template <typename CellType>
 	inline void update(CellType c)
 	{
-		qt_attributes_[CellType::ORBIT][c.dart] = c.dart;
+		static const Orbit ORBIT = CellType::ORBIT;
+		qt_attributes_[ORBIT][c.dart] = c.dart;
 	}
 
 private:
