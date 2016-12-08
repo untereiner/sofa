@@ -53,7 +53,6 @@ int CMTetrahedralCorotationalFEMForceFieldClass = core::RegisterObject("CM Corot
 #ifndef SOFA_DOUBLE
 		.add< ::sofa::component::cm_forcefield::TetrahedralCorotationalFEMForceField<Vec3fTypes> >()
 #endif
-		.addAlias("CMTetrahedralCorotationalFEMForceField")
 		;
 
 #ifndef SOFA_FLOAT
