@@ -123,6 +123,9 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::init()
         return;
     }
 
+	auto& tetrahedronInf = *(tetrahedronInfo.beginEdit());
+	tetrahedronInf = _topology->add_attribute<TetrahedronInformation, Volume>("TetrahedralCorotationalFEMForceField_tetrahedronInfo");
+
     reinit(); // compute per-element stiffness matrices and other precomputed values
 
 }
