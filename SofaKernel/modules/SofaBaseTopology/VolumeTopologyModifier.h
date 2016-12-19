@@ -46,6 +46,9 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyModifier : public sofa::core::cm_topo
 {
 public:
 	using Map = VolumeTopologyContainer::Map;
+	using BaseVertex = core::topology::MapTopology::Vertex;
+	using BaseEdge = core::topology::MapTopology::Edge;
+	using BaseFace = core::topology::MapTopology::Face;
 	using BaseVolume = core::topology::MapTopology::Volume;
 	using Vertex = VolumeTopologyContainer::Vertex;
 	using Edge = VolumeTopologyContainer::Edge;
@@ -130,7 +133,7 @@ public:
     *
     * Important : parameter indices is not const because it is actually sorted from the highest index to the lowest one.
     */
-	void removeTetrahedraWarning( sofa::helper::vector<BaseVolume> &tetrahedra);
+	void removeTetrahedraWarning( const sofa::helper::vector<BaseVolume> &tetrahedra);
 
     /** \brief Remove a subset of tetrahedra
     *
