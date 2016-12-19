@@ -128,7 +128,7 @@ void VolumeTopologyModifier::addTetrahedraWarning(
 }
 
 
-void VolumeTopologyModifier::removeTetrahedraWarning( sofa::helper::vector<BaseVolume> &tetrahedra )
+void VolumeTopologyModifier::removeTetrahedraWarning(const sofa::helper::vector<BaseVolume>& tetrahedra )
 {
 //    m_container->setTetrahedronTopologyToDirty(); // TODO
     /// sort vertices to remove in a descendent order
@@ -147,17 +147,33 @@ void VolumeTopologyModifier::removeTetrahedraProcess( const sofa::helper::vector
 
 VolumeTopologyModifier::Vertex VolumeTopologyModifier::split1to4(VolumeTopologyModifier::Volume w, helper::vector<double> coeff, helper::vector<VolumeTopologyModifier::Vertex> ancestorsVertices)
 {
-	static std::vector<std::future<void>> futures;
-	futures.clear();
-	cgogn::unused_parameters(coeff, ancestorsVertices);
+
+	if (ancestorsVertices.empty())
+	{
+		coeff.clear();
+		m_container->foreach_incident_vertex(w, [&](Vertex v)
+		{
+			ancestorsVertices.push_back(v);
+			coeff.push_back(0.25);
+		});
+	}
+
+	this->removeTetrahedraWarning({{w.dart}});
+
+
 	const Vertex v = cgogn::modeling::flip_14(getMap(), w);
 
-	auto* tp = cgogn::thread_pool();
-	futures.push_back(tp->enqueue([&](cgogn::uint32)
-	{
-		;
-					  }));
+//	helper::vector<BaseEdge> inserted_edges;
+//	helper::vector<BaseFace> inserted_tri;
+	helper::vector<BaseVolume> inserted_tetras;
 
+//	m_container->foreach_incident_edge(v, [&](Edge e) { inserted_edges.push_back(e.dart); });
+//	m_container->foreach_incident_face(v, [&](Face f) { inserted_tri.push_back(f.dart); });
+	m_container->foreach_incident_volume(v, [&](Volume t) { inserted_tetras.push_back(t.dart); });
+
+	this->addTetrahedraWarning(inserted_tetras);
+
+	propagateTopologicalChanges();
 	return v;
 }
 
