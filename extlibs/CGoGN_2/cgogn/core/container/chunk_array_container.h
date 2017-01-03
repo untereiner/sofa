@@ -290,7 +290,7 @@ public:
 		// create the new attribute
 		const std::string& type_name = name_of_type(T());
 		ChunkArray<T>* carr = new ChunkArray<T>(name);
-		ChunkArrayFactory::template register_CA<T>();
+		chunk_array_factory<CHUNK_SIZE>().template register_CA<T>();
 
 		// reserve memory
 		carr->set_nb_chunks(refs_.nb_chunks());
@@ -414,25 +414,25 @@ public:
 		return mca;
 	}
 
-	/**
-	 * @brief remove a marker attribute by its ChunkArray pointer
-	 * @param ptr ChunkArray pointer to the attribute to remove
-	 * @return true if attribute exists and has been removed
-	 */
-	void remove_marker_attribute(const ChunkArrayBool* ptr)
-	{
-		uint32 index = 0u;
-		while (index < table_marker_arrays_.size() && table_marker_arrays_[index] != ptr)
-			++index;
+//	/**
+//	 * @brief remove a marker attribute by its ChunkArray pointer
+//	 * @param ptr ChunkArray pointer to the attribute to remove
+//	 * @return true if attribute exists and has been removed
+//	 */
+//	void remove_marker_attribute(const ChunkArrayBool* ptr)
+//	{
+//		uint32 index = 0u;
+//		while (index < table_marker_arrays_.size() && table_marker_arrays_[index] != ptr)
+//			++index;
 
-		cgogn_message_assert(index != table_marker_arrays_.size(), "remove_marker_attribute by ptr: attribute not found.");
+//		cgogn_message_assert(index != table_marker_arrays_.size(), "remove_marker_attribute by ptr: attribute not found.");
 
-		if (index != table_marker_arrays_.size() - std::size_t(1u))
-			table_marker_arrays_[index] = table_marker_arrays_.back();
-		table_marker_arrays_.pop_back();
+//		if (index != table_marker_arrays_.size() - std::size_t(1u))
+//			table_marker_arrays_[index] = table_marker_arrays_.back();
+//		table_marker_arrays_.pop_back();
 
-		delete ptr;
-	}
+//		delete ptr;
+//	}
 
 	/**
 	 * @brief Number of chunk arrays of the container
@@ -692,7 +692,7 @@ public:
 				const std::string& name = cac.names_[i];
 				const std::string& type_name = cac.type_names_[i];
 				map_attrib[i] = uint32(table_arrays_.size());
-				auto cag = ChunkArrayFactory::create(type_name,name);
+				auto cag = chunk_array_factory<CHUNK_SIZE>().create(type_name,name);
 				cgogn_assert(cag);
 				cag->set_nb_chunks(refs_.nb_chunks());
 				table_arrays_.push_back(cag.release());
@@ -973,7 +973,7 @@ public:
 		cgogn_assert(fs.good());
 
 		// check and register all known types if necessaey
-		ChunkArrayFactory::register_known_types();
+		chunk_array_factory<CHUNK_SIZE>().register_known_types();
 
 		// read info
 		uint32 buff1[4];
@@ -1005,7 +1005,7 @@ public:
 		bool ok = true;
 		for (uint32 i = 0u; i < names_.size();)
 		{
-			auto cag = ChunkArrayFactory::create(type_names_[i], names_[i]);
+			auto cag = chunk_array_factory<CHUNK_SIZE>().create(type_names_[i], names_[i]);
 			if (cag)
 			{
 				table_arrays_.push_back(cag.release());
