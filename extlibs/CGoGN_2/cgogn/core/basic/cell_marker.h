@@ -124,7 +124,8 @@ public:
 
 	~CellMarker() override
 	{
-		unmark_all();
+		if (this->is_valid())
+			unmark_all();
 	}
 
 	inline void unmark_all()
@@ -159,7 +160,8 @@ public:
 
 	~CellMarkerStore() override
 	{
-		unmark_all();
+		if (this->is_valid())
+			unmark_all();
 		cgogn::uint_buffers()->release_buffer(marked_cells_);
 	}
 
