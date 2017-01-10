@@ -54,12 +54,27 @@ void VolumeTopologyModifier::init()
 {
 	Inherit1::init();
 
+	m_container = nullptr;
+	m_state = nullptr;
 	this->getContext()->get(m_container);
+	this->getContext()->get(m_state);
+	cgogn_assert(m_container != nullptr);
+	cgogn_assert(m_state != nullptr);
 }
 
 void VolumeTopologyModifier::reinit()
 {
 	Inherit1::reinit();
+}
+
+void VolumeTopologyModifier::addDOF(Vertex v, const helper::vector<VolumeTopologyModifier::Vertex>& ancestors, const helper::vector<double>& coeffs)
+{
+	cgogn_assert(ancestors.size() == coeffs.size());
+	cgogn_assert(v.is_valid());
+	auto X = m_state->readPositions();
+	cgogn_assert(X.size() == m_container->get_dof(v));
+//	if (m_container->get_dof(v))
+//	m_container->get_dof()
 }
 
 
@@ -172,6 +187,7 @@ VolumeTopologyModifier::Vertex VolumeTopologyModifier::split1to4(VolumeTopologyM
 	m_container->foreach_incident_volume(v, [&](Volume t) { inserted_tetras.push_back(t.dart); });
 
 	this->addTetrahedraWarning(inserted_tetras);
+
 
 	propagateTopologicalChanges();
 	return v;

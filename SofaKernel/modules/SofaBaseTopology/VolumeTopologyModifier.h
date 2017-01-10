@@ -29,6 +29,7 @@
 #include <sofa/core/topology/CMBaseTopology.h>
 #include <SofaBaseTopology/VolumeTopologyContainer.h>
 #include <cgogn/modeling/algos/tetrahedralization.h>
+#include <sofa/simulation/StateChangeVisitor.h>
 
 namespace sofa
 {
@@ -54,6 +55,7 @@ public:
 	using Edge = VolumeTopologyContainer::Edge;
 	using Face = VolumeTopologyContainer::Face;
 	using Volume = VolumeTopologyContainer::Volume;
+	using MechanicalState = core::behavior::MechanicalState<defaulttype::Vec3Types>;
     SOFA_CLASS(VolumeTopologyModifier,sofa::core::cm_topology::TopologyModifier);
 
 
@@ -80,6 +82,8 @@ public:
     virtual void init() override;
 
     virtual void reinit() override;
+
+	void addDOF(Vertex v, const helper::vector<Vertex>& ancestors, const helper::vector<double>& coeffs);
 
     /// \brief function to propagate topological change events by parsing the list of topologyEngines linked to this topology.
 	void propagateTopologicalEngineChanges();
@@ -248,7 +252,8 @@ public:
 
 	inline Map& getMap() { return m_container->topology_; }
 private:
-    VolumeTopologyContainer* 	m_container;
+	VolumeTopologyContainer* 	m_container;
+	MechanicalState* m_state;
 };
 
 } // namespace topology
