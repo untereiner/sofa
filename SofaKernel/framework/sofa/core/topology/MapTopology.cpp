@@ -38,6 +38,21 @@ void MapTopology::cleanup()
 	Inherit1::cleanup();
 }
 
+void MapTopology::createHexahedraAroundQuadArray()
+{
+	serr << "createHexahedraAroundQuadArray not implemented" << sendl;
+}
+
+void MapTopology::createEdgesInHexahedronArray()
+{
+	serr << "createEdgesInHexahedronArray not implemented" << sendl;
+}
+
+void MapTopology::createQuadsInHexahedronArray()
+{
+	serr << "createQuadsInHexahedronArray not implemented" << sendl;
+}
+
 const BaseMeshTopology::SeqEdges&MapTopology::getEdges()
 {
 	return d_edge.getValue();
@@ -137,6 +152,30 @@ const MapTopology::TetrahedraAroundTriangle& MapTopology::getTetrahedraAroundTri
 	if (!m_tetrahedraAroundTriangle.is_valid())
 		createTetrahedraAroundTriangleArray();
 	return m_tetrahedraAroundTriangle.is_valid()? m_tetrahedraAroundTriangle[i] : empty;
+}
+
+const MapTopology::HexahedraAroundQuad& MapTopology::getHexahedraAroundQuad(MapTopology::QuadID i)
+{
+	const static HexahedraAroundQuad empty;
+	if (!m_hexahedraAroundQuad.is_valid())
+		createHexahedraAroundQuadArray();
+	return m_hexahedraAroundQuad.is_valid()? m_hexahedraAroundQuad[i] : empty;
+}
+
+const MapTopology::EdgesInHexahedron&MapTopology::getEdgesInHexahedron(MapTopology::HexahedronID i)
+{
+	const static EdgesInHexahedron empty;
+	if (!m_edgesInHexahedron.is_valid())
+		createEdgesInHexahedronArray();
+	return m_edgesInHexahedron.is_valid()? m_edgesInHexahedron[i] : empty;
+}
+
+const MapTopology::QuadsInHexahedron&MapTopology::getQuadsInHexahedron(MapTopology::HexahedronID i)
+{
+	const static QuadsInHexahedron empty;
+	if (!m_quadsInHexahedron.is_valid())
+		createQuadsInHexahedronArray();
+	return m_quadsInHexahedron.is_valid()? m_quadsInHexahedron[i] : empty;
 }
 
 const sofa::helper::vector<Topology::index_type> MapTopology::getElementAroundElement(Topology::index_type elem)

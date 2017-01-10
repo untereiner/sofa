@@ -74,6 +74,7 @@ set(HEADER_FILES
     CMTopologyEngine.inl
     VolumeTopologyModifier.h
     VolumeGeometryAlgorithms.h
+    MapHexahedronSetTopologyContainer.h
 )
 
 set(SOURCE_FILES
@@ -113,6 +114,7 @@ set(SOURCE_FILES
     VolumeTopologyContainer.cpp
     VolumeTopologyModifier.cpp
     VolumeGeometryAlgorithms.cpp
+    MapHexahedronSetTopologyContainer.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
