@@ -109,7 +109,7 @@ void ClosestPointRegistrationForceField<DataTypes>::init()
     if(!sourceTriangles.getValue().size()) {
         sofa::component::loader::MeshObjLoader *meshobjLoader;
         this->getContext()->get( meshobjLoader, core::objectmodel::BaseContext::Local);
-        if (meshobjLoader) {sourceTriangles.virtualSetLink(meshobjLoader->triangles); sout<<"imported triangles from "<<meshobjLoader->getName()<<sendl;}
+        if (meshobjLoader) {sourceTriangles.virtualSetLink(meshobjLoader->d_triangles); sout<<"imported triangles from "<<meshobjLoader->getName()<<sendl;}
     }
     // Get source normals
     if(!sourceNormals.getValue().size()) serr<<"normals of the source model not found"<<sendl;
@@ -370,6 +370,7 @@ void ClosestPointRegistrationForceField<DataTypes>::addKToMatrix(const core::Mec
 template<class DataTypes>
 void ClosestPointRegistrationForceField<DataTypes>::draw(const core::visual::VisualParams* vparams)
 {
+#ifndef SOFA_NO_OPENGL
     if(ks.getValue()==0) return;
 
     if (!vparams->displayFlags().getShowForceFields() && !drawColorMap.getValue()) return;
@@ -443,7 +444,7 @@ void ClosestPointRegistrationForceField<DataTypes>::draw(const core::visual::Vis
 
         glPopAttrib();
     }
-
+#endif
 }
 
 

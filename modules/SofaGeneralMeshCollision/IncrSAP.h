@@ -158,16 +158,15 @@ public:
   *Implementation of incremental sweep and prune. i.e. collision are stored and updated which should speed up
   *the collision detection compared to the DirectSAP.
   */
-template <template<class T,class Allocator> class List,template <class T> class Allocator = std::allocator>
-class TIncrSAP :
+class SOFA_GENERAL_MESH_COLLISION_API IncrSAP :
     public core::collision::BroadPhaseDetection,
     public core::collision::NarrowPhaseDetection
 {
 public:
-    SOFA_CLASS2(SOFA_TEMPLATE2(TIncrSAP,List,Allocator), core::collision::BroadPhaseDetection, core::collision::NarrowPhaseDetection);
+    SOFA_CLASS2(IncrSAP, core::collision::BroadPhaseDetection, core::collision::NarrowPhaseDetection);
 
     typedef ISAPBox SAPBox;
-    typedef List<EndPointID*,Allocator<EndPointID*> > EndPointList;
+    typedef std::vector<EndPointID*> EndPointList;
 
 private:
     /**
@@ -237,15 +236,15 @@ private:
 
 
     //The following methods are used when updating end points in the end point lists, it updates in the same time the collisions.
-    void moveMinForward(int dim,EndPointID * cur_end_point,typename EndPointList::iterator & it,typename EndPointList::iterator & next_it);
-    void moveMaxForward(int dim,EndPointID * cur_end_point,typename EndPointList::iterator & it,typename EndPointList::iterator & next_it);
-    void moveMinBackward(int dim,EndPointID * cur_end_point,typename EndPointList::iterator & it,typename EndPointList::iterator & prev_it);
-    void moveMaxBackward(int dim,EndPointID * cur_end_point,typename EndPointList::iterator & it,typename EndPointList::iterator & prev_it);
+    void moveMinForward(int dim,EndPointID * cur_end_point,EndPointList::iterator & it,EndPointList::iterator & next_it);
+    void moveMaxForward(int dim,EndPointID * cur_end_point,EndPointList::iterator & it,EndPointList::iterator & next_it);
+    void moveMinBackward(int dim,EndPointID * cur_end_point,EndPointList::iterator & it,EndPointList::iterator & prev_it);
+    void moveMaxBackward(int dim,EndPointID * cur_end_point,EndPointList::iterator & it,EndPointList::iterator & prev_it);
 
-    static bool assertion_order(typename EndPointList::iterator it,typename EndPointList::iterator begin,typename EndPointList::iterator end);
-    static bool assertion_list_order(typename EndPointList::iterator begin_it,const typename EndPointList::iterator & end_it);
-    static bool assertion_superior(typename EndPointList::iterator begin_it,const typename EndPointList::iterator & end_it,EndPoint* point);
-    static bool assertion_inferior(typename EndPointList::iterator begin_it,const typename EndPointList::iterator & end_it,EndPoint* point);
+    static bool assertion_order(EndPointList::iterator it,EndPointList::iterator begin,EndPointList::iterator end);
+    static bool assertion_list_order(EndPointList::iterator begin_it,const EndPointList::iterator & end_it);
+    static bool assertion_superior(EndPointList::iterator begin_it,const EndPointList::iterator & end_it,EndPoint* point);
+    static bool assertion_inferior(EndPointList::iterator begin_it,const EndPointList::iterator & end_it,EndPoint* point);
     bool assertion_end_points_sorted()const;
     //EndPointID & findEndPoint(int dim,int data);
 
@@ -259,9 +258,9 @@ private:
 
     std::set<core::CollisionModel*> collisionModels;
 protected:
-    TIncrSAP();
+    IncrSAP();
 
-    virtual ~TIncrSAP();
+    virtual ~IncrSAP();
 
 public:
     void setDraw(bool val) { bDraw.setValue(val); }
@@ -290,12 +289,6 @@ public:
     void showBoxes()const;
 };
 
-typedef TIncrSAP<std::vector,std::allocator> IncrSAP;
-
-#if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_COLLISION_INCRSAP_CPP)
-extern template class SOFA_GENERAL_MESH_COLLISION_API TIncrSAP<helper::vector,helper::CPUMemoryManager>;
-extern template class SOFA_GENERAL_MESH_COLLISION_API TIncrSAP<std::vector,std::allocator>;
-#endif
 
 } // namespace collision
 
