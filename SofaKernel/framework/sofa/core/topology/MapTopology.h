@@ -292,7 +292,8 @@ public:
 	const SeqTriangles&getTriangles();
 	const SeqQuads&getQuads();
 	const SeqTetrahedra& getTetrahedra();
-	const SeqHexahedra& getHexahedra();
+	const SeqHexahedra& getHexahedra() const;
+	unsigned int getNbHexahedra() const;
 
 	/** \brief Returns a reference to the Data of points array container. */
 	inline Data<VecCoord>& getPointDataArray() {return d_initPoints;}

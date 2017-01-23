@@ -22,6 +22,10 @@ set(HEADER_FILES
     TriangularFEMForceFieldOptim.inl
     config.h
     initGeneralSimpleFEM.h
+    ElementFEMForceField.h
+    ElementFEMForceField.inl
+    HexaFEMForceField.h
+    HexaFEMForceField.inl
 )
 
 set(SOURCE_FILES
@@ -33,6 +37,8 @@ set(SOURCE_FILES
     TetrahedralCorotationalFEMForceField.cpp
     CMTetrahedralCorotationalFEMForceField.cpp
     TriangularFEMForceFieldOptim.cpp
+    ElementFEMForceField.cpp
+    HexaFEMForceField.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
