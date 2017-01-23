@@ -198,24 +198,13 @@ void VolumeTopologyContainer::init()
 		qt_ = cgogn::make_unique<QuickTraversor>(topology_);
 
 	if (d_use_vertex_qt_.getValue())
-	{
 		qt_->build<Vertex>();
-	}
-
 	if (d_use_edge_qt_.getValue())
-	{
 		qt_->build<Edge>();
-	}
-
 	if (d_use_face_qt_.getValue())
-	{
 		qt_->build<Face>();
-	}
-
 	if (d_use_volume_qt_.getValue())
-	{
 		qt_->build<Volume>();
-	}
 
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
 	{

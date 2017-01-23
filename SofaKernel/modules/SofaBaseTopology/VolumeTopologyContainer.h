@@ -354,13 +354,6 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		});
 		return res;
 	}
-
-protected:
-	inline bool is_triangle(Face f)
-	{
-		return phi1(phi1(f.dart)) == phi_1(f.dart);
-	}
-
 	/**
 	 * @brief is_tetra
 	 * @param w
@@ -373,6 +366,18 @@ protected:
 				is_triangle(Face(phi2(phi1(w.dart)))) &&
 				is_triangle(Face(phi2(phi_1(w.dart))));
 	}
+
+	inline bool is_hexa(Volume w)
+	{
+		return this->volume_dofs_[w.dart].size() == 8;
+	}
+
+protected:
+	inline bool is_triangle(Face f)
+	{
+		return phi1(phi1(f.dart)) == phi_1(f.dart);
+	}
+
 
 	void update_dofs(Edge e)
 	{

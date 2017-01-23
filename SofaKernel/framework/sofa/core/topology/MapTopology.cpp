@@ -75,9 +75,14 @@ const BaseMeshTopology::SeqTetrahedra&MapTopology::getTetrahedra()
 	return d_tetra.getValue();
 }
 
-const BaseMeshTopology::SeqHexahedra&MapTopology::getHexahedra()
+const BaseMeshTopology::SeqHexahedra&MapTopology::getHexahedra() const
 {
 	return d_hexa.getValue();
+}
+
+unsigned int MapTopology::getNbHexahedra() const
+{
+	return getHexahedra().size();
 }
 
 const BaseMeshTopology::EdgesAroundVertex&MapTopology::getEdgesAroundVertex(Topology::PointID i)
