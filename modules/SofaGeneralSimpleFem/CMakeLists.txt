@@ -33,6 +33,7 @@ set(SOURCE_FILES
     TetrahedralCorotationalFEMForceField.cpp
     CMTetrahedralCorotationalFEMForceField.cpp
     TriangularFEMForceFieldOptim.cpp
+    )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaBaseTopology SofaSimpleFem)
