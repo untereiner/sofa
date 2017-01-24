@@ -56,10 +56,10 @@ int HexaFEMForceFieldClass = core::RegisterObject("Corotational FEM Hexahedral f
     ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_SIMPLE_FEM_API HexaFEMForceField< Vec3dTypes >;
+template class SOFA_MISC_FEM_API HexaFEMForceField< Vec3dTypes >;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_SIMPLE_FEM_API HexaFEMForceField< Vec3fTypes >;
+template class SOFA_MISC_FEM_API HexaFEMForceField< Vec3fTypes >;
 
 #endif
 

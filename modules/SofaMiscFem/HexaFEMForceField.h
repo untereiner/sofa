@@ -314,11 +314,11 @@ public:
 #ifdef SOFA_EXTERN_TEMPLATE
 
 #if !defined(SOFA_FLOAT) && !defined(SOFA_COMPONENT_FORCEFIELD_HEXA_FEM_FF_CPP)
-extern template class SOFA_SIMPLE_FEM_API HexaFEMForceField< defaulttype::Vec3dTypes >;
+extern template class SOFA_MISC_FEM_API HexaFEMForceField< defaulttype::Vec3dTypes >;
 #endif
 
 #if !defined(SOFA_DOUBLE) && !defined(SOFA_COMPONENT_FORCEFIELD_HEXA_FEM_FF_CPP)
-extern template class SOFA_SIMPLE_FEM_API HexaFEMForceField< defaulttype::Vec3fTypes >;
+extern template class SOFA_MISC_FEM_API HexaFEMForceField< defaulttype::Vec3fTypes >;
 #endif
 
 #endif

@@ -25,6 +25,10 @@ set(HEADER_FILES
     TriangularAnisotropicFEMForceField.inl
     TriangularFEMForceField.h
     TriangularFEMForceField.inl
+    ElementFEMForceField.h
+    ElementFEMForceField.inl
+    HexaFEMForceField.h
+    HexaFEMForceField.inl
 )
 
 set(SOURCE_FILES
@@ -35,6 +39,8 @@ set(SOURCE_FILES
     TriangularAnisotropicFEMForceField.cpp
     TriangleFEMForceField.cpp
     TriangularFEMForceField.cpp
+    ElementFEMForceField.cpp
+    HexaFEMForceField.cpp
 )
 
 if(SOFA_HAVE_NEWMAT)
