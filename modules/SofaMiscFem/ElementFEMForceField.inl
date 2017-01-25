@@ -25,6 +25,7 @@
 #ifndef SOFA_COMPONENT_FORCEFIELD_ELEMENT_FEM_FF_INL
 #define SOFA_COMPONENT_FORCEFIELD_ELEMENT_FEM_FF_INL
 
+#include <SofaMiscFem/config.h>
 #include <sofa/core/behavior/ForceField.inl>
 #include "ElementFEMForceField.h"
 #include <SofaBaseTopology/VolumeTopologyContainer.h>
