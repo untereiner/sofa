@@ -1,24 +1,21 @@
 /******************************************************************************
 *       SOFA, Simulation Open-Framework Architecture, development version     *
-*                (c) 2006-2016 INRIA, USTL, UJF, CNRS, MGH                    *
+*                (c) 2006-2017 INRIA, USTL, UJF, CNRS, MGH                    *
 *                                                                             *
-* This library is free software; you can redistribute it and/or modify it     *
+* This program is free software; you can redistribute it and/or modify it     *
 * under the terms of the GNU Lesser General Public License as published by    *
 * the Free Software Foundation; either version 2.1 of the License, or (at     *
 * your option) any later version.                                             *
 *                                                                             *
-* This library is distributed in the hope that it will be useful, but WITHOUT *
+* This program is distributed in the hope that it will be useful, but WITHOUT *
 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
 * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License *
 * for more details.                                                           *
 *                                                                             *
 * You should have received a copy of the GNU Lesser General Public License    *
-* along with this library; if not, write to the Free Software Foundation,     *
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA.          *
+* along with this program. If not, see <http://www.gnu.org/licenses/>.        *
 *******************************************************************************
-*                              SOFA :: Framework                              *
-*                                                                             *
-* Authors: The SOFA Team (see Authors.txt)                                    *
+* Authors: The SOFA Team and external contributors (see Authors.txt)          *
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
@@ -63,6 +60,7 @@ MeshLoader::MeshLoader() : BaseLoader()
     , d_rotation(initData(&d_rotation, Vector3(), "rotation", "Rotation of the DOFs"))
     , d_scale(initData(&d_scale, Vector3(1.0,1.0,1.0), "scale3d", "Scale of the DOFs in 3 dimensions"))
     , d_transformation(initData(&d_transformation, Matrix4::s_identity, "transformation", "4x4 Homogeneous matrix to transform the DOFs (when present replace any)"))
+    , d_previousTransformation( Matrix4::s_identity )
 {
     addAlias(&d_tetrahedra,"tetras");
     addAlias(&d_hexahedra,"hexas");
@@ -116,20 +114,32 @@ void MeshLoader::init()
 
 void MeshLoader::reinit()
 {
-    if (d_transformation.getValue() != Matrix4::s_identity) {
-        this->applyTransformation(d_transformation.getValue());
-        if (d_scale.getValue() != Vector3(1.0,1.0,1.0) || d_rotation.getValue() != Vector3(0.0,0.0,0.0) || d_translation.getValue() != Vector3(0.0,0.0,0.0))
+    Matrix4 transformation = d_transformation.getValue();
+    const Vector3& scale = d_scale.getValue();
+    const Vector3& rotation = d_rotation.getValue();
+    const Vector3& translation = d_translation.getValue();
+
+
+    this->applyTransformation(d_previousTransformation);
+    d_previousTransformation.identity();
+
+
+    if (transformation != Matrix4::s_identity) {
+        if (d_scale != Vector3(1.0,1.0,1.0) || d_rotation != Vector3(0.0,0.0,0.0) || d_translation != Vector3(0.0,0.0,0.0))
             sout<< "Parameters scale, rotation, translation ignored in favor of transformation matrix" << sendl;
     }
     else {
-        // Transformation of the local frame: translation, then rotation around the translated origin, then scale along the translated and rotated axes
-        // is applied to the points in the opposite order: scale S then rotation R then translation T, to implement the matrix product TRSx
-        if (d_scale.getValue() != Vector3(1.0,1.0,1.0))
-            this->applyScale(d_scale.getValue()[0],d_scale.getValue()[1],d_scale.getValue()[2]);
-        if (d_rotation.getValue() != Vector3(0.0,0.0,0.0))
-            this->applyRotation(d_rotation.getValue()[0], d_rotation.getValue()[1], d_rotation.getValue()[2]);
-        if (d_translation.getValue() != Vector3(0.0,0.0,0.0))
-            this->applyTranslation(d_translation.getValue()[0], d_translation.getValue()[1], d_translation.getValue()[2]);
+        // Transformation of the local frame: scale along the translated and rotated axes, then rotation around the translated origin, then translation
+        // is applied to the points to implement the matrix product TRSx
+
+        transformation = Matrix4::transformTranslation(translation) *
+                Matrix4::transformRotation(helper::Quater< SReal >::createQuaterFromEuler(rotation * M_PI / 180.0)) *
+                Matrix4::transformScale(scale);
+    }
+
+    if (transformation != Matrix4::s_identity) {
+        this->applyTransformation(transformation);
+        d_previousTransformation.transformInvert(transformation);
     }
 
     updateMesh();
@@ -555,43 +565,6 @@ void MeshLoader::updateNormals()
     }
 }
 
-
-void MeshLoader::applyTranslation(const SReal dx, const SReal dy, const SReal dz)
-{
-    sofa::helper::WriteAccessor <Data< helper::vector<sofa::defaulttype::Vec<3,SReal> > > > my_positions = d_positions;
-    for (size_t i = 0; i < my_positions.size(); i++)
-        my_positions[i] += Vector3(dx,dy,dz);
-}
-
-
-void MeshLoader::applyRotation(const SReal rx, const SReal ry, const SReal rz)
-{
-    Quaternion q = helper::Quater< SReal >::createQuaterFromEuler(Vec< 3, SReal >(rx, ry, rz) * M_PI / 180.0);
-    applyRotation(q);
-}
-
-
-void MeshLoader::applyRotation(const defaulttype::Quat q)
-{
-    sofa::helper::WriteAccessor <Data< helper::vector<sofa::defaulttype::Vec<3,SReal> > > > my_positions = d_positions;
-    for (size_t i = 0; i < my_positions.size(); i++)
-    {
-        Vec<3,SReal> newposition = q.rotate(my_positions[i]);
-        my_positions[i] = newposition;
-    }
-}
-
-
-void MeshLoader::applyScale(const SReal sx, const SReal sy, const SReal sz)
-{
-    sofa::helper::WriteAccessor <Data< helper::vector<sofa::defaulttype::Vec<3,SReal> > > > my_positions = d_positions;
-    for (size_t i = 0; i < my_positions.size(); i++)
-    {
-        my_positions[i][0] *= sx;
-        my_positions[i][1] *= sy;
-        my_positions[i][2] *= sz;
-    }
-}
 
 void MeshLoader::applyTransformation(Matrix4 const& T)
 {
