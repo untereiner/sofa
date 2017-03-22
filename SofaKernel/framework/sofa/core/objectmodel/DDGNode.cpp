@@ -232,6 +232,9 @@ void DDGNode::addLink(BaseLink* /*l*/)
     // once the link vectors are constructed in Base or BaseData
 }
 
+
+
+
 } // namespace objectmodel
 
 } // namespace core

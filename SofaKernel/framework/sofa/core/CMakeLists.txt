@@ -113,6 +113,7 @@ set(HEADER_FILES
     objectmodel/DetachNodeEvent.h
     objectmodel/Event.h
     objectmodel/GUIEvent.h
+    objectmodel/Handle.h
     objectmodel/HapticDeviceEvent.h
     objectmodel/JoystickEvent.h
     objectmodel/KeypressedEvent.h
@@ -122,6 +123,7 @@ set(HEADER_FILES
     objectmodel/MouseEvent.h
     objectmodel/SPtr.h
     objectmodel/Tag.h
+    objectmodel/ThreadSafeQueue.h
     topology/BaseMeshTopology.h
     topology/BaseTopology.h
     topology/BaseTopologyData.h
@@ -212,6 +214,7 @@ set(SOURCE_FILES
     objectmodel/DetachNodeEvent.cpp
     objectmodel/Event.cpp
     objectmodel/GUIEvent.cpp
+    objectmodel/Handle.cpp
     objectmodel/HapticDeviceEvent.cpp
     objectmodel/JoystickEvent.cpp
     objectmodel/KeypressedEvent.cpp
@@ -219,6 +222,7 @@ set(SOURCE_FILES
     objectmodel/MouseEvent.cpp
     objectmodel/IdleEvent.cpp
     objectmodel/Tag.cpp
+    objectmodel/ThreadSafeQueue.cpp
     topology/BaseMeshTopology.cpp
     topology/BaseTopology.cpp
     topology/BaseTopologyObject.cpp

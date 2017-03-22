@@ -33,6 +33,11 @@
 #include <sofa/core/objectmodel/BaseClass.h>
 #include <list>
 
+//#include <sofa/core/objectmodel/ThreadSafeQueue.h>
+#ifdef LOG_THREADS
+#include <thread>
+#endif //LOG_THREADS
+
 namespace sofa
 {
 
@@ -41,6 +46,19 @@ namespace core
 
 namespace objectmodel
 {
+//#define LOG_THREADS
+
+#ifdef LOG_THREADS
+  #define PRINT_LOG_MSG(msg) do {  \
+    std::stringstream stream;       \
+    /*stream << "Thread " << omp_get_thread_num() << " / " << omp_get_num_threads() << " :    " << msg << std::endl;*/ \
+    stream << "Thread " << std::this_thread::get_id() << " :    " << msg << std::endl; \
+    std::cout << stream.str();      \
+    } while(0)   /* (no trailing ; ) */
+#else //LOG_THREADS
+  #define PRINT_LOG_MSG(msg) do {} while(0)
+#endif //LOG_THREADS
+//class ThreadSafeQueue;
 
 class Base;
 class BaseData;
@@ -216,6 +234,7 @@ public:
     void addLink(BaseLink* l);
 
 protected:
+//    ThreadSafeQueue* accessQueue;
 
     BaseLink::InitLink<DDGNode>
     initLink(const char* name, const char* help)
@@ -261,6 +280,7 @@ private:
         bool dirtyOutputs;
     };
     helper::fixed_array<DirtyFlags, SOFA_DATA_MAX_ASPECTS> dirtyFlags;
+
 };
 
 } // namespace objectmodel
