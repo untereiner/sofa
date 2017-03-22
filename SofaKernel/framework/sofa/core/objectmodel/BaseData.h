@@ -35,6 +35,12 @@
 #include <sofa/core/objectmodel/BaseLink.h>
 #include <sofa/defaulttype/DataTypeInfo.h>
 
+//#include <sofa/core/objectmodel/ThreadSafeQueue.h>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <sofa/core/objectmodel/Handle.h>
+
 namespace sofa
 {
 
@@ -44,6 +50,7 @@ namespace core
 namespace objectmodel
 {
 
+//class ThreadSafeQueue;
 class Base;
 class BaseData;
 
@@ -321,6 +328,23 @@ public:
     /// Add a link.
     void addLink(BaseLink* l);
 
+
+
+    virtual BaseData* getData();
+
+    ////// !!!!!!!!!  FIFO  !!!!!!!!!
+    void push(Handle* elt);
+    Handle* pop();
+    std::mutex* getExternalMutex();
+    //the following methods are not thread-safe
+    //queue->mut should be locked by the user before calling getTail, getHead, isHead or isempty
+    Handle* getTail();
+    Handle* getHead();
+    bool isHead(Handle* elt);
+    bool isempty();
+
+
+
 protected:
 
     BaseLink::InitLink<BaseData>
@@ -363,6 +387,18 @@ protected:
 //    std::string m_linkPath;
     /// Parent Data
     SingleLink<BaseData,BaseData,BaseLink::FLAG_STOREPATH|BaseLink::FLAG_DATALINK|BaseLink::FLAG_DUPLICATE> parentBaseData;
+    ///FIFO
+//    ThreadSafeQueue* m_accessqueue;
+    std::mutex externalMut;
+    std::mutex internalMut;
+    std::condition_variable cond;
+//    Handle* tail;
+#ifdef LOG_THREADS
+    std::string name;
+#endif //LOG_THREADS
+public:
+    Handle* head;
+    Handle* tail;
 
     /// Helper method to decode the type name to a more readable form if possible
     static std::string decodeTypeName(const std::type_info& t);

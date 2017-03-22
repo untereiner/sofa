@@ -123,7 +123,7 @@ set(HEADER_FILES
     objectmodel/MouseEvent.h
     objectmodel/SPtr.h
     objectmodel/Tag.h
-    objectmodel/ThreadSafeQueue.h
+#    objectmodel/ThreadSafeQueue.h
     topology/BaseMeshTopology.h
     topology/BaseTopology.h
     topology/BaseTopologyData.h
@@ -222,7 +222,7 @@ set(SOURCE_FILES
     objectmodel/MouseEvent.cpp
     objectmodel/IdleEvent.cpp
     objectmodel/Tag.cpp
-    objectmodel/ThreadSafeQueue.cpp
+#    objectmodel/ThreadSafeQueue.cpp
     topology/BaseMeshTopology.cpp
     topology/BaseTopology.cpp
     topology/BaseTopologyObject.cpp

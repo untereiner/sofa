@@ -12,7 +12,7 @@
 
 //#include <sofa/core/objectmodel/DDGNode.h>
 //#include <sofa/core/objectmodel/BaseData.h>
-#include <sofa/core/objectmodel/Data.h>
+//#include <sofa/core/objectmodel/Data.h>
 #include <sofa/core/objectmodel/Handle.h>
  
 namespace sofa
@@ -26,16 +26,14 @@ namespace objectmodel
 
 //class DDGNode;
 //class BaseData;
-template < class T >
-class Data;
-template < class T >
+//template < class T >
+//class Data;
 class Handle;
 
-template < class T = void* >
 class ThreadSafeQueue
 {
 private:
-    Data<T>* handledData;
+//    Data* handledData;
 //    DDGNode* handledData;
     std::mutex externalMut;
     std::mutex internalMut;
@@ -45,30 +43,31 @@ private:
     std::string name;
 #endif //LOG_THREADS
 public:
-    Handle<T>* head;
-    Handle<T>* tail;
+    Handle* head;
+    Handle* tail;
 
 #ifndef LOG_THREADS
-    ThreadSafeQueue( Data<T>* d );
+    ThreadSafeQueue( );
 //    ThreadSafeQueue( DDGNode* d );
 #else //LOG_THREADS
-    ThreadSafeQueue( Data<T>* d, std::string s );
-//    ThreadSafeQueue( DDGNode* d, std::string s );
+    ThreadSafeQueue( std::string s );
 #endif //LOG_THREADS
     ~ThreadSafeQueue( );
 
-    void push(Handle<T>* elt);
-    Handle<T>* pop();
+    void push(Handle* elt);
+    Handle* pop();
     
-    Data<T>* getData();
+//    Data* getData()
+//    {
+//        return handledData;
+//    }
 //    BaseData* getData();
     std::mutex* getExternalMutex();
-
     //the following methods are not thread-safe
     //queue->mut should be locked by the user before calling getTail, getHead, isHead or isempty
-    Handle<T>* getTail();
-    Handle<T>* getHead();
-    bool isHead(Handle<T>* elt);
+    Handle* getTail();
+    Handle* getHead();
+    bool isHead(Handle* elt);
     bool isempty();
 };
 

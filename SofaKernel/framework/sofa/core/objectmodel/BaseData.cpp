@@ -40,6 +40,7 @@ BaseData::BaseData(const char* h, DataFlags dataflags)
     , m_counters(), m_isSets(), m_dataFlags(dataflags)
     , m_owner(NULL), m_name("")
     , parentBaseData(initLink("parent", "Linked Data, from which values are automatically copied"))
+    , externalMut(), internalMut(), cond(), head(NULL), tail(NULL)
 {
     addLink(&inputs);
     addLink(&outputs);
@@ -53,6 +54,7 @@ BaseData::BaseData( const char* h, bool isDisplayed, bool isReadOnly)
     : help(h), ownerClass(""), group(""), widget("")
     , m_counters(), m_isSets(), m_dataFlags(FLAG_DEFAULT), m_owner(NULL), m_name("")
     , parentBaseData(initLink("parent", "Linked Data, from which values are automatically copied"))
+    , externalMut(), internalMut(), cond(), head(NULL), tail(NULL)
 {
     addLink(&inputs);
     addLink(&outputs);
@@ -69,6 +71,7 @@ BaseData::BaseData( const BaseInitData& init)
     , m_counters(), m_isSets(), m_dataFlags(init.dataFlags)
     , m_owner(init.owner), m_name(init.name)
     , parentBaseData(initLink("parent", "Linked Data, from which values are automatically copied"))
+    , externalMut(), internalMut(), cond(), head(NULL), tail(NULL)
 {
     addLink(&inputs);
     addLink(&outputs);
@@ -344,6 +347,75 @@ void BaseData::releaseAspect(int aspect)
 std::string BaseData::decodeTypeName(const std::type_info& t)
 {
     return BaseClass::decodeTypeName(t);
+}
+
+
+BaseData* BaseData::getData()
+{
+    return this;
+}
+
+void BaseData::push(Handle* elt)
+{
+  std::unique_lock<std::mutex> lock(internalMut);
+  if ( !isempty() ) {
+    tail->setNext(elt);
+  }
+  else {
+    head = elt;
+  }
+  tail = elt;
+  lock.unlock();
+  cond.notify_one();  //notifies a waiting pop (might happen is the queue was empty)
+
+  PRINT_LOG_MSG(" pushed one " << elt->getType() << " Handle to queue " << name);
+}
+Handle* BaseData::pop()
+{
+    std::unique_lock<std::mutex> lock(internalMut);
+    while( isempty() )
+    {
+        cond.wait(lock);
+    }
+
+    Handle* elt = head;
+    head = head->getNext();
+    if( head == NULL ) {
+      tail = NULL;
+      PRINT_LOG_MSG(" popped the last elt of queue " << name);
+    }
+    else {
+      PRINT_LOG_MSG(" popped one elt of queue " << name);
+    }
+    return elt;
+}
+
+//    Data* getData()
+//    {
+//        return handledData;
+//    }
+//    BaseData* getData();
+std::mutex* BaseData::getExternalMutex()
+{
+  return &externalMut;
+}
+//the following methods are not thread-safe
+//queue->mut should be locked by the user before calling getTail, getHead, isHead or isempty
+Handle* BaseData::getTail()
+{
+  return tail;
+}
+Handle* BaseData::getHead()
+{
+  return head;
+}
+bool BaseData::isHead(Handle* elt)
+{
+  return (elt ==  head);
+}
+bool BaseData::isempty()
+{
+  return tail == NULL;
 }
 
 } // namespace objectmodel

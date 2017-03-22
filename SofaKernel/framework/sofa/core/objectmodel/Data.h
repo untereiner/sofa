@@ -33,7 +33,7 @@
 #include <memory>
 #include <string>
 
-#include <sofa/core/objectmodel/ThreadSafeQueue.h>
+//#include <sofa/core/objectmodel/ThreadSafeQueue.h>
 #include <sofa/core/objectmodel/Handle.h>
 
 namespace sofa
@@ -44,10 +44,10 @@ namespace core
 
 namespace objectmodel
 {
-template < class T >
-class ThreadSafeQueue;
-template < class T >
-class Handle;
+//template < class T >
+//class ThreadSafeQueue;
+//template < class T >
+//class Handle;
 
 /** \brief Abstract base class template for Data. */
 template < class T >
@@ -167,6 +167,11 @@ public:
         if (dynamic_cast<TData<T>*>(parent))
             return true;
         return BaseData::validParent(parent);
+    }
+
+    virtual TData<T>* getData()
+    {
+        return this;
     }
 
 protected:
@@ -446,8 +451,8 @@ public:
         ++this->m_counters[aspect];
         this->m_isSets[aspect] = true;
         BaseData::setDirtyOutputs(params);
-//        Handle* wAccess = new Handle( this->accessQueue, false );
-//        return static_cast<Data*>(wAccess->acquire())->m_values[aspect].beginEdit();
+//        Handle<T>* wAccess = new Handle<T>( this, false );
+//        return wAccess->acquire()->m_values[aspect].beginEdit();
         return m_values[aspect].beginEdit();
     }
 
@@ -458,13 +463,15 @@ public:
         ++this->m_counters[aspect];
         this->m_isSets[aspect] = true;
         BaseData::setDirtyOutputs(params);
+//        Handle<T>* wAccess = new Handle<T>( this->m_accessQueue, false );
+//        return wAccess->acquire()->m_values[aspect].beginEdit();
         return m_values[aspect].beginEdit();
     }
 
     inline void endEdit(const core::ExecParams* params = 0)
     {
         m_values[DDGNode::currentAspect(params)].endEdit();
-//        this->accessQueue->getHead()->release();
+//        this->m_accessQueue->getHead()->release();
     }
 
     /// @warning writeOnly (the Data is not updated before being set)
@@ -546,11 +553,17 @@ public:
         this->setValue(value);
     }
 
+
+    virtual Data<T>* getData()
+    {
+        return this;
+    }
+
 protected:
-    ThreadSafeQueue<T>* m_accessqueue;
 
     typedef DataValue<T, sofa::defaulttype::DataTypeInfo<T>::CopyOnWrite> ValueType;
 
+//    ThreadSafeQueue<T>* m_accessqueue;
     /// Value
     helper::fixed_array<ValueType, SOFA_DATA_MAX_ASPECTS> m_values;
 
