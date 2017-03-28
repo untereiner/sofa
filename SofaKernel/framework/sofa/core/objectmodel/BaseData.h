@@ -51,6 +51,7 @@ namespace objectmodel
 {
 
 //class ThreadSafeQueue;
+class Handle;
 class Base;
 class BaseData;
 
@@ -330,7 +331,7 @@ public:
 
 
 
-    virtual BaseData* getData();
+   // virtual BaseData* getData();
 
     ////// !!!!!!!!!  FIFO  !!!!!!!!!
     void push(Handle* elt);
@@ -341,7 +342,7 @@ public:
     Handle* getTail();
     Handle* getHead();
     bool isHead(Handle* elt);
-    bool isempty();
+    bool isEmpty();
 
 
 
@@ -387,12 +388,13 @@ protected:
 //    std::string m_linkPath;
     /// Parent Data
     SingleLink<BaseData,BaseData,BaseLink::FLAG_STOREPATH|BaseLink::FLAG_DATALINK|BaseLink::FLAG_DUPLICATE> parentBaseData;
+
     ///FIFO
-//    ThreadSafeQueue* m_accessqueue;
+public:
+    //ThreadSafeQueue
     std::mutex externalMut;
     std::mutex internalMut;
     std::condition_variable cond;
-//    Handle* tail;
 #ifdef LOG_THREADS
     std::string name;
 #endif //LOG_THREADS

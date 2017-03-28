@@ -350,15 +350,10 @@ std::string BaseData::decodeTypeName(const std::type_info& t)
 }
 
 
-BaseData* BaseData::getData()
-{
-    return this;
-}
-
 void BaseData::push(Handle* elt)
 {
   std::unique_lock<std::mutex> lock(internalMut);
-  if ( !isempty() ) {
+  if ( !isEmpty() ) {
     tail->setNext(elt);
   }
   else {
@@ -370,10 +365,11 @@ void BaseData::push(Handle* elt)
 
   PRINT_LOG_MSG(" pushed one " << elt->getType() << " Handle to queue " << name);
 }
+
 Handle* BaseData::pop()
 {
     std::unique_lock<std::mutex> lock(internalMut);
-    while( isempty() )
+    while( isEmpty() )
     {
         cond.wait(lock);
     }
@@ -390,32 +386,19 @@ Handle* BaseData::pop()
     return elt;
 }
 
-//    Data* getData()
-//    {
-//        return handledData;
-//    }
-//    BaseData* getData();
 std::mutex* BaseData::getExternalMutex()
 {
   return &externalMut;
 }
-//the following methods are not thread-safe
-//queue->mut should be locked by the user before calling getTail, getHead, isHead or isempty
-Handle* BaseData::getTail()
-{
-  return tail;
-}
-Handle* BaseData::getHead()
-{
-  return head;
-}
-bool BaseData::isHead(Handle* elt)
-{
-  return (elt ==  head);
-}
-bool BaseData::isempty()
+
+bool BaseData::isEmpty()
 {
   return tail == NULL;
+}
+
+Handle* BaseData::getTail()
+{
+    return tail;
 }
 
 } // namespace objectmodel

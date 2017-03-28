@@ -34,6 +34,7 @@
 #include <list>
 
 //#include <sofa/core/objectmodel/ThreadSafeQueue.h>
+#define LOG_THREADS
 #ifdef LOG_THREADS
 #include <thread>
 #endif //LOG_THREADS
@@ -234,7 +235,6 @@ public:
     void addLink(BaseLink* l);
 
 protected:
-//    ThreadSafeQueue* accessQueue;
 
     BaseLink::InitLink<DDGNode>
     initLink(const char* name, const char* help)
@@ -280,7 +280,6 @@ private:
         bool dirtyOutputs;
     };
     helper::fixed_array<DirtyFlags, SOFA_DATA_MAX_ASPECTS> dirtyFlags;
-
 };
 
 } // namespace objectmodel

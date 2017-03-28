@@ -49,6 +49,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
 
+#include <sofa/core/objectmodel/BaseData.h>
+#include <sofa/core/objectmodel/Handle.h>
 //#define DEBUG_VISITOR
 //#define DEBUG_LINK
 
@@ -194,6 +196,36 @@ void Node::draw(core::visual::VisualParams* vparams)
     execute<simulation::VisualUpdateVisitor>(vparams);
     execute<simulation::VisualDrawVisitor>(vparams);
 }
+
+
+
+
+//ORWL
+///
+void Node::addData( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d, sofa::core::objectmodel::Handle* h )
+{
+    unsigned int it=0;
+    for(it=0; it<object.size(); ++it)
+    {
+    }
+    if ( it == object.size() ) //BaseObject *obj is not in the Node, so we add it
+    {
+        addObject( obj );
+    }
+    m_dataHandles[obj][d] = h; //add associate Data *d and Handle *h to BaseObject *obj
+}
+sofa::core::objectmodel::Handle* Node::getHandle( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d )
+{
+    return m_dataHandles[obj][d];
+}
+///
+//bool Node::isempty()
+//{
+//    return m_objects.empty();
+//}
+
+
+
 
 
 /// Add an object. Detect the implemented interfaces and add the object to the corresponding lists.

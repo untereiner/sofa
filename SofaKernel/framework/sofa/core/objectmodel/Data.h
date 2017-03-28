@@ -33,7 +33,6 @@
 #include <memory>
 #include <string>
 
-//#include <sofa/core/objectmodel/ThreadSafeQueue.h>
 #include <sofa/core/objectmodel/Handle.h>
 
 namespace sofa
@@ -44,10 +43,6 @@ namespace core
 
 namespace objectmodel
 {
-//template < class T >
-//class ThreadSafeQueue;
-//template < class T >
-//class Handle;
 
 /** \brief Abstract base class template for Data. */
 template < class T >
@@ -167,11 +162,6 @@ public:
         if (dynamic_cast<TData<T>*>(parent))
             return true;
         return BaseData::validParent(parent);
-    }
-
-    virtual TData<T>* getData()
-    {
-        return this;
     }
 
 protected:
@@ -443,6 +433,7 @@ public:
     /// @name Simple edition and retrieval API
     /// @{
 
+//    inline T* beginEdit(Handle* h, const core::ExecParams* params = 0)
     inline T* beginEdit(const core::ExecParams* params = 0)
     {
         size_t aspect = DDGNode::currentAspect(params);
@@ -451,30 +442,61 @@ public:
         ++this->m_counters[aspect];
         this->m_isSets[aspect] = true;
         BaseData::setDirtyOutputs(params);
-//        Handle<T>* wAccess = new Handle<T>( this, false );
-//        return wAccess->acquire()->m_values[aspect].beginEdit();
+//        std::cout << "from Data::beginEdit, creating Handle" << std::endl;
+//        if ( h->acquired() )
+//        {
+//            std::cout << "from Data::beginEdit,  returning h->map()" << std::endl;
+//            return static_cast<Data*<T> (h->map())->m_values[aspect].beginEdit();
+//        }
+//        else
+//        {
+//            h->request();
+//            std::cout << "from Data::beginEdit,  access requested" << std::endl;
+//            std::cout << "from Data::beginEdit,  calling h->acquire()" << std::endl;
+//            return static_cast<Data<T>*> (h->acquire())->m_values[aspect].beginEdit();
+//        }
+// //        Data* ptr_to_this = static_cast<Data*> (wAccess->acquire()->getData());
+// //        return static_cast<Data*> (wAccess->acquire()->getData())->m_values[aspect].beginEdit();
         return m_values[aspect].beginEdit();
     }
 
     /// BeginEdit method if it is only to write the value
+//    inline T* beginWriteOnly(Handle* h, const core::ExecParams* params = 0)
     inline T* beginWriteOnly(const core::ExecParams* params = 0)
     {
         size_t aspect = DDGNode::currentAspect(params);
         ++this->m_counters[aspect];
         this->m_isSets[aspect] = true;
         BaseData::setDirtyOutputs(params);
-//        Handle<T>* wAccess = new Handle<T>( this->m_accessQueue, false );
-//        return wAccess->acquire()->m_values[aspect].beginEdit();
+//        std::cout << "from Data::beginEdit, creating Handle" << std::endl;
+//        if ( h->acquired() )
+//        {
+//            std::cout << "from Data::beginEdit,  returning h->map()" << std::endl;
+//            return static_cast<Data*<T> (h->map())->m_values[aspect].beginEdit();
+//        }
+//        else
+//        {
+//            h->request();
+//            std::cout << "from Data::beginEdit,  access requested" << std::endl;
+//            std::cout << "from Data::beginEdit,  calling h->acquire()" << std::endl;
+//            return static_cast<Data<T>*> (h->acquire())->m_values[aspect].beginEdit();
+//        }
+//        return static_cast<Data*> (wAccess->acquire()->getData())->m_values[aspect].beginEdit();
         return m_values[aspect].beginEdit();
     }
 
+//    inline void endEdit(Handle* h, const core::ExecParams* params = 0)
     inline void endEdit(const core::ExecParams* params = 0)
     {
         m_values[DDGNode::currentAspect(params)].endEdit();
-//        this->m_accessQueue->getHead()->release();
+//        if (this->isEmpty() ) std::cout << "from Data::endEdit, queue is empty" << std::endl;
+//        std::cout << "from Data::endEdit, calling release" << std::endl;
+//        h->release();
+//        std::cout << "from Data::endEdit, Handle released" << std::endl;
     }
 
     /// @warning writeOnly (the Data is not updated before being set)
+//    inline void setValue(Handle* h, const T& value)
     inline void setValue(const T& value)
     {
         *beginWriteOnly()=value;
@@ -482,12 +504,14 @@ public:
     }
 
     /// @warning writeOnly (the Data is not updated before being set)
+//    inline void setValue(Handle* h, const core::ExecParams* params, const T& value)
     inline void setValue(const core::ExecParams* params, const T& value)
     {
         *beginWriteOnly(params)=value;
         endEdit(params);
     }
 
+//    inline const T& getValue(Handle* h, const core::ExecParams* params = 0) const
     inline const T& getValue(const core::ExecParams* params = 0) const
     {
         this->updateIfDirty(params);
