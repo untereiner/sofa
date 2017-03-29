@@ -11,6 +11,7 @@ set(SOURCE_FILES
     defaulttype/MatTypes_test.cpp
     defaulttype/VecTypes_test.cpp
     helper/KdTree_test.cpp
+    helper/OptionsGroup_test.cpp
     helper/Utils_test.cpp
     helper/Quater_test.cpp
     helper/SVector_test.cpp
