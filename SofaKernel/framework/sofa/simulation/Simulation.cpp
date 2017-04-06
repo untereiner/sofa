@@ -196,7 +196,13 @@ void Simulation::init ( Node* root )
 
     // apply the init() and bwdInit() methods to all the components.
     // and put the VisualModels in a separate graph, rooted at getVisualRoot()
+   sofa::helper::AdvancedTimer::setEnabled("SimulationInitVisitor", true);
+   sofa::helper::AdvancedTimer::setInterval("SimulationInitVisitor", 1);
+   sofa::helper::AdvancedTimer::begin("SimulationInitVisitor");
+   sofa::helper::AdvancedTimer::end("SimulationInitVisitor");
+   sofa::helper::AdvancedTimer::begin("SimulationInitVisitor");
     root->execute<InitVisitor>(params);
+   sofa::helper::AdvancedTimer::end("SimulationInitVisitor");
 
     // Save reset state for later uses in reset()
     root->execute<StoreResetStateVisitor>(params);
