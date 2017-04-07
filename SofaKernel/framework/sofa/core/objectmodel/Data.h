@@ -472,7 +472,7 @@ public:
         if ( h->acquired() )
         {
             std::cout << "from Data::beginEdit,  returning h->map()" << std::endl;
-            return static_cast<Data*<T> (h->map())->m_values[aspect].beginEdit();
+            return static_cast<Data<T>*> (h->map())->m_values[aspect].beginEdit();
         }
         else
         {
@@ -481,12 +481,12 @@ public:
             std::cout << "from Data::beginEdit,  calling h->acquire()" << std::endl;
             return static_cast<Data<T>*> (h->acquire())->m_values[aspect].beginEdit();
         }
-        return static_cast<Data*> (wAccess->acquire()->getData())->m_values[aspect].beginEdit();
+        return static_cast<Data*> (h->acquire()->getData())->m_values[aspect].beginEdit();
 //        return m_values[aspect].beginEdit();
     }
 
 //    inline void endEdit(Handle* h, const core::ExecParams* params = 0)
-    inline void endEdit(const core::ExecParams* params = 0)
+    inline void endEdit(const core::ExecParams* params = 0, Handle* h = NULL)
     {
         m_values[DDGNode::currentAspect(params)].endEdit();
         if (this->isEmpty() ) std::cout << "from Data::endEdit, queue is empty" << std::endl;

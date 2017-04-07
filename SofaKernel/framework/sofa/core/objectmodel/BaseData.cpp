@@ -274,6 +274,8 @@ bool BaseData::updateFromParentValue(const BaseData* parent)
                 dataInfo->setTextValue(dataValue, l*outSize+c, parentInfo->getTextValue(parentValue, l*inSize+c));
     }
 
+    this->endEditVoidPtr();
+    
     std::string m = msgs.str();
     if (m_owner
 #ifdef NDEBUG

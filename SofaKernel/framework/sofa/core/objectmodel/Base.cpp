@@ -311,12 +311,18 @@ bool Base::hasTag(Tag t) const
 
 void Base::addTag(Tag t)
 {
+//    Handle* h(&f_tags, false);  //Write
+//    f_tags.beginEdit(h)->insert(t);
+//    f_tags.endEdit(h);
     f_tags.beginEdit()->insert(t);
     f_tags.endEdit();
 }
 
 void Base::removeTag(Tag t)
 {
+//    Handle* h(&f_tags, false);  //Write
+//    f_tags.beginEdit(h)->erase(t);
+//    f_tags.endEdit(h);
     f_tags.beginEdit()->erase(t);
     f_tags.endEdit();
 }

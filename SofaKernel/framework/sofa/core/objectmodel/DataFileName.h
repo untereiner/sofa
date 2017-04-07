@@ -88,6 +88,9 @@ public:
 
     void setValue(const std::string& v)
     {
+//        Handle* h = new Handle(this, false);  //Write
+//        *beginEdit(h)=v;
+//        endEdit(h);
         *beginEdit()=v;
         endEdit();
     }
@@ -170,6 +173,9 @@ public:
 
     void setValue(const sofa::helper::vector<std::string>& v)
     {
+//        Handle* h = new Handle(this, false);  //Write
+//        *beginEdit(h) = v;
+//        endEdit(h);
         *beginEdit() = v;
         endEdit();
     }
@@ -177,17 +183,23 @@ public:
 
     void addPath(const std::string& v, bool clear = false)
     {
+//        Handle* h = new Handle(this, false);  //Write
+//        sofa::helper::vector<std::string>& val = *beginEdit(h);
         sofa::helper::vector<std::string>& val = *beginEdit();
         if(clear) val.clear();
         val.push_back(v);
+//        endEdit(h);
         endEdit();
     }
     void setValueAsString(const std::string& v)
     {
+//        Handle* h = new Handle(this, false);  //Write
+//        sofa::helper::SVector<std::string>& val = *beginEdit(h);
         sofa::helper::SVector<std::string>& val = *beginEdit();
         val.clear();
         std::istringstream ss( v );
         ss >> val;
+//        endEdit(h);
         endEdit();
     }
     virtual void virtualSetValueAsString(const std::string& v) { setValueAsString(v); }

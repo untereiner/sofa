@@ -200,24 +200,24 @@ void Node::draw(core::visual::VisualParams* vparams)
 
 
 
-//ORWL
-///
-void Node::addData( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d, sofa::core::objectmodel::Handle* h )
-{
-    unsigned int it=0;
-    for(it=0; it<object.size(); ++it)
-    {
-    }
-    if ( it == object.size() ) //BaseObject *obj is not in the Node, so we add it
-    {
-        addObject( obj );
-    }
-    m_dataHandles[obj][d] = h; //add associate Data *d and Handle *h to BaseObject *obj
-}
-sofa::core::objectmodel::Handle* Node::getHandle( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d )
-{
-    return m_dataHandles[obj][d];
-}
+////ORWL
+/////
+//void Node::addData( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d, sofa::core::objectmodel::Handle* h )
+//{
+//    unsigned int it=0;
+//    for(it=0; it<object.size(); ++it)
+//    {
+//    }
+//    if ( it == object.size() ) //BaseObject *obj is not in the Node, so we add it
+//    {
+//        addObject( obj );
+//    }
+//    m_dataHandles[obj][d] = h; //add associate Data *d and Handle *h to BaseObject *obj
+//}
+//sofa::core::objectmodel::Handle* Node::getHandle( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d )
+//{
+//    return m_dataHandles[obj][d];
+//}
 ///
 //bool Node::isempty()
 //{
