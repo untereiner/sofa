@@ -44,6 +44,7 @@ BaseObject::BaseObject()
     , l_context(initLink("context","Graph Node containing this object (or BaseContext::getDefault() if no graph is used"))
     , l_slaves(initLink("slaves","Sub-objects used internally by this object"))
     , l_master(initLink("master","NULL for regular objects, or master object for which this object is one sub-objects"))
+    , m_dataHandles()
 #ifdef SOFA_SMP
     ,partition_(NULL)
 #endif

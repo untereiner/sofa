@@ -491,6 +491,10 @@ protected:
     // BaseNode can set the context of its own objects
     friend class BaseNode;
 
+
+    std::map< sofa::core::objectmodel::BaseData*, sofa::core::objectmodel::Handle* > m_dataHandles;
+
+
 #ifdef SOFA_SMP
     Iterative::IterativePartition *partition_;
 #endif

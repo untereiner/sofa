@@ -27,7 +27,7 @@ private:
     std::mutex mut;     //mutex used to wait on cond
     std::condition_variable cond;     //condition variable used to wait in acquire for the handle to be the head of accessQueue
     Handle* next;
-    Handle* previousRead;
+    Handle* previous;
     bool isAcquired;
     bool isHead;
     unsigned int nbReaders; //numbers of following read accesses attached/fusionned with this (0 if no following reads)

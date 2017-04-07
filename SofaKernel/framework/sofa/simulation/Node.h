@@ -297,8 +297,6 @@ public:
 
 
 
-    std::map< sofa::core::objectmodel::BaseObject*, std::map< sofa::core::objectmodel::BaseData*, sofa::core::objectmodel::Handle* > > m_dataHandles;
-
     void addData( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d, sofa::core::objectmodel::Handle* h );
     sofa::core::objectmodel::Handle* getHandle( sofa::core::objectmodel::BaseObject* obj, sofa::core::objectmodel::BaseData* d );
 //    bool isempty();

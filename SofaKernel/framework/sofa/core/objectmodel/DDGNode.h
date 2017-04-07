@@ -191,6 +191,7 @@ public:
     /// Returns true if the DDGNode needs to be updated
     bool isDirty(const core::ExecParams* params = 0) const
     {
+        std::unique_lock<std::mutex> lock(dirtyMutex(currentAspect(params)));
         return dirtyFlags[currentAspect(params)].dirtyValue;
     }
 
@@ -203,6 +204,14 @@ public:
     /// Set dirty flag to false
     void cleanDirty(const core::ExecParams* params = 0);
 
+    /// Utility method to call update if necessary. This method should be called before reading of writing the value of this node.
+    void requestUpdateIfDirty(const core::ExecParams* params = 0) const
+    {
+        if (isDirty(params))
+        {
+            const_cast <DDGNode*> (this)->requestUpdate();
+        }
+    }
     /// Utility method to call update if necessary. This method should be called before reading of writing the value of this node.
     void updateIfDirty(const core::ExecParams* params = 0) const
     {
@@ -246,6 +255,9 @@ protected:
     //std::list<DDGNode*> outputs;
     DDGLink inputs;
     DDGLink outputs;
+//    typedef MultiLink<DDGNode, DDGNode, BaseLink::FLAG_DOUBLELINK|BaseLink::FLAG_DATALINK> DDGLink;
+    std::map < DDGNode*, Handle* > m_inputHandles;
+    std::map < DDGNode*, Handle* > m_outputHandles;
 
     virtual void doAddInput(DDGNode* n)
     {
@@ -280,6 +292,7 @@ private:
         bool dirtyOutputs;
     };
     helper::fixed_array<DirtyFlags, SOFA_DATA_MAX_ASPECTS> dirtyFlags;
+    helper::fixed_array<std::mutex, SOFA_DATA_MAX_ASPECTS> dirtyMutex;
 };
 
 } // namespace objectmodel

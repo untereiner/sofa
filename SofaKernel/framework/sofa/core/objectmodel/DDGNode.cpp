@@ -39,6 +39,8 @@ namespace objectmodel
 DDGNode::DDGNode()
     : inputs(initLink("inputs", "Links to inputs Data"))
     , outputs(initLink("outputs", "Links to outputs Data"))
+    , m_inputHandles()
+    , m_outputHandles()
 {
 }
 

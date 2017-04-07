@@ -22,7 +22,7 @@ namespace objectmodel
       mut(),
       cond(),
       next(NULL),
-      previousRead(NULL),
+      previous(NULL),
       isAcquired(false),
       isHead(false),
       nbReaders(0)
@@ -42,28 +42,29 @@ namespace objectmodel
       //we need to lock the fifo mutex to access its components
       std::unique_lock<std::mutex> lock_q(*handledData->getExternalMutex());
       // if read access and the last request in the fifo is a read, we "fusion" this with the last request in the fifo
-      if ( !handledData->isEmpty() && (handledData->getTail())->accessType )
+      if ( !handledData->isEmpty() && accessType && (handledData->getTail())->accessType )
       {
+          previous = handledData->getTail();
           (handledData->getTail())->setNext(this);
-          previousRead = handledData->getTail();
           //if the last handle in the fifo is a read and is acquired, we can perform the read immediately
-          if ( previousRead->isAcquired )
+          if ( previous->isAcquired )
           {
               isAcquired = true;
               isHead = true;
           }
           //increment the number of consecutive readers
           nbReaders = 0;
-          previousRead->incrementNbReaders(); //recursive call : increments the nbReaders of all consecutive previous reads
-//          //we need to lock the mutex of previousRead to avoid race condition on previousRead->nbReaders
+          previous->incrementNbReaders(); //recursive call : increments the nbReaders of all consecutive previous reads
+//          //we need to lock the mutex of previous to avoid race condition on previous->nbReaders
 //          std::unique_lock<std::mutex> lock_h(fusionnedHandle->mut);
 //          fusionnedHandle->nbReaders++;
 //          lock_h.unlock();
 ////          nbReaders++;  //this has no attached readers, so nbReaders is still 0
-          PRINT_LOG_MSG(" from Handle::request, previousRead->nbReaders = " << previousRead->nbReaders);
+          PRINT_LOG_MSG(" from Handle::request, previous->nbReaders = " << previous->nbReaders);
       }
       else if ( !handledData->isEmpty() )
       {
+          previous = handledData->getTail();
           (handledData->getTail())->setNext(this);
       }
       else //fifo is empty
@@ -89,39 +90,58 @@ namespace objectmodel
         PRINT_LOG_MSG("......calling Handle::release with accessType = " << accessType);
         //we need to lock the fifo mutex to access its components
         std::unique_lock<std::mutex> lock_q(*handledData->getExternalMutex());
-        //pop this from the fifo
-        handledData->pop();
-        //
-        if ( accessType && previousRead!=NULL ) //this is a read access attached to a previous read handle
-        {
-            next->setPrevious(previousRead);
-            previousRead->decrementNbReaders();  //recursive call : decrements the nbReaders of all consecutive previous reads
-            if ( nbReaders > 0 ) //there are following reads
+        if ( this->isHead ) {
+            //pop this from the fifo
+            handledData->pop();
+            //
+            if ( accessType && previous!=NULL && previous->accessType ) //this is a read access attached to a previous read handle
             {
-              previousRead->setNext(next);
+                if ( next != NULL ) //this was not the last elt
+                {
+                    next->setPrevious(previous);
+                }
+                previous->decrementNbReaders();  //recursive call : decrements the nbReaders of all consecutive previous reads
+                previous->setNext(next);
+            }
+            else if ( accessType && nbReaders > 0 ) //this is the first Handle of a set of consecutive read accesses
+            {
+                //sets the next Handle as Head of the fifo
+                next->setHead( true );
+                next->setPrevious(previous);
+            }
+            else if( (this->next) != NULL ) //this is a solitary read or a write access
+            {
+                if ( next != NULL ) //this was not the last elt
+                {
+                    next->setPrevious(previous);
+                    Handle* handleIterator = next;
+                    PRINT_LOG_MSG(" from Handle::release, next has " << next->getNbReaders() << " readers");
+                    for ( unsigned int i = 0; i <= next->getNbReaders(); ++i ) // we notify all consecutive reads, or just the next Handle
+                    {
+                      PRINT_LOG_MSG(" from Handle::release, notifying 1 handle...");
+                      handleIterator->setHead( true );
+                      handleIterator->cond.notify_one();
+                      handleIterator = handleIterator->next;
+                    }
+                    //sets the next Handle as Head of the fifo
+                    PRINT_LOG_MSG(" from Handle::release, next handle(s) have been notified !");
+                }
+            }
+            else //this was the last Handle in the fifo
+            {
             }
         }
-        else if ( accessType && nbReaders > 0 ) //this is the first Handle of a set of consecutive read accesses
-        {
-            //sets the next Handle as Head of the fifo
-            next->setHead( true );
-        }
-        else if( (this->next) != NULL ) //this is a solitary read or a write access
-        {
-            Handle* handleIterator = next;
-            PRINT_LOG_MSG(" from Handle::release, next has " << next->getNbReaders() << " readers");
-            for ( unsigned int i = 0; i <= next->getNbReaders(); ++i ) // we notify all consecutive reads, or just the next Handle
-            {
-              PRINT_LOG_MSG(" from Handle::release, notifying 1 handle...");
-              handleIterator->setHead( true );
-              handleIterator->cond.notify_one();
-              handleIterator = handleIterator->next;
-            }
-            //sets the next Handle as Head of the fifo
-            PRINT_LOG_MSG(" from Handle::release, next handle(s) have been notified !");
-        }
-        else //this was the last Handle in the fifo
-        {
+        else { //we release a Handle that is not head of the FIFO, i.e. is was never acquired
+               // since this is not head, previous is != NULL
+           if ( accessType && previous->accessType ) //this is a read access attached to a previous read handle
+           {
+               previous->decrementNbReaders();  //recursive call : decrements the nbReaders of all consecutive previous reads
+           }
+           if ( next != NULL ) //this was not the last elt
+           {
+               next->setPrevious(previous);
+           }
+           previous->setNext(next);
         }
         lock_q.unlock();
     }
@@ -170,7 +190,7 @@ namespace objectmodel
     }
     void Handle::setPrevious( Handle* elt )
     {
-      previousRead = elt;
+      previous = elt;
     }
 
     Handle* Handle::getNext()
@@ -196,18 +216,18 @@ namespace objectmodel
     void Handle::incrementNbReaders()
     {
         nbReaders++;
-        if ( previousRead != NULL ) //recursive call
+        if ( previous != NULL && previous->accessType ) //recursive call on previous reads
         {
-            previousRead->incrementNbReaders();
+            previous->incrementNbReaders();
         }
     }
 
     void Handle::decrementNbReaders()
     {
         nbReaders--;
-        if ( previousRead != NULL ) //recursive call
+        if ( previous != NULL && previous->accessType ) //recursive call on previous reads
         {
-            previousRead->decrementNbReaders();
+            previous->decrementNbReaders();
         }
     }
 
