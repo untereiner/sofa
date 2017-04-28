@@ -35,43 +35,43 @@ namespace component
 namespace container
 {
 
-template <class DataTypes>
-bool MechanicalObject<DataTypes>::addBBox(SReal* minBBox, SReal* maxBBox)
-{
-    // participating to bbox only if it is drawn
-    if( !showObject.getValue() ) return false;
-
-    static const unsigned spatial_dimensions = std::min( (unsigned)DataTypes::spatial_dimensions, 3u );
-
-    const VecCoord& x = read(core::ConstVecCoordId::position())->getValue();
-    for( std::size_t i=0; i<x.size(); i++ )
-    {
-        defaulttype::Vec<3,Real> p;
-        DataTypes::get( p[0], p[1], p[2], x[i] );
-
-        for( unsigned int j=0 ; j<spatial_dimensions; ++j )
-        {
-            if(p[j]<minBBox[j]) minBBox[j]=p[j];
-            if(p[j]>maxBBox[j]) maxBBox[j]=p[j];
-        }
-    }
-    return true;
-}
-
-
-template <class DataTypes>
-void MechanicalObject<DataTypes>::computeBBox(const core::ExecParams* params, bool onlyVisible)
-{
-    // participating to bbox only if it is drawn
-    if( onlyVisible && !showObject.getValue() ) return;
-    Inherited::computeBBox( params );
-}
-
-template <class DataTypes>
-bool MechanicalObject<DataTypes>::isIndependent() const
-{
-    return static_cast<const simulation::Node*>(this->getContext())->mechanicalMapping.empty();
-}
+//template <class DataTypes>
+//bool MechanicalObject<DataTypes>::addBBox(SReal* minBBox, SReal* maxBBox)
+//{
+//    // participating to bbox only if it is drawn
+//    if( !showObject.getValue() ) return false;
+//
+//    static const unsigned spatial_dimensions = std::min( (unsigned)DataTypes::spatial_dimensions, 3u );
+//
+//    const VecCoord& x = read(core::ConstVecCoordId::position())->getValue();
+//    for( std::size_t i=0; i<x.size(); i++ )
+//    {
+//        defaulttype::Vec<3,Real> p;
+//        DataTypes::get( p[0], p[1], p[2], x[i] );
+//
+//        for( unsigned int j=0 ; j<spatial_dimensions; ++j )
+//        {
+//            if(p[j]<minBBox[j]) minBBox[j]=p[j];
+//            if(p[j]>maxBBox[j]) maxBBox[j]=p[j];
+//        }
+//    }
+//    return true;
+//}
+//
+//
+//template <class DataTypes>
+//void MechanicalObject<DataTypes>::computeBBox(const core::ExecParams* params, bool onlyVisible)
+//{
+//    // participating to bbox only if it is drawn
+//    if( onlyVisible && !showObject.getValue() ) return;
+//    Inherited::computeBBox( params );
+//}
+//
+//template <class DataTypes>
+//bool MechanicalObject<DataTypes>::isIndependent() const
+//{
+//    return static_cast<const simulation::Node*>(this->getContext())->mechanicalMapping.empty();
+//}
 
 
 } // namespace container
