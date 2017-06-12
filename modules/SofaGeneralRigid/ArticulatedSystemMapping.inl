@@ -137,12 +137,9 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::reset()
 template <class TIn, class TInRoot, class TOut>
 void ArticulatedSystemMapping<TIn, TInRoot, TOut>::applyToX( typename Out::VecCoord& out, const typename In::VecCoord& in, const typename InRoot::VecCoord* inroot  )
 {
-<<<<<<< Updated upstream
     const Data< OutVecCoord > &xtoData = *m_toModel->read(core::VecCoordId::position());
     out.resize(xtoData.getValue().size());
 
-=======
->>>>>>> Stashed changes
     // Copy the root position if a rigid root model is present
     if (m_fromRootModel && inroot)
     {
@@ -319,8 +316,6 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::applyToX( typename Out::VecCo
     {
         CoordinateBuf[c].x() = in[c].x();
     }
-<<<<<<< Updated upstream
-=======
 
     //if( this->f_printLog.getValue())
     //{
@@ -351,7 +346,6 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::apply( typename Out::VecCoord
 
 //    helper::WriteAccessor<Data<OutVecCoord> > x0toData = *m_toModel->write(core::VecCoordId::restPosition());
 //    applyToX(x0toData.wref(), in, inroot);
->>>>>>> Stashed changes
 }
 
 template <class TIn, class TInRoot, class TOut>
