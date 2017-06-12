@@ -90,9 +90,9 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::init()
     }
 
     helper::WriteAccessor<Data<OutVecCoord> > xtoData = *m_toModel->write(core::VecCoordId::position());
-    apply(xtoData.wref(),
-            xfrom,
-            m_fromRootModel == NULL ? NULL : &m_fromRootModel->read(core::ConstVecCoordId::position())->getValue());
+    helper::WriteAccessor<Data<OutVecCoord> > x0toData = *m_toModel->write(core::VecCoordId::restPosition());
+    apply(xtoData.wref(), xfrom, m_fromRootModel == NULL ? NULL : &m_fromRootModel->read(core::ConstVecCoordId::position())->getValue());
+    apply(x0toData.wref(), xfrom, m_fromRootModel == NULL ? NULL : &m_fromRootModel->read(core::ConstVecCoordId::position())->getValue());
     Inherit::init();
     /*
     OutVecDeriv& vto = m_toModel->read(core::ConstVecDerivId::velocity())->getValue();
@@ -134,14 +134,15 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::reset()
     init();
 }
 
-
-
 template <class TIn, class TInRoot, class TOut>
-void ArticulatedSystemMapping<TIn, TInRoot, TOut>::apply( typename Out::VecCoord& out, const typename In::VecCoord& in, const typename InRoot::VecCoord* inroot  )
+void ArticulatedSystemMapping<TIn, TInRoot, TOut>::applyToX( typename Out::VecCoord& out, const typename In::VecCoord& in, const typename InRoot::VecCoord* inroot  )
 {
+<<<<<<< Updated upstream
     const Data< OutVecCoord > &xtoData = *m_toModel->read(core::VecCoordId::position());
     out.resize(xtoData.getValue().size());
 
+=======
+>>>>>>> Stashed changes
     // Copy the root position if a rigid root model is present
     if (m_fromRootModel && inroot)
     {
@@ -192,6 +193,7 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::apply( typename Out::VecCoord
                 int ind = (*a)->articulationIndex.getValue();
                 InCoord value = in[ind];
                 axis = out[child].getOrientation().rotate((*a)->axis.getValue());
+                //std::cout << "applying rotation : " << value << " to axis: " << (*a)->axis.getValue() << " on child ID: " << child << std::endl;
                 ArticulationAxis[ind] = axis;
 
                 if ((*a)->rotation.getValue())
@@ -317,6 +319,39 @@ void ArticulatedSystemMapping<TIn, TInRoot, TOut>::apply( typename Out::VecCoord
     {
         CoordinateBuf[c].x() = in[c].x();
     }
+<<<<<<< Updated upstream
+=======
+
+    //if( this->f_printLog.getValue())
+    //{
+    //	serr<<"ArticulatedSystemMapping::propageX processed :"<<sendl;
+    //	if (m_fromRootModel!=NULL)
+    //		serr<<"input root: "<<*m_fromRootModel->read(sofa::core::ConstVecCoordId::position())->getValue();
+    //	serr<<"  - input: "<<*m_fromModel->read(sofa::core::ConstVecCoordId::position())->getValue()<<"  output : "<<*m_toModel->read(sofa::core::ConstVecCoordId::position())->getValue()<<sendl;
+    //}
+
+    //if( this->f_printLog.getValue())
+    //{
+    //	serr<<"ArticulatedSystemMapping::propageXfree processed"<<sendl;
+    //	if (rootModel!=NULL)
+    //		serr<<"input root: "<<*rootModel->read(sofa::core::ConstVecCoordId::freePosition())->getValue();
+    //	serr<<"  - input: "<<*m_fromModel->read(sofa::core::ConstVecCoordId::freePosition())->getValue()<<"  output : "<<*m_toModel->read(sofa::core::ConstVecCoordId::freePosition())->getValue()<<sendl;
+    //}
+
+//	  std::cout << " <-- ArticulatedSystemMapping<TIn, TOut>::apply called with in: " << in << "  -- inroot" << (*inroot) << std::endl;}
+}
+
+template <class TIn, class TInRoot, class TOut>
+void ArticulatedSystemMapping<TIn, TInRoot, TOut>::apply( typename Out::VecCoord& out, const typename In::VecCoord& in, const typename InRoot::VecCoord* inroot  )
+{
+    const Data< OutVecCoord > &xtoData = *m_toModel->read(core::VecCoordId::position());
+    out.resize(xtoData.getValue().size());
+
+    applyToX(out, in, inroot);
+
+//    helper::WriteAccessor<Data<OutVecCoord> > x0toData = *m_toModel->write(core::VecCoordId::restPosition());
+//    applyToX(x0toData.wref(), in, inroot);
+>>>>>>> Stashed changes
 }
 
 template <class TIn, class TInRoot, class TOut>

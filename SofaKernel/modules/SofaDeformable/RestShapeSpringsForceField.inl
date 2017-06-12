@@ -150,7 +150,7 @@ void RestShapeSpringsForceField<DataTypes>::recomputeIndices()
 
     if (m_ext_indices.size()==0)
     {
-        // std::cout << "in RestShapeSpringsForceField no external_points are defined, default case: points = all points " << std::endl;
+        std::cout << "in RestShapeSpringsForceField no external_points are defined, default case: points = all points " << std::endl;
 
         if (useRestMState)
         {
@@ -215,8 +215,8 @@ void RestShapeSpringsForceField<DataTypes>::addForce(const core::MechanicalParam
             //Springs_dir[i].normalize();
             f1[index] -=  dx * k0 ;
 
-            //	if (dx.norm()>0.00000001)
-            //		std::cout<<"force on point "<<index<<std::endl;
+            //if (dx.norm()>0.00000001)
+            //        std::cout<<"force on point "<<index<< ": " << f1[index] << std::endl;
 
             //	Deriv dx = p[i] - p_0[i];
             //	f[ indices[i] ] -=  dx * k[0] ;

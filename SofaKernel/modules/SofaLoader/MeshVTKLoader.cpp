@@ -327,12 +327,16 @@ bool MeshVTKLoader::setInputsMesh()
                 addTetrahedron(&my_tetrahedra, inFP[i+0], inFP[i+1], inFP[i+2], inFP[i+3]);
                 break;
             case 11: // VOXEL
+                std::cout << "Reading VOXEL data" << std::endl;
                 addHexahedron(&my_hexahedra, inFP[i+0], inFP[i+1], inFP[i+3], inFP[i+2],
                         inFP[i+4], inFP[i+5], inFP[i+7], inFP[i+6]);
                 break;
             case 12: // HEXAHEDRON
-                addHexahedron(&my_hexahedra, inFP[i+0], inFP[i+1], inFP[i+2], inFP[i+3],
-                        inFP[i+4], inFP[i+5], inFP[i+6], inFP[i+7]);
+                std::cout << "Reading HEXAHEDRON data" << std::endl;
+                //addHexahedron(&my_hexahedra, inFP[i+0], inFP[i+1], inFP[i+2], inFP[i+3],
+                //        inFP[i+4], inFP[i+5], inFP[i+6], inFP[i+7]);
+                addHexahedron(&my_hexahedra, inFP[i+0], inFP[i+3], inFP[i+2], inFP[i+1],
+                        inFP[i+4], inFP[i+7], inFP[i+6], inFP[i+5]);
                 break;
             case 21: // QUADRATIC Edge
                 addEdge(&my_edges, inFP[i+0], inFP[i+1]);

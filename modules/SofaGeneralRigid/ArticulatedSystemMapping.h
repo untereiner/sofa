@@ -99,6 +99,7 @@ public:
     using Inherit::applyJT;
 
     //Apply
+    void applyToX( OutVecCoord& out, const InVecCoord& in, const InRootVecCoord* inroot  );
     void apply( OutVecCoord& out, const InVecCoord& in, const InRootVecCoord* inroot  );
     void apply(
         const core::MechanicalParams* /* mparams */, const helper::vector<OutDataVecCoord*>& dataVecOutPos,

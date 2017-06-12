@@ -33,7 +33,7 @@
 #endif
 
 #define cimg_display 0
-#include <CImg/SOFACImg.h>
+#include "extlibs/CImg/CImg.h"
 #include <sofa/defaulttype/Vec.h>
 #include <sofa/defaulttype/Mat.h>
 #include <sofa/defaulttype/Quat.h>

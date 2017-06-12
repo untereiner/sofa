@@ -2,7 +2,7 @@
 #define __DIFFUSIONSOLVER_H__
 
 #define cimg_display 0
-#include <CImg/CImg.h>
+#include "../CImg/CImg.h"
 
 
 #ifdef WIN32

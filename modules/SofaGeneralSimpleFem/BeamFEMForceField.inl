@@ -523,7 +523,6 @@ void BeamFEMForceField<DataTypes>::applyStiffnessLarge(VecDeriv& df, const VecDe
     Vec3 fb1 = q.rotate(defaulttype::Vec3d(local_force[6],local_force[7] ,local_force[8] ));
     Vec3 fb2 = q.rotate(defaulttype::Vec3d(local_force[9],local_force[10],local_force[11]));
 
-
     df[a] += Deriv(-fa1,-fa2) * fact;
     df[b] += Deriv(-fb1,-fb2) * fact;
 }

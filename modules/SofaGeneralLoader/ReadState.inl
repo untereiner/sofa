@@ -232,7 +232,7 @@ void ReadState::processReadState()
         str >> cmd;
         if (cmd == "X=")
         {
-            mmodel->readVec(core::VecId::position(), str);            
+            mmodel->readVec(core::VecId::position(), str);
             mmodel->applyScale(f_scalePos.getValue(), f_scalePos.getValue(), f_scalePos.getValue());
 
             updated = true;
