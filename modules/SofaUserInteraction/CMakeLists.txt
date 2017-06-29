@@ -26,6 +26,10 @@ set(HEADER_FILES
     MechanicalStateController.inl
     MechanicalStateControllerOmni.h
     MechanicalStateControllerOmni.inl
+    MechanicalStateFilter.h
+    MechanicalStateFilter.inl
+    MechanicalRigidStateFilter.h
+    MechanicalRigidStateFilter.inl
     MouseInteractor.h
     MouseInteractor.inl
     NodeToggleController.h
@@ -66,6 +70,8 @@ set(SOURCE_FILES
     InterpolationController.inl
     MechanicalStateController.cpp
     MechanicalStateControllerOmni.cpp
+    MechanicalStateFilter.cpp
+    MechanicalRigidStateFilter.cpp
     MouseInteractor.cpp
     NodeToggleController.cpp
     RayContact.cpp
