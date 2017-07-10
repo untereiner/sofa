@@ -353,19 +353,19 @@ public:
 protected:
 	void updateTopologyEngineGraph();
 	/// \brief functions to really update the graph of Data/DataEngines linked to the different Data array, using member variable.
-	virtual void updateDataEngineGraph(sofa::core::objectmodel::BaseData& my_Data, sofa::helper::list <sofa::core::cm_topology::TopologyEngine *>& my_enginesList);
+    virtual void updateDataEngineGraph(sofa::core::objectmodel::BaseData& my_Data, std::list <sofa::core::cm_topology::TopologyEngine *>& my_enginesList);
 
 protected:
 	/// Array of topology modifications that have already occured (addition) or will occur next (deletion).
-    Data <sofa::helper::list<const cm_topology::TopologyChange *> >m_changeList;
+    Data <std::list<const cm_topology::TopologyChange *> >m_changeList;
 
 	/// Array of state modifications that have already occured (addition) or will occur next (deletion).
-	Data <sofa::helper::list<const cm_topology::TopologyChange *> >m_stateChangeList;
+    Data <std::list<const cm_topology::TopologyChange *> >m_stateChangeList;
 
 	/// List of topology engines which will interact on all topological Data.
-    sofa::helper::list<cm_topology::TopologyEngine *> m_topologyEngineList;
+    std::list<cm_topology::TopologyEngine *> m_topologyEngineList;
 
-	sofa::helper::list <cm_topology::TopologyEngine *> m_enginesList;
+    std::list <cm_topology::TopologyEngine *> m_enginesList;
 
 };
 
