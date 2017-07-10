@@ -65,7 +65,7 @@ extern "C" PyObject * Node_simulationStep(PyObject * self, PyObject * args)
     if (!PyArg_ParseTuple(args, "d",&dt))
         Py_RETURN_NONE;
 
-//    printf("Node_simulationStep node=%s dt=%f\n",node->getName().c_str(),(float)dt);
+    //printf("Node_simulationStep node=%s dt=%f\n",node->getName().c_str(),(float)dt);
 
     getSimulation()->animate ( node, (SReal)dt );
 //    simulation::getSimulation()->updateVisual( root );
