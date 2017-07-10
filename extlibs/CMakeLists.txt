@@ -50,3 +50,4 @@ endforeach()
 
 add_subdirectory(CGoGN_2)
 list(APPEND EXTLIBS_TARGETS cgogn_core cgogn_geometry cgogn_io cgogn_modeling)
+
