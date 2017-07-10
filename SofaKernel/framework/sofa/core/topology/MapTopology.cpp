@@ -269,7 +269,7 @@ void MapTopology::updateTopologyEngineGraph()
 	this->updateDataEngineGraph(this->d_hexa, this->m_enginesList);
 }
 
-void MapTopology::updateDataEngineGraph(objectmodel::BaseData& my_Data, sofa::helper::list<cm_topology::TopologyEngine*>& my_enginesList)
+void MapTopology::updateDataEngineGraph(objectmodel::BaseData& my_Data, std::list<cm_topology::TopologyEngine*>& my_enginesList)
 {
 	//TODO
 }
