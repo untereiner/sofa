@@ -51,6 +51,7 @@ set(HEADER_FILES
     Binding_Vector.h
     Binding_VectorLinearSpringData.h
     Binding_VisualModel.h
+    Binding_AdvancedTimer.h
     PythonCommon.h
     PythonEnvironment.h
     PythonFactory.h
@@ -107,6 +108,7 @@ set(SOURCE_FILES
     Binding_Vector.cpp
     Binding_VectorLinearSpringData.cpp
     Binding_VisualModel.cpp
+    Binding_AdvancedTimer.cpp
     PythonEnvironment.cpp
     PythonFactory.cpp
     PythonMacros.cpp
