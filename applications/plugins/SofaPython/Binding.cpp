@@ -61,6 +61,7 @@
 #include "Binding_VisualModel.h"
 #include "Binding_OBJExporter.h"
 #include "Binding_DataEngine.h"
+#include "Binding_AdvancedTimer.h"
 #include "PythonFactory.h"
 
 

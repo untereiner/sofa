@@ -25,6 +25,6 @@
 #include "PythonMacros.h"
 #include "sofa/helper/AdvancedTimer.h"
 
-SP_DECLARE_CLASS_TYPE(AdvancedTimer)
+SP_DECLARE_CLASS_TYPE(ScopedAdvancedTimer)
 
 #endif // BINDING_ADVANCEDTIMER_H

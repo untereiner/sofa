@@ -31,7 +31,7 @@ using namespace sofa::helper;
  * Param  : PyObject*, self - Object of the python script
  * Return : Py_RETURN_NONE
  */
-extern "C" PyObject * AdvancedTimer_clear(PyObject *self)
+extern "C" PyObject * AdvancedTimer_clear(PyObject *self, PyObject * /*args*/)
 {
     AdvancedTimer::clear();  // Method call
     Py_RETURN_NONE;
@@ -190,15 +190,15 @@ extern "C" PyObject * AdvancedTimer_end(PyObject *self, PyObject *args)
 
 
 
-SP_MODULE_METHODS_BEGIN(AdvancedTimer)
-SP_MODULE_METHOD(AdvancedTimer, clear)
-SP_MODULE_METHOD(AdvancedTimer, isEnabled)
-SP_MODULE_METHOD(AdvancedTimer, setEnabled)
-SP_MODULE_METHOD(AdvancedTimer, getInterval)
-SP_MODULE_METHOD(AdvancedTimer, setInterval)
-SP_MODULE_METHOD(AdvancedTimer, begin)
-SP_MODULE_METHOD(AdvancedTimer, end)
-SP_MODULE_METHODS_END
+SP_CLASS_METHODS_BEGIN(AdvancedTimer)
+SP_CLASS_METHOD(AdvancedTimer, clear)
+SP_CLASS_METHOD(AdvancedTimer, isEnabled)
+SP_CLASS_METHOD(AdvancedTimer, setEnabled)
+SP_CLASS_METHOD(AdvancedTimer, getInterval)
+SP_CLASS_METHOD(AdvancedTimer, setInterval)
+SP_CLASS_METHOD(AdvancedTimer, begin)
+SP_CLASS_METHOD(AdvancedTimer, end)
+SP_CLASS_METHODS_END
 
 //SP_CLASS_TYPE_SPTR(AdvancedTimer, AdvancedTimer, AdvancedTimer)
 
