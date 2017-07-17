@@ -288,9 +288,9 @@ public:
 //	SReal getPZ(int) const;
 
 	virtual unsigned int getNbPoints() const = 0;
-	const SeqEdges&getEdges();
-	const SeqTriangles&getTriangles();
-	const SeqQuads&getQuads();
+	const SeqEdges& getEdges();
+	const SeqTriangles& getTriangles();
+	const SeqQuads& getQuads();
 	const SeqTetrahedra& getTetrahedra();
 	const SeqHexahedra& getHexahedra() const;
 	unsigned int getNbHexahedra() const;
@@ -310,13 +310,13 @@ public:
 
 	const SeqEdges& getEdgeArray();
 
-	const EdgesAroundVertex&getEdgesAroundVertex(PointID i);
-	const EdgesInTriangle&getEdgesInTriangle(TriangleID i);
-	const EdgesInQuad&getEdgesInQuad(QuadID i);
-	const TrianglesAroundVertex&getTrianglesAroundVertex(PointID i);
-	const TrianglesAroundEdge&getTrianglesAroundEdge(EdgeID i);
-	const QuadsAroundVertex&getQuadsAroundVertex(PointID i);
-	const QuadsAroundEdge&getQuadsAroundEdge(EdgeID i);
+	const EdgesAroundVertex& getEdgesAroundVertex(PointID i);
+	const EdgesInTriangle& getEdgesInTriangle(TriangleID i);
+	const EdgesInQuad& getEdgesInQuad(QuadID i);
+	const TrianglesAroundVertex& getTrianglesAroundVertex(PointID i);
+	const TrianglesAroundEdge& getTrianglesAroundEdge(EdgeID i);
+	const QuadsAroundVertex& getQuadsAroundVertex(PointID i);
+	const QuadsAroundEdge& getQuadsAroundEdge(EdgeID i);
 	const VerticesAroundVertex getVerticesAroundVertex(PointID i);
 	const TrianglesInTetrahedron& getTrianglesInTetrahedron(TetrahedronID i);
 	const EdgesInTetrahedron& getEdgesInTetrahedron(TetrahedronID i);
@@ -353,19 +353,19 @@ public:
 protected:
 	void updateTopologyEngineGraph();
 	/// \brief functions to really update the graph of Data/DataEngines linked to the different Data array, using member variable.
-    virtual void updateDataEngineGraph(sofa::core::objectmodel::BaseData& my_Data, std::list <sofa::core::cm_topology::TopologyEngine *>& my_enginesList);
+	virtual void updateDataEngineGraph(sofa::core::objectmodel::BaseData& my_Data, std::list <sofa::core::cm_topology::TopologyEngine *>& my_enginesList);
 
 protected:
 	/// Array of topology modifications that have already occured (addition) or will occur next (deletion).
-    Data <std::list<const cm_topology::TopologyChange *> >m_changeList;
+	Data <std::list<const cm_topology::TopologyChange *> >m_changeList;
 
 	/// Array of state modifications that have already occured (addition) or will occur next (deletion).
-    Data <std::list<const cm_topology::TopologyChange *> >m_stateChangeList;
+	Data <std::list<const cm_topology::TopologyChange *> >m_stateChangeList;
 
 	/// List of topology engines which will interact on all topological Data.
-    std::list<cm_topology::TopologyEngine *> m_topologyEngineList;
+	std::list<cm_topology::TopologyEngine *> m_topologyEngineList;
 
-    std::list <cm_topology::TopologyEngine *> m_enginesList;
+	std::list <cm_topology::TopologyEngine *> m_enginesList;
 
 };
 

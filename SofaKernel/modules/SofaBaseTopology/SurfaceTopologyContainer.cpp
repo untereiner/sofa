@@ -37,8 +37,8 @@ namespace topology
 
 SOFA_DECL_CLASS(SurfaceTopologyContainer)
 int SurfaceTopologyContainerClass = core::RegisterObject("Surface topology container")
-        .add< SurfaceTopologyContainer >()
-        ;
+		.add< SurfaceTopologyContainer >()
+		;
 
 SurfaceTopologyContainer::SurfaceTopologyContainer()
 {
@@ -92,11 +92,13 @@ void SurfaceTopologyContainer::createEdgesInTriangleArray()
 	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
 	{
 		auto & edges = this->m_edgesInTriangle[f.dart];
-		unsigned int i = 0;
-		this->foreach_incident_edge(f, [&](Edge e)
-		{
-			edges[i++] = topology_.embedding(e);
-		});
+		Edge e = Edge(f.dart);
+		edges[0] = topology_.embedding(e);
+		e = Edge(phi1(e.dart));
+		edges[1] = topology_.embedding(e);
+		e = Edge(phi1(e.dart));
+		edges[2] = topology_.embedding(e);
+		assert(f.dart == phi1(e.dart)); // Face f is really a triangle
 	});
 }
 
