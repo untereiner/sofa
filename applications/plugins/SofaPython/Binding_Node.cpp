@@ -30,8 +30,10 @@ using namespace sofa::simulation;
 #include <sofa/core/ExecParams.h>
 using namespace sofa::core;
 using namespace sofa::core::objectmodel;
+using namespace sofa::helper;
 #include "Binding_Node.h"
 #include "Binding_Context.h"
+#include "Binding_AdvancedTimer.h"
 #include "PythonVisitor.h"
 #include "PythonScriptEvent.h"
 #include "PythonFactory.h"
@@ -231,8 +233,8 @@ extern "C" PyObject * Node_addObject_Impl(PyObject *self, PyObject * args, PyObj
             PyObject *value = PyList_GetItem(values,i);
             if( !strcmp(PyString_AsString(key),"warning") )
             {
-                if PyBool_Check(value)
-                    warning = (value==Py_True);
+               /* if (PyBoNode_getLinkPathol_Check(value))
+                    warning = (value==Py_True); */
                 break;
             }
         }
@@ -434,6 +436,45 @@ extern "C" PyObject * Node_getAsACreateObjectParameter(PyObject * self, PyObject
     return Node_getLinkPath(self, args);
 }
 
+
+extern "C" PyObject * Node_setEnabledTimer(PyObject* self, PyObject* args)
+{
+    std::string id = std::string("");
+    int tempBool = 0;
+    bool val = false;
+
+    if(!PyArg_ParseTuple(args, "si", &id, &tempBool))
+    {
+        PyErr_BadArgument();
+        return NULL;
+    }
+
+    if(tempBool == 1)
+    {
+        val = true;
+    }
+
+    AdvancedTimer::setEnabled(id, val);  // Method call
+    Py_RETURN_NONE;
+}
+
+extern "C" PyObject * Node_setIntervaleTimer(PyObject* self, PyObject* args)
+{
+    std::string id = std::string("");
+    int newValue = 0;
+
+    if(!PyArg_ParseTuple(args, "si", &id, &newValue))
+    {
+        PyErr_BadArgument();
+        std::cout << "Valeur de l'id : " << id << " et de la valeur : " << newValue << std::endl;
+        return NULL;
+    }
+
+    AdvancedTimer::setInterval(id, newValue);  // Method call
+
+    Py_RETURN_NONE;
+}
+
 SP_CLASS_METHODS_BEGIN(Node)
 SP_CLASS_METHOD(Node,executeVisitor)
 SP_CLASS_METHOD(Node,getRoot)
@@ -463,6 +504,8 @@ SP_CLASS_METHOD(Node,propagatePositionAndVelocity)
 SP_CLASS_METHOD(Node,isInitialized)
 SP_CLASS_METHOD(Node,printGraph)
 SP_CLASS_METHOD(Node,getAsACreateObjectParameter)
+SP_CLASS_METHOD(Node, setEnabledTimer)
+SP_CLASS_METHOD(Node, setIntervaleTimer)
 SP_CLASS_METHODS_END
 
 SP_CLASS_TYPE_SPTR(Node,Node,Context)

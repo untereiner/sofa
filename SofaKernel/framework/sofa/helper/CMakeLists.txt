@@ -81,6 +81,8 @@ set(HEADER_FILES
     rmath.h
     set.h
     stable_vector.h
+    object_AdvancedTimer.h
+    object_AdvancedTimer.inl
     system/DynamicLibrary.h
     system/FileSystem.h
     system/Locale.h
@@ -147,6 +149,7 @@ set(SOURCE_FILES
     UnitTest.cpp
     Utils.cpp
     decompose.cpp
+    object_AdvancedTimer.cpp
     gl/Trackball.cpp
     gl/Transformation.cpp
     init.cpp
