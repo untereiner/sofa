@@ -45,12 +45,12 @@ SOFA_DECL_CLASS(TetrahedralCorotationalFEMForceField)
 // Register in the Factory
 int TetrahedralCorotationalFEMForceFieldClass = core::RegisterObject("Corotational FEM Tetrahedral finite elements")
 #ifndef SOFA_FLOAT
-        .add< TetrahedralCorotationalFEMForceField<Vec3dTypes> >()
+		.add< TetrahedralCorotationalFEMForceField<Vec3dTypes> >()
 #endif
 #ifndef SOFA_DOUBLE
-        .add< TetrahedralCorotationalFEMForceField<Vec3fTypes> >()
+		.add< TetrahedralCorotationalFEMForceField<Vec3fTypes> >()
 #endif
-        ;
+		;
 
 #ifndef SOFA_FLOAT
 template class SOFA_GENERAL_SIMPLE_FEM_API TetrahedralCorotationalFEMForceField<Vec3dTypes>;

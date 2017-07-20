@@ -60,211 +60,211 @@ namespace cm_forcefield
 /** Compute Finite Element forces based on tetrahedral elements.
  */
 template<class DataTypes>
-class TetrahedralCorotationalFEMForceField : public core::behavior::ForceField<DataTypes>
+class CMTetrahedralCorotationalFEMForceField : public core::behavior::ForceField<DataTypes>
 {
 public:
-    SOFA_CLASS(SOFA_TEMPLATE(TetrahedralCorotationalFEMForceField, DataTypes), SOFA_TEMPLATE(core::behavior::ForceField, DataTypes));
+	SOFA_CLASS(SOFA_TEMPLATE(CMTetrahedralCorotationalFEMForceField, DataTypes), SOFA_TEMPLATE(core::behavior::ForceField, DataTypes));
 
-    typedef typename DataTypes::VecCoord VecCoord;
-    typedef typename DataTypes::VecDeriv VecDeriv;
-    typedef typename DataTypes::VecReal VecReal;
-    typedef VecCoord Vector;
-    typedef typename DataTypes::Coord Coord;
-    typedef typename DataTypes::Deriv Deriv;
-    typedef typename Coord::value_type Real;
+	typedef typename DataTypes::VecCoord VecCoord;
+	typedef typename DataTypes::VecDeriv VecDeriv;
+	typedef typename DataTypes::VecReal VecReal;
+	typedef VecCoord Vector;
+	typedef typename DataTypes::Coord Coord;
+	typedef typename DataTypes::Deriv Deriv;
+	typedef typename Coord::value_type Real;
 	using VolumeTopology = sofa::component::topology::VolumeTopologyContainer;
 	using BaseVolume = core::topology::MapTopology::Volume;
 	using Vertex = VolumeTopology::Vertex;
 	using Volume = VolumeTopology::Volume;
 
-    typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
-    typedef core::objectmodel::Data<VecCoord>    DataVecCoord;
+	typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
+	typedef core::objectmodel::Data<VecCoord>    DataVecCoord;
 
-    enum { SMALL = 0, ///< Symbol of small displacements tetrahedron solver
-            LARGE = 1, ///< Symbol of large displacements tetrahedron solver
-            POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
-         };
+	enum { SMALL = 0, ///< Symbol of small displacements tetrahedron solver
+			LARGE = 1, ///< Symbol of large displacements tetrahedron solver
+			POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
+		 };
 protected:
 
-    /// @name Per element (tetrahedron) data
-    /// @{
+	/// @name Per element (tetrahedron) data
+	/// @{
 
-    /// Displacement vector (deformation of the 4 corners of a tetrahedron
-    typedef defaulttype::VecNoInit<12, Real> Displacement;
+	/// Displacement vector (deformation of the 4 corners of a tetrahedron
+	typedef defaulttype::VecNoInit<12, Real> Displacement;
 
-    /// Material stiffness matrix of a tetrahedron
-    typedef defaulttype::Mat<6, 6, Real> MaterialStiffness;
+	/// Material stiffness matrix of a tetrahedron
+	typedef defaulttype::Mat<6, 6, Real> MaterialStiffness;
 
-    /// Strain-displacement matrix
-    typedef defaulttype::Mat<12, 6, Real> StrainDisplacementTransposed;
+	/// Strain-displacement matrix
+	typedef defaulttype::Mat<12, 6, Real> StrainDisplacementTransposed;
 
-    /// Rigid transformation (rotation) matrix
-    typedef defaulttype::MatNoInit<3, 3, Real> Transformation;
+	/// Rigid transformation (rotation) matrix
+	typedef defaulttype::MatNoInit<3, 3, Real> Transformation;
 
-    /// Stiffness matrix ( = RJKJtRt  with K the Material stiffness matrix, J the strain-displacement matrix, and R the transformation matrix if any )
-    typedef defaulttype::Mat<12, 12, Real> StiffnessMatrix;
+	/// Stiffness matrix ( = RJKJtRt  with K the Material stiffness matrix, J the strain-displacement matrix, and R the transformation matrix if any )
+	typedef defaulttype::Mat<12, 12, Real> StiffnessMatrix;
 
-    /// @}
+	/// @}
 
-    /// the information stored for each tetrahedron
-    class TetrahedronInformation
-    {
-    public:
-        /// material stiffness matrices of each tetrahedron
-        MaterialStiffness materialMatrix;
-        /// the strain-displacement matrices vector
-        StrainDisplacementTransposed strainDisplacementTransposedMatrix;
-        /// large displacement method
-        helper::fixed_array<Coord,4> rotatedInitialElements;
-        Transformation rotation;
-        /// polar method
-        Transformation initialTransformation;
+	/// the information stored for each tetrahedron
+	class TetrahedronInformation
+	{
+	public:
+		/// material stiffness matrices of each tetrahedron
+		MaterialStiffness materialMatrix;
+		/// the strain-displacement matrices vector
+		StrainDisplacementTransposed strainDisplacementTransposedMatrix;
+		/// large displacement method
+		helper::fixed_array<Coord,4> rotatedInitialElements;
+		Transformation rotation;
+		/// polar method
+		Transformation initialTransformation;
 
-        TetrahedronInformation()
-        {
-        }
+		TetrahedronInformation()
+		{
+		}
 
-        /// Output stream
-        inline friend std::ostream& operator<< ( std::ostream& os, const TetrahedronInformation& /*tri*/ )
-        {
-            return os;
-        }
+		/// Output stream
+		inline friend std::ostream& operator<< ( std::ostream& os, const TetrahedronInformation& /*tri*/ )
+		{
+			return os;
+		}
 
-        /// Input stream
-        inline friend std::istream& operator>> ( std::istream& in, TetrahedronInformation& /*tri*/ )
-        {
-            return in;
-        }
-    };
-    /// container that stotes all requires information for each tetrahedron
+		/// Input stream
+		inline friend std::istream& operator>> ( std::istream& in, TetrahedronInformation& /*tri*/ )
+		{
+			return in;
+		}
+	};
+	/// container that stotes all requires information for each tetrahedron
 	cm_topology::TetrahedronData<TetrahedronInformation> tetrahedronInfo;
 
-    /// @name Full system matrix assembly support
-    /// @{
+	/// @name Full system matrix assembly support
+	/// @{
 
-    typedef std::pair<int,Real> Col_Value;
-    typedef helper::vector< Col_Value > CompressedValue;
-    typedef helper::vector< CompressedValue > CompressedMatrix;
-    typedef unsigned int Index;
+	typedef std::pair<int,Real> Col_Value;
+	typedef helper::vector< Col_Value > CompressedValue;
+	typedef helper::vector< CompressedValue > CompressedMatrix;
+	typedef unsigned int Index;
 
-    CompressedMatrix _stiffnesses;
-    /// @}
+	CompressedMatrix _stiffnesses;
+	/// @}
 
-    SReal m_potentialEnergy;
+	SReal m_potentialEnergy;
 
 	VolumeTopology* _topology;
 public:
-    class TetrahedronHandler : public cm_topology::TopologyDataHandler<core::topology::MapTopology::Volume, TetrahedronInformation>
-    {
-    public :
-        typedef typename TetrahedralCorotationalFEMForceField<DataTypes>::TetrahedronInformation TetrahedronInformation;
-        TetrahedronHandler(TetrahedralCorotationalFEMForceField<DataTypes>* forcefield,
+	class TetrahedronHandler : public cm_topology::TopologyDataHandler<core::topology::MapTopology::Volume, TetrahedronInformation>
+	{
+	public :
+		typedef typename CMTetrahedralCorotationalFEMForceField<DataTypes>::TetrahedronInformation TetrahedronInformation;
+		TetrahedronHandler(CMTetrahedralCorotationalFEMForceField<DataTypes>* forcefield,
 						   cm_topology::TetrahedronData<TetrahedronInformation>* data)
-            : cm_topology::TopologyDataHandler<core::topology::MapTopology::Volume, TetrahedronInformation>(data)
-            ,ff(forcefield)
-        {
+			: cm_topology::TopologyDataHandler<core::topology::MapTopology::Volume, TetrahedronInformation>(data)
+			,ff(forcefield)
+		{
 
-        }
+		}
 
-        void applyCreateFunction(TetrahedronInformation &t, core::topology::MapTopology::Volume,
-                const sofa::helper::vector<core::topology::MapTopology::Volume> &,
-                const sofa::helper::vector<double> &);
+		void applyCreateFunction(TetrahedronInformation &t, core::topology::MapTopology::Volume,
+				const sofa::helper::vector<core::topology::MapTopology::Volume> &,
+				const sofa::helper::vector<double> &);
 
-    protected:
-        TetrahedralCorotationalFEMForceField<DataTypes>* ff;
+	protected:
+		CMTetrahedralCorotationalFEMForceField<DataTypes>* ff;
 
-    };
+	};
 public:
-    int method;
-    Data<std::string> f_method; ///< the computation method of the displacements
-    Data<Real> _poissonRatio;
-    Data<Real> _youngModulus;
-    Data<VecReal> _localStiffnessFactor;
-    Data<bool> _updateStiffnessMatrix;
-    Data<bool> _assembling;
-    Data<bool> f_drawing;
-    Data<bool> _displayWholeVolume;
-    Data<defaulttype::Vec4f> drawColor1;
-    Data<defaulttype::Vec4f> drawColor2;
-    Data<defaulttype::Vec4f> drawColor3;
-    Data<defaulttype::Vec4f> drawColor4;
-    Data<std::map < std::string, sofa::helper::vector<double> > > _volumeGraph;
+	int method;
+	Data<std::string> f_method; ///< the computation method of the displacements
+	Data<Real> _poissonRatio;
+	Data<Real> _youngModulus;
+	Data<VecReal> _localStiffnessFactor;
+	Data<bool> _updateStiffnessMatrix;
+	Data<bool> _assembling;
+	Data<bool> f_drawing;
+	Data<bool> _displayWholeVolume;
+	Data<defaulttype::Vec4f> drawColor1;
+	Data<defaulttype::Vec4f> drawColor2;
+	Data<defaulttype::Vec4f> drawColor3;
+	Data<defaulttype::Vec4f> drawColor4;
+	Data<std::map < std::string, sofa::helper::vector<double> > > _volumeGraph;
 protected:
-    TetrahedralCorotationalFEMForceField();
-    TetrahedronHandler* tetrahedronHandler;
+	CMTetrahedralCorotationalFEMForceField();
+	TetrahedronHandler* tetrahedronHandler;
 public:
 
-    void setPoissonRatio(Real val) { this->_poissonRatio.setValue(val); }
+	void setPoissonRatio(Real val) { this->_poissonRatio.setValue(val); }
 
-    void setYoungModulus(Real val) { this->_youngModulus.setValue(val); }
+	void setYoungModulus(Real val) { this->_youngModulus.setValue(val); }
 
-    void setMethod(int val) { method = val; }
+	void setMethod(int val) { method = val; }
 
-    void setUpdateStiffnessMatrix(bool val) { this->_updateStiffnessMatrix.setValue(val); }
+	void setUpdateStiffnessMatrix(bool val) { this->_updateStiffnessMatrix.setValue(val); }
 
-    void setComputeGlobalMatrix(bool val) { this->_assembling.setValue(val); }
+	void setComputeGlobalMatrix(bool val) { this->_assembling.setValue(val); }
 
-    virtual void init();
-    virtual void reinit();
+	virtual void init();
+	virtual void reinit();
 
-    virtual void addForce(const core::MechanicalParams* mparams, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& d_v);
-    virtual void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx);
-    virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
-    {
-        serr << "Get potentialEnergy not implemented" << sendl;
-        return 0.0;
-    }
+	virtual void addForce(const core::MechanicalParams* mparams, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& d_v);
+	virtual void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx);
+	virtual SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const
+	{
+		serr << "Get potentialEnergy not implemented" << sendl;
+		return 0.0;
+	}
 
-    virtual void addKToMatrix(sofa::defaulttype::BaseMatrix *m, SReal kFactor, unsigned int &offset);
+	virtual void addKToMatrix(sofa::defaulttype::BaseMatrix *m, SReal kFactor, unsigned int &offset);
 
-    // Getting the rotation of the vertex by averaing the rotation of neighboring elements
-    void getRotation(Transformation& R, Vertex vertex);
-    void getRotations() {}
-    void getElementRotation(Transformation& R, unsigned int elementIdx);
+	// Getting the rotation of the vertex by averaing the rotation of neighboring elements
+	void getRotation(Transformation& R, Vertex vertex);
+	void getRotations() {}
+	void getElementRotation(Transformation& R, unsigned int elementIdx);
 
-    // Getting the stiffness matrix of index i
+	// Getting the stiffness matrix of index i
 	void getElementStiffnessMatrix(Real* stiffness, Volume w);
-    void getElementStiffnessMatrix(Real* stiffness, const std::vector<unsigned int>& t);
+	void getElementStiffnessMatrix(Real* stiffness, const std::vector<unsigned int>& t);
 
-    void draw(const core::visual::VisualParams* vparams);
+	void draw(const core::visual::VisualParams* vparams);
 
 protected:
 
-    void computeStrainDisplacement( StrainDisplacementTransposed &J, Coord a, Coord b, Coord c, Coord d );
-    Real peudo_determinant_for_coef ( const defaulttype::Mat<2, 3, Real>&  M );
+	void computeStrainDisplacement( StrainDisplacementTransposed &J, Coord a, Coord b, Coord c, Coord d );
+	Real peudo_determinant_for_coef ( const defaulttype::Mat<2, 3, Real>&  M );
 
-    void computeStiffnessMatrix( StiffnessMatrix& S,StiffnessMatrix& SR,const MaterialStiffness &K, const StrainDisplacementTransposed &J, const Transformation& Rot );
+	void computeStiffnessMatrix( StiffnessMatrix& S,StiffnessMatrix& SR,const MaterialStiffness &K, const StrainDisplacementTransposed &J, const Transformation& Rot );
 
 	void computeMaterialStiffness(Volume w, Index&a, Index&b, Index&c, Index&d);
 
-    /// overloaded by classes with non-uniform stiffness
-    virtual void computeMaterialStiffness(MaterialStiffness& materialMatrix, Index&a, Index&b, Index&c, Index&d, SReal localStiffnessFactor=1);
+	/// overloaded by classes with non-uniform stiffness
+	virtual void computeMaterialStiffness(MaterialStiffness& materialMatrix, Index&a, Index&b, Index&c, Index&d, SReal localStiffnessFactor=1);
 
-    void computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J );
-    void computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J, SReal fact );
+	void computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J );
+	void computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J, SReal fact );
 
-    ////////////// small displacements method
+	////////////// small displacements method
 	void initSmall(Volume w, Index&a, Index&b, Index&c, Index&d);
-    void accumulateForceSmall(Vector& f, const Vector & p, Volume w );
-    void applyStiffnessSmall(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
+	void accumulateForceSmall(Vector& f, const Vector & p, Volume w );
+	void applyStiffnessSmall(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
-    ////////////// large displacements method
+	////////////// large displacements method
 	void initLarge(Volume w, Index&a, Index&b, Index&c, Index&d);
-    void computeRotationLarge( Transformation &r, const Vector &p, const Index &a, const Index &b, const Index &c);
-    void accumulateForceLarge(Vector& f, const Vector & p, Volume w );
+	void computeRotationLarge( Transformation &r, const Vector &p, const Index &a, const Index &b, const Index &c);
+	void accumulateForceLarge(Vector& f, const Vector & p, Volume w );
 	void applyStiffnessLarge(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
-    ////////////// polar decomposition method
-    void initPolar(Volume w, Index&a, Index&b, Index&c, Index&d);
-    void accumulateForcePolar(Vector& f, const Vector & p, Volume element );
-    void applyStiffnessPolar(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
+	////////////// polar decomposition method
+	void initPolar(Volume w, Index&a, Index&b, Index&c, Index&d);
+	void accumulateForcePolar(Vector& f, const Vector & p, Volume element );
+	void applyStiffnessPolar(Vector& f, const Vector& x, Volume w, Index a=0, Index b=1, Index c=2, Index d=3, SReal fact=1.0 );
 
 	void printStiffnessMatrix(Volume idTetra);
 
 public:
 	virtual std::string getClassName() const { return "CMTetrahedralCorotationalFEMForceField"; }
 
-	static std::string className(const TetrahedralCorotationalFEMForceField* ptr = nullptr)
+	static std::string className(const CMTetrahedralCorotationalFEMForceField* ptr = nullptr)
 	{
 	  return "CMTetrahedralCorotationalFEMForceField";
 	}
@@ -273,10 +273,10 @@ public:
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMTETRAHEDRALCOROTATIONALFEMFORCEFIELD_CPP)
 
 #ifndef SOFA_FLOAT
-extern template class SOFA_GENERAL_SIMPLE_FEM_API TetrahedralCorotationalFEMForceField<sofa::defaulttype::Vec3dTypes>;
+extern template class SOFA_GENERAL_SIMPLE_FEM_API CMTetrahedralCorotationalFEMForceField<sofa::defaulttype::Vec3dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-extern template class SOFA_GENERAL_SIMPLE_FEM_API TetrahedralCorotationalFEMForceField<sofa::defaulttype::Vec3fTypes>;
+extern template class SOFA_GENERAL_SIMPLE_FEM_API CMTetrahedralCorotationalFEMForceField<sofa::defaulttype::Vec3fTypes>;
 #endif
 
 #endif // defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMTETRAHEDRALCOROTATIONALFEMFORCEFIELD_CPP)
