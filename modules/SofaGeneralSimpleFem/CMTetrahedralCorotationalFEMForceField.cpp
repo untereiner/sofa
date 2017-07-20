@@ -48,18 +48,18 @@ using namespace sofa::defaulttype;
 // Register in the Factory
 int CMTetrahedralCorotationalFEMForceFieldClass = core::RegisterObject("CM Corotational FEM Tetrahedral finite elements")
 #ifndef SOFA_FLOAT
-		.add< ::sofa::component::cm_forcefield::TetrahedralCorotationalFEMForceField<Vec3dTypes> >()
+		.add< ::sofa::component::cm_forcefield::CMTetrahedralCorotationalFEMForceField<Vec3dTypes> >()
 #endif
 #ifndef SOFA_DOUBLE
-		.add< ::sofa::component::cm_forcefield::TetrahedralCorotationalFEMForceField<Vec3fTypes> >()
+		.add< ::sofa::component::cm_forcefield::CMTetrahedralCorotationalFEMForceField<Vec3fTypes> >()
 #endif
 		;
 
 #ifndef SOFA_FLOAT
-template class SOFA_GENERAL_SIMPLE_FEM_API ::sofa::component::cm_forcefield::TetrahedralCorotationalFEMForceField<Vec3dTypes>;
+template class SOFA_GENERAL_SIMPLE_FEM_API ::sofa::component::cm_forcefield::CMTetrahedralCorotationalFEMForceField<Vec3dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_GENERAL_SIMPLE_FEM_API ::sofa::component::cm_forcefield::TetrahedralCorotationalFEMForceField<Vec3fTypes>;
+template class SOFA_GENERAL_SIMPLE_FEM_API ::sofa::component::cm_forcefield::CMTetrahedralCorotationalFEMForceField<Vec3fTypes>;
 #endif
 
 } // namespace cm_forcefield

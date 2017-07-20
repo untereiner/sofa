@@ -260,7 +260,7 @@ void MapTopology::addStateChange(const cm_topology::TopologyChange* topologyChan
 void MapTopology::addTopologyEngine(cm_topology::TopologyEngine* _topologyEngine)
 {
 	m_topologyEngineList.push_back(_topologyEngine);
-    m_topologyEngineList.back()->m_changeList.setParent(&this->m_changeList);
+	m_topologyEngineList.back()->m_changeList.setParent(&this->m_changeList);
 	this->updateTopologyEngineGraph();
 }
 
@@ -276,7 +276,8 @@ void MapTopology::updateDataEngineGraph(objectmodel::BaseData& my_Data, std::lis
 
 MapTopology::MapTopology() :
 	Inherit1(),
-	d_initPoints (initData(&d_initPoints, "position", "Initial position of points")),
+	d_initPoints(initData(&d_initPoints, "position", "Initial position of points")),
+	d_edge(initData(&d_edge, "edges", "List of edge indices")),
 	d_triangle(initData(&d_triangle, "triangles", "List of triangle indices")),
 	d_quad(initData(&d_quad, "quads", "List of quad indices")),
 	d_tetra(initData(&d_tetra, "tetrahedra", "List of tetrahedron indices")),
