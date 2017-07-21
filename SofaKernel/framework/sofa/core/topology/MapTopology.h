@@ -272,6 +272,7 @@ protected:
 	virtual void createTrianglesInTetrahedronArray() = 0;
 	virtual void createEdgesInTetrahedronArray() = 0;
 	virtual void createTetrahedraAroundTriangleArray() = 0;
+	virtual void createHexahedraAroundVertexArray();
 	virtual void createHexahedraAroundQuadArray();
 	virtual void createEdgesInHexahedronArray();
 	virtual void createQuadsInHexahedronArray();
@@ -321,6 +322,7 @@ public:
 	const TrianglesInTetrahedron& getTrianglesInTetrahedron(TetrahedronID i);
 	const EdgesInTetrahedron& getEdgesInTetrahedron(TetrahedronID i);
 	const TetrahedraAroundTriangle& getTetrahedraAroundTriangle(TetrahedronID i);
+	const HexahedraAroundVertex& getHexahedraAroundVertex(PointID i);
 	const HexahedraAroundQuad& getHexahedraAroundQuad(QuadID i);
 	const EdgesInHexahedron& getEdgesInHexahedron(HexahedronID i);
 	const QuadsInHexahedron& getQuadsInHexahedron(HexahedronID i);

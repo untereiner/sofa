@@ -80,10 +80,13 @@ public:
 	typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
 	typedef core::objectmodel::Data<VecCoord>    DataVecCoord;
 
-	enum { SMALL = 0, ///< Symbol of small displacements tetrahedron solver
-			LARGE = 1, ///< Symbol of large displacements tetrahedron solver
-			POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
-		 };
+	enum
+	{
+		SMALL = 0, ///< Symbol of small displacements tetrahedron solver
+		LARGE = 1, ///< Symbol of large displacements tetrahedron solver
+		POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
+	};
+
 protected:
 
 	/// @name Per element (tetrahedron) data

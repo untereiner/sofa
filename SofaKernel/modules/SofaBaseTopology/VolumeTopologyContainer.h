@@ -436,11 +436,14 @@ protected:
 	{
 
 	}
+
 	virtual void createTrianglesAroundEdgeArray() override;
 
 	virtual void createEdgesInQuadArray() override;
 
 	virtual void createEdgesAroundVertexArray() override;
+
+	virtual void createHexahedraAroundVertexArray() override;
 
 	virtual void createEdgesInTetrahedronArray() override;
 
@@ -450,7 +453,6 @@ protected:
 
 	virtual void createTriangleSetArray() override;
 
-	// BaseObject interface
 public:
 	virtual void init() override;
 	virtual void bwdInit() override;

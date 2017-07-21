@@ -112,6 +112,13 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::init()
 
 	this->getContext()->get(_topology);
 
+	if( _topology == NULL )
+	{
+		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Topology."<<sendl;
+		return;
+	}
+
+	// TODO : verify that _topoloy only contains tetrahedron
 	if (_topology->nb_cells<VolumeTopology::Volume::ORBIT>() == 0u)
 	{
 		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Tetrahedral Set Topology."<<sendl;

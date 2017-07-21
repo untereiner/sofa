@@ -38,6 +38,11 @@ void MapTopology::cleanup()
 	Inherit1::cleanup();
 }
 
+void MapTopology::createHexahedraAroundVertexArray()
+{
+	serr << "createHexahedraAroundVertexArray not implemented" << sendl;
+}
+
 void MapTopology::createHexahedraAroundQuadArray()
 {
 	serr << "createHexahedraAroundQuadArray not implemented" << sendl;
@@ -157,6 +162,14 @@ const MapTopology::TetrahedraAroundTriangle& MapTopology::getTetrahedraAroundTri
 	if (!m_tetrahedraAroundTriangle.is_valid())
 		createTetrahedraAroundTriangleArray();
 	return m_tetrahedraAroundTriangle.is_valid()? m_tetrahedraAroundTriangle[i] : empty;
+}
+
+const MapTopology::HexahedraAroundVertex& MapTopology::getHexahedraAroundVertex(MapTopology::PointID i)
+{
+	const static HexahedraAroundVertex empty;
+	if (!m_hexahedraAroundVertex.is_valid())
+		createHexahedraAroundVertexArray();
+	return m_hexahedraAroundVertex.is_valid()? m_hexahedraAroundVertex[i] : empty;
 }
 
 const MapTopology::HexahedraAroundQuad& MapTopology::getHexahedraAroundQuad(MapTopology::QuadID i)
