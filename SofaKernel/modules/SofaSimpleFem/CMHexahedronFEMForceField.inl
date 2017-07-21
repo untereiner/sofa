@@ -22,7 +22,7 @@
 #ifndef SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_INL
 #define SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_INL
 
-#include "HexahedronFEMForceField.h"
+#include <SofaSimpleFem/CMHexahedronFEMForceField.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/simulation/Simulation.h>
 #include <sofa/helper/decompose.h>
@@ -59,91 +59,52 @@ namespace sofa
 namespace component
 {
 
-namespace forcefield
+namespace cm_forcefield
 {
 
 using std::set;
 using namespace sofa::defaulttype;
 
-#ifndef SOFA_NEW_HEXA
-template<class DataTypes> const int HexahedronFEMForceField<DataTypes>::_indices[8] = {0,1,3,2,4,5,7,6};
-// template<class DataTypes> const int HexahedronFEMForceField<DataTypes>::_indices[8] = {4,5,7,6,0,1,3,2};
-#endif
-
 
 template <class DataTypes>
-void HexahedronFEMForceField<DataTypes>::init()
+void CMHexahedronFEMForceField<DataTypes>::init()
 {
     if(_alreadyInit)return;
     else _alreadyInit=true;
 
     this->core::behavior::ForceField<DataTypes>::init();
-    if( this->getContext()->getMeshTopology()==NULL )
-    {
-        serr << "ERROR(HexahedronFEMForceField): object must have a Topology."<<sendl;
-        return;
-    }
+	this->getContext()->get(_mesh);
 
-    _mesh = dynamic_cast<sofa::core::topology::BaseMeshTopology*>(this->getContext()->getMeshTopology());
-    if ( _mesh==NULL)
-    {
-        serr << "ERROR(HexahedronFEMForceField): object must have a MeshTopology."<<sendl;
-        return;
-    }
-#ifdef SOFA_NEW_HEXA
-    else if( _mesh->getNbHexahedra()<=0 )
-#else
-    else if( _mesh->getNbCubes()<=0 )
-#endif
-    {
-        serr << "ERROR(HexahedronFEMForceField): object must have a hexahedric MeshTopology."<<sendl;
-        serr << _mesh->getName()<<sendl;
-        serr << _mesh->getTypeName()<<sendl;
-        serr<<_mesh->getNbPoints()<<sendl;
-        return;
-    }
+	if (_topology->nb_cells<VolumeTopology::Volume::ORBIT>() == 0u)
+	{
+		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Tetrahedral Set Topology."<<sendl;
+		return;
+	}
+
     _sparseGrid = dynamic_cast<topology::SparseGridTopology*>(_mesh);
     m_potentialEnergy = 0;
 
-
-
-// 	if( _elementStiffnesses.getValue().empty() )
-// 		_elementStiffnesses.beginEdit()->resize(this->getIndexedElements()->size());
-    // 	_stiffnesses.resize( _initialPoints.getValue().size()*3 ); // assembly ?
-
-
     reinit();
-
-
-
-// 	unsigned int i=0;
-// 	typename VecElement::const_iterator it;
-// 	for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
-// 	{
-// 		Element c = *it;
-// 		for(int w=0;w<8;++w)
-// 		{
-// 			serr<<"sparse w : "<<c[w]<<"    "<<_initialPoints.getValue()[c[w]]<<sendl;
-// 		}
-// 		serr<<"------"<<sendl;
-// 	}
 }
 
 
 template <class DataTypes>
-void HexahedronFEMForceField<DataTypes>::reinit()
+void CMHexahedronFEMForceField<DataTypes>::reinit()
 {
+	const VecCoord& p = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
+	_initialPoints.setValue(p);
 
-    //if (_initialPoints.getValue().size() == 0)
-    //{
-        const VecCoord& p = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
-        _initialPoints.setValue(p);
-    //}
+	auto& matStiffInf = *(_materialsStiffnesses.beginEdit());
+	matStiffInf = _mesh->add_attribute<MaterialStiffness, Volume>("CMHexahedronFEMForceField_MaterialStiffness");
 
-    _materialsStiffnesses.resize(this->getIndexedElements()->size() );
-    _rotations.resize( this->getIndexedElements()->size() );
-    _rotatedInitialElements.resize(this->getIndexedElements()->size());
-    _initialrotations.resize( this->getIndexedElements()->size() );
+	auto& rotInf = *(_rotations.beginEdit());
+	rotInf = _mesh->add_attribute<Transformation, Volume>("CMHexahedronFEMForceField_Rotations");
+
+	auto& rotInitInf = *(_rotatedInitialElements.beginEdit());
+	rotInitInf = _mesh->add_attribute<Transformation, Volume>("CMHexahedronFEMForceField_RotatedInitiaElements");
+
+	auto& initRotInf = *(_initialrotations.beginEdit());
+	initRotInf = _mesh->add_attribute<Transformation, Volume>("CMHexahedronFEMForceField_InitialRotations");
 
     if (f_method.getValue() == "large")
         this->setMethod(LARGE);
@@ -154,39 +115,33 @@ void HexahedronFEMForceField<DataTypes>::reinit()
 
     switch(method)
     {
-    case LARGE :
-    {
-        unsigned int i=0;
-        typename VecElement::const_iterator it;
-        for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
-        {
-            computeMaterialStiffness(i);
-            initLarge(i,*it);
-        }
-        break;
-    }
-    case POLAR :
-    {
-        unsigned int i=0;
-        typename VecElement::const_iterator it;
-        for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
-        {
-            computeMaterialStiffness(i);
-            initPolar(i,*it);
-        }
-        break;
-    }
-    case SMALL :
-    {
-        unsigned int i=0;
-        typename VecElement::const_iterator it;
-        for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
-        {
-            computeMaterialStiffness(i);
-            initSmall(i,*it);
-        }
-        break;
-    }
+		case LARGE :
+		{
+			_mesh->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			{
+				computeMaterialStiffness(w);
+				initLarge(w);
+			});
+			break;
+		}
+		case POLAR :
+		{
+			_mesh->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			{
+				computeMaterialStiffness(w);
+				initPolar(w);
+			});
+			break;
+		}
+		case SMALL :
+		{
+			_mesh->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			{
+				computeMaterialStiffness(w);
+				initSmall(w);
+			});
+			break;
+		}
     }
 }
 

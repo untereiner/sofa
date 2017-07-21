@@ -123,11 +123,11 @@ protected:
     typedef defaulttype::Vec<24, Real> Displacement;		///< the displacement vector
 
     typedef defaulttype::Mat<6, 6, Real> MaterialStiffness;	///< the matrix of material stiffness
-    typedef helper::vector<MaterialStiffness> VecMaterialStiffness;         ///< a vector of material stiffness matrices
+	using VecMaterialStiffness = cm_topology::HexahedronData<MaterialStiffness> ; ///< a vector of material stiffness matrices
     VecMaterialStiffness _materialsStiffnesses;					///< the material stiffness matrices vector
 
     typedef defaulttype::Mat<24, 24, Real> ElementStiffness;
-    typedef helper::vector<ElementStiffness> VecElementStiffness;
+	using VecElementStiffness = cm_topology::HexahedronData<ElementStiffness>;
     Data<VecElementStiffness> _elementStiffnesses;
 
     typedef defaulttype::Mat<3, 3, Real> Mat33;
@@ -254,9 +254,9 @@ public:
     // getPotentialEnergy is implemented for polar method
     virtual SReal getPotentialEnergy(const core::MechanicalParams*) const;
 
-    const Transformation& getElementRotation(const unsigned elemidx);
+	const Transformation& getElementRotation(const Volume elemidx);
 
-    void getNodeRotation(Transformation& R, unsigned int nodeIdx)
+	void getNodeRotation(Transformation& R, Volume w)
     {
         core::topology::BaseMeshTopology::HexahedraAroundVertex liste_hexa = _mesh->getHexahedraAroundVertex(nodeIdx);
 
@@ -274,7 +274,7 @@ public:
         }
 		_mesh->foreach_incident_volume(BaseVertex(nodeIdx), [&](Volume v){
 			Transformation R0t;
-			R0t.transpose(_initialrotations[v.]);
+			R0t.transpose(_initialrotations[v]);
 			Transformation Rcur = getElementRotation(liste_hexa[ti]);
 			R += Rcur * R0t;
 		});
@@ -359,30 +359,30 @@ protected:
         return & (_mesh->getHexahedra());
     }
 
-    virtual void computeElementStiffness( ElementStiffness &K, const MaterialStiffness &M, const helper::fixed_array<Coord,8> &nodes, const int elementIndice, double stiffnessFactor=1.0);
+	virtual void computeElementStiffness( ElementStiffness &K, const MaterialStiffness &M, const helper::fixed_array<Coord,8> &nodes, Volume elementIndice, double stiffnessFactor=1.0);
     Mat33 integrateStiffness( int signx0, int signy0, int signz0, int signx1, int signy1, int signz1, const Real u, const Real v, const Real w, const Mat33& J_1  );
 
-    void computeMaterialStiffness(int i);
+	void computeMaterialStiffness(Volume w);
 
     void computeForce( Displacement &F, const Displacement &Depl, const ElementStiffness &K );
 
 
     ////////////// large displacements method
-    helper::vector<helper::fixed_array<Coord,8> > _rotatedInitialElements;   ///< The initials positions in its frame
-    helper::vector<Transformation> _rotations;
-    helper::vector<Transformation> _initialrotations;
-    void initLarge(int i, const Element&elem);
+	cm_topology::HexahedronData<helper::fixed_array<Coord,8>> _rotatedInitialElements;   ///< The initials positions in its frame
+	cm_topology::HexahedronData<Transformation> _rotations;
+	cm_topology::HexahedronData<Transformation> _initialrotations;
+	void initLarge(Volume w);
     void computeRotationLarge( Transformation &r, Coord &edgex, Coord &edgey);
-    virtual void accumulateForceLarge( WDataRefVecDeriv &f, RDataRefVecCoord &p, int i, const Element&elem  );
+	virtual void accumulateForceLarge( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w);
 
     ////////////// polar decomposition method
-    void initPolar(int i, const Element&elem);
+	void initPolar(Volume w);
     void computeRotationPolar( Transformation &r, defaulttype::Vec<8,Coord> &nodes);
-    virtual void accumulateForcePolar( WDataRefVecDeriv &f, RDataRefVecCoord &p, int i, const Element&elem  );
+	virtual void accumulateForcePolar( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w);
 
     ////////////// small decomposition method
-    void initSmall(int i, const Element&elem);
-    virtual void accumulateForceSmall( WDataRefVecDeriv &f, RDataRefVecCoord &p, int i, const Element&elem  );
+	void initSmall(Volume w);
+	virtual void accumulateForceSmall( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w);
 
     bool _alreadyInit;
 };
