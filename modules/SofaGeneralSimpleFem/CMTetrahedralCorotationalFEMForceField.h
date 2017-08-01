@@ -271,6 +271,11 @@ public:
 	{
 	  return "CMTetrahedralCorotationalFEMForceField";
 	}
+
+private:
+	/// timers
+	std::chrono::duration<double> totalTime;
+	int executionCount;
 };
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMTETRAHEDRALCOROTATIONALFEMFORCEFIELD_CPP)
