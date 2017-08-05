@@ -19,8 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#define SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_CPP
-#include "HexahedronFEMForceField.inl"
+#define SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_CPP
+#include "CMHexahedronFEMForceField.inl"
 #include <sofa/defaulttype/Vec3Types.h>
 #include <sofa/core/ObjectFactory.h>
 
@@ -31,32 +31,32 @@ namespace sofa
 namespace component
 {
 
-namespace forcefield
+namespace cm_forcefield
 {
 
 using namespace sofa::defaulttype;
 
 
-SOFA_DECL_CLASS(HexahedronFEMForceField)
+SOFA_DECL_CLASS(CMHexahedronFEMForceField)
 
 // Register in the Factory
-int HexahedronFEMForceFieldClass = core::RegisterObject("Hexahedral finite elements")
+int CMHexahedronFEMForceFieldClass = core::RegisterObject("CM Hexahedral finite elements")
 #ifndef SOFA_FLOAT
-        .add< HexahedronFEMForceField<Vec3dTypes> >()
+		.add< CMHexahedronFEMForceField<Vec3dTypes> >()
 #endif
 #ifndef SOFA_DOUBLE
-        .add< HexahedronFEMForceField<Vec3fTypes> >()
+		.add< CMHexahedronFEMForceField<Vec3fTypes> >()
 #endif
         ;
 
 #ifndef SOFA_FLOAT
-template class SOFA_SIMPLE_FEM_API HexahedronFEMForceField<Vec3dTypes>;
+template class SOFA_SIMPLE_FEM_API CMHexahedronFEMForceField<Vec3dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
-template class SOFA_SIMPLE_FEM_API HexahedronFEMForceField<Vec3fTypes>;
+template class SOFA_SIMPLE_FEM_API CMHexahedronFEMForceField<Vec3fTypes>;
 #endif
 
-} // namespace forcefield
+} // namespace cm_forcefield
 
 } // namespace component
 

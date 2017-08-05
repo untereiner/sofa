@@ -267,6 +267,7 @@ protected:
 	virtual void createEdgesInQuadArray() override;
 	virtual void createEdgesInTetrahedronArray() override;
 	virtual void createTetrahedraAroundTriangleArray() override;
+	virtual void createHexahedraAroundVertexArray() override;
 
 private:
 	Topology topology_;

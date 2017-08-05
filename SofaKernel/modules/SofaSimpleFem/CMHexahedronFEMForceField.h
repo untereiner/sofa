@@ -19,12 +19,13 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_H
-#define SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_H
+#ifndef SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_H
+#define SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_H
 #include "config.h"
 
 #include <sofa/core/behavior/ForceField.h>
 #include <SofaBaseTopology/VolumeTopologyContainer.h>
+#include <sofa/core/topology/MapTopology.h>
 #include <SofaBaseTopology/CMTopologyData.inl>
 #include <SofaBaseTopology/SparseGridTopology.h>
 #include <sofa/helper/vector.h>
@@ -110,6 +111,10 @@ public:
 	using BaseVertex = core::topology::MapTopology::Vertex;
 	using Vertex = VolumeTopology::Vertex;
 	using Volume = VolumeTopology::Volume;
+	using VecElement = VolumeTopology::SeqHexahedra;
+
+	template<typename T>
+	using VolumeAttribute = typename VolumeTopology::Topology::template VolumeAttribute<T>;
 
     enum
     {
@@ -123,12 +128,14 @@ protected:
     typedef defaulttype::Vec<24, Real> Displacement;		///< the displacement vector
 
     typedef defaulttype::Mat<6, 6, Real> MaterialStiffness;	///< the matrix of material stiffness
-	using VecMaterialStiffness = cm_topology::HexahedronData<MaterialStiffness> ; ///< a vector of material stiffness matrices
-    VecMaterialStiffness _materialsStiffnesses;					///< the material stiffness matrices vector
+	using VecMaterialStiffness = VolumeAttribute<MaterialStiffness> ; ///< a vector of material stiffness matrices
+	//typedef helper::vector<MaterialStiffness> VecMaterialStiffness;         ///< a vector of material stiffness matrices
+	VecMaterialStiffness _materialsStiffnesses;					///< the material stiffness matrices vector
 
     typedef defaulttype::Mat<24, 24, Real> ElementStiffness;
-	using VecElementStiffness = cm_topology::HexahedronData<ElementStiffness>;
-    Data<VecElementStiffness> _elementStiffnesses;
+	using VecElementStiffness = VolumeAttribute<ElementStiffness>;
+	//typedef helper::vector<ElementStiffness> VecElementStiffness;
+	Data<VecElementStiffness> _elementStiffnesses;
 
     typedef defaulttype::Mat<3, 3, Real> Mat33;
 
@@ -139,10 +146,10 @@ protected:
     CompressedMatrix _stiffnesses;
     SReal m_potentialEnergy;
 
+	typedef unsigned int Index;
 	VolumeTopology* _mesh;
 
-    topology::SparseGridTopology* _sparseGrid;
-    Data< VecCoord > _initialPoints; ///< the intial positions of the points
+	Data< VecCoord > _initialPoints; ///< the intial positions of the points
 
 
     defaulttype::Mat<8,3,int> _coef; ///< coef of each vertices to compute the strain stress matrix
@@ -151,8 +158,6 @@ protected:
 	friend class CMHexahedronFEMForceFieldInternalData<DataTypes>;
 
 public:
-
-
     typedef Mat33 Transformation; ///< matrix for rigid transformations like rotations
 
     int method;
@@ -168,59 +173,14 @@ public:
     bool needUpdateTopology;
 
 protected:
-	CMHexahedronFEMForceField()
-        : _elementStiffnesses(initData(&_elementStiffnesses,"stiffnessMatrices", "Stiffness matrices per element (K_i)"))
-        , _mesh(NULL)
-        , _sparseGrid(NULL)
-        , _initialPoints(initData(&_initialPoints,"initialPoints", "Initial Position"))
-		, data(new CMHexahedronFEMForceFieldInternalData<DataTypes>())
-        , f_method(initData(&f_method,std::string("large"),"method","\"large\" or \"polar\" or \"small\" displacements" ))
-        , f_poissonRatio(initData(&f_poissonRatio,(Real)0.45f,"poissonRatio",""))
-        , f_youngModulus(initData(&f_youngModulus,(Real)5000,"youngModulus",""))
-        , f_updateStiffnessMatrix(initData(&f_updateStiffnessMatrix,false,"updateStiffnessMatrix",""))
-        , f_assembling(initData(&f_assembling,false,"assembling",""))
-        , _gatherPt(initData(&_gatherPt,"gatherPt","number of dof accumulated per threads during the gather operation (Only use in GPU version)"))
-        , _gatherBsize(initData(&_gatherBsize,"gatherBsize","number of dof accumulated per threads during the gather operation (Only use in GPU version)"))
-        , f_drawing(initData(&f_drawing,true,"drawing"," draw the forcefield if true"))
-        , f_drawPercentageOffset(initData(&f_drawPercentageOffset,(Real)0.15,"drawPercentageOffset","size of the hexa"))
-        , needUpdateTopology(false)
-    {
-        data->initPtrData(this);
-        _coef[0][0]=-1;
-        _coef[1][0]=1;
-        _coef[2][0]=1;
-        _coef[3][0]=-1;
-        _coef[4][0]=-1;
-        _coef[5][0]=1;
-        _coef[6][0]=1;
-        _coef[7][0]=-1;
-        _coef[0][1]=-1;
-        _coef[1][1]=-1;
-        _coef[2][1]=1;
-        _coef[3][1]=1;
-        _coef[4][1]=-1;
-        _coef[5][1]=-1;
-        _coef[6][1]=1;
-        _coef[7][1]=1;
-        _coef[0][2]=-1;
-        _coef[1][2]=-1;
-        _coef[2][2]=-1;
-        _coef[3][2]=-1;
-        _coef[4][2]=1;
-        _coef[5][2]=1;
-        _coef[6][2]=1;
-        _coef[7][2]=1;
+	CMHexahedronFEMForceField();
 
-        _alreadyInit=false;
-
-		f_poissonRatio.setRequired(true);
-		f_youngModulus.setRequired(true);
-    }
 public:
+	virtual void init();
+	virtual void reinit();
+
     void setPoissonRatio(Real val) { this->f_poissonRatio.setValue(val); }
-
     void setYoungModulus(Real val) { this->f_youngModulus.setValue(val); }
-
     void setMethod(int val)
     {
         method = val;
@@ -233,11 +193,9 @@ public:
     }
 
     void setUpdateStiffnessMatrix(bool val) { this->f_updateStiffnessMatrix.setValue(val); }
-
     void setComputeGlobalMatrix(bool val) { this->f_assembling.setValue(val); }
 
-    virtual void init();
-    virtual void reinit();
+
 
     virtual void addForce (const core::MechanicalParams* mparams, DataVecDeriv& f, const DataVecCoord& x, const DataVecDeriv& v);
 
@@ -254,29 +212,31 @@ public:
     // getPotentialEnergy is implemented for polar method
     virtual SReal getPotentialEnergy(const core::MechanicalParams*) const;
 
-	const Transformation& getElementRotation(const Volume elemidx);
+	const Transformation& getElementRotation(const Volume w) { return _rotations[w]; }
 
-	void getNodeRotation(Transformation& R, Volume w)
+	void getNodeRotation(Transformation& R, Vertex nodeIdx)
     {
-        core::topology::BaseMeshTopology::HexahedraAroundVertex liste_hexa = _mesh->getHexahedraAroundVertex(nodeIdx);
+		//core::topology::MapTopology::HexahedraAroundVertex liste_hexa = _mesh->getHexahedraAroundVertex(nodeIdx);
 
         R[0][0] = R[1][1] = R[2][2] = 1.0 ;
         R[0][1] = R[0][2] = R[1][0] = R[1][2] = R[2][0] = R[2][1] = 0.0 ;
-
-        unsigned int numHexa=liste_hexa.size();
-
-        for (unsigned int ti=0; ti<numHexa; ti++)
+		/*
+		unsigned int numHexa = liste_hexa.size();
+		for (unsigned int ti=0; ti < numHexa; ti++)
         {
             Transformation R0t;
-            R0t.transpose(_initialrotations[liste_hexa[ti]]);
-            Transformation Rcur = getElementRotation(liste_hexa[ti]);
+			R0t.transpose(_initialrotations[Volume(liste_hexa[ti])]);
+			Transformation Rcur = getElementRotation(Volume(liste_hexa[ti]));
             R += Rcur * R0t;
         }
-		_mesh->foreach_incident_volume(BaseVertex(nodeIdx), [&](Volume v){
+		*/
+		unsigned int numHexa = 0;
+		_mesh->foreach_incident_volume(nodeIdx, [&](Volume w){
 			Transformation R0t;
-			R0t.transpose(_initialrotations[v]);
-			Transformation Rcur = getElementRotation(liste_hexa[ti]);
+			R0t.transpose(_initialrotations[w]);
+			Transformation Rcur = getElementRotation(w);
 			R += Rcur * R0t;
+			++numHexa;
 		});
 
         // on "moyenne"
@@ -290,31 +250,34 @@ public:
         R = Rmoy;
     }
 
-    void getRotations(defaulttype::BaseMatrix * rotations,int offset = 0)
+	void getRotations(defaulttype::BaseMatrix * rotations, int offset = 0)
     {
         unsigned int nbdof = this->mstate->getSize();
 
         if (component::linearsolver::RotationMatrix<float> * diag = dynamic_cast<component::linearsolver::RotationMatrix<float> *>(rotations))
         {
             Transformation R;
-            for (unsigned int e=0; e<nbdof; ++e)
-            {
-                getNodeRotation(R,e);
-                for(int j=0; j<3; j++)
-                {
-                    for(int i=0; i<3; i++)
-                    {
-                        diag->getVector()[e*9 + j*3 + i] = (float)R[j][i];
-                    }
-                }
-            }
+			_mesh->foreach_cell([&](Vertex v)
+			{
+				getNodeRotation(R,v);
+				unsigned int e = _mesh->get_dof(v);
+				for(int j=0; j<3; j++)
+				{
+					for(int i=0; i<3; i++)
+					{
+						diag->getVector()[e*9 + j*3 + i] = (float)R[j][i];
+					}
+				}
+			});
         }
         else if (component::linearsolver::RotationMatrix<double> * diag = dynamic_cast<component::linearsolver::RotationMatrix<double> *>(rotations))
         {
             Transformation R;
-            for (unsigned int e=0; e<nbdof; ++e)
-            {
-                getNodeRotation(R,e);
+			_mesh->foreach_cell([&](Vertex v)
+			{
+				getNodeRotation(R,v);
+				unsigned int e = _mesh->get_dof(v);
+
                 for(int j=0; j<3; j++)
                 {
                     for(int i=0; i<3; i++)
@@ -322,19 +285,21 @@ public:
                         diag->getVector()[e*9 + j*3 + i] = R[j][i];
                     }
                 }
-            }
+			});
         }
         else
         {
-            for (unsigned int i=0; i<nbdof; ++i)
-            {
+			_mesh->foreach_cell([&](Vertex v)
+			{
                 Transformation t;
-                getNodeRotation(t,i);
+				getNodeRotation(t,v);
+				unsigned int i = _mesh->get_dof(v);
+
                 int e = offset+i*3;
                 rotations->set(e+0,e+0,t[0][0]); rotations->set(e+0,e+1,t[0][1]); rotations->set(e+0,e+2,t[0][2]);
                 rotations->set(e+1,e+0,t[1][0]); rotations->set(e+1,e+1,t[1][1]); rotations->set(e+1,e+2,t[1][2]);
                 rotations->set(e+2,e+0,t[2][0]); rotations->set(e+2,e+1,t[2][1]); rotations->set(e+2,e+2,t[2][2]);
-            }
+			});
         }
     }
 
@@ -345,21 +310,15 @@ public:
 
     void draw(const core::visual::VisualParams* vparams);
 
-    void handleTopologyChange()
-    {
-        needUpdateTopology = true;
-    }
+	void handleTopologyChange() { needUpdateTopology = true; }
 
 
 protected:
 
 
-    inline const VecElement *getIndexedElements()
-    {
-        return & (_mesh->getHexahedra());
-    }
+	inline const VecElement *getIndexedElements() { return & (_mesh->getHexahedra()); }
 
-	virtual void computeElementStiffness( ElementStiffness &K, const MaterialStiffness &M, const helper::fixed_array<Coord,8> &nodes, Volume elementIndice, double stiffnessFactor=1.0);
+	virtual void computeElementStiffness( ElementStiffness &K, const MaterialStiffness &M, const helper::fixed_array<Coord,8> &nodes, const Index elementIndice, double stiffnessFactor=1.0);
     Mat33 integrateStiffness( int signx0, int signy0, int signz0, int signx1, int signy1, int signz1, const Real u, const Real v, const Real w, const Mat33& J_1  );
 
 	void computeMaterialStiffness(Volume w);
@@ -368,9 +327,12 @@ protected:
 
 
     ////////////// large displacements method
-	cm_topology::HexahedronData<helper::fixed_array<Coord,8>> _rotatedInitialElements;   ///< The initials positions in its frame
-	cm_topology::HexahedronData<Transformation> _rotations;
-	cm_topology::HexahedronData<Transformation> _initialrotations;
+	VolumeAttribute<helper::fixed_array<Coord,8>> _rotatedInitialElements;   ///< The initials positions in its frame
+	VolumeAttribute<Transformation> _rotations;
+	VolumeAttribute<Transformation> _initialrotations;
+	//helper::vector<helper::fixed_array<Coord,8> > _rotatedInitialElements;   ///< The initials positions in its frame
+	//helper::vector<Transformation> _rotations;
+	//helper::vector<Transformation> _initialrotations;
 	void initLarge(Volume w);
     void computeRotationLarge( Transformation &r, Coord &edgex, Coord &edgey);
 	virtual void accumulateForceLarge( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w);
@@ -381,19 +343,21 @@ protected:
 	virtual void accumulateForcePolar( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w);
 
     ////////////// small decomposition method
-	void initSmall(Volume w);
+	void initSmall(Volume i);
 	virtual void accumulateForceSmall( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w);
 
     bool _alreadyInit;
 };
 
-#if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_CPP)
+#if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_CPP)
+
 #ifndef SOFA_FLOAT
 extern template class SOFA_SIMPLE_FEM_API CMHexahedronFEMForceField<defaulttype::Vec3dTypes>;
 #endif
 #ifndef SOFA_DOUBLE
 extern template class SOFA_SIMPLE_FEM_API CMHexahedronFEMForceField<defaulttype::Vec3fTypes>;
 #endif
+
 #endif
 
 } // namespace forcefield
@@ -402,4 +366,4 @@ extern template class SOFA_SIMPLE_FEM_API CMHexahedronFEMForceField<defaulttype:
 
 } // namespace sofa
 
-#endif // SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_H
+#endif // SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_H
