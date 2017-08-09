@@ -407,10 +407,30 @@ protected:
 			vertices.push_back(get_dof(Vertex(phi_1(phi2(w.dart)))));
 		} else {
 			vertices.reserve(8);
-			foreach_incident_vertex(w, [this,&vertices](Vertex v)
+/*			foreach_incident_vertex(w, [this,&vertices](Vertex v)
 			{
 				vertices.push_back(get_dof(v));
 			});
+*/
+			const std::array<Dart, 8> vertices_of_hexa = {
+				w.dart,
+				phi1(w.dart),
+				phi1(phi1(w.dart)),
+				phi_1(w.dart),
+				phi2(phi1(phi1(phi2(phi_1(w.dart))))),
+				phi2(phi1(phi1(phi2(w.dart)))),
+				phi2(phi1(phi1(phi2(phi1(w.dart))))),
+				phi2(phi1(phi1(phi2(phi1(phi1(w.dart))))))
+			};
+
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[0])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[1])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[2])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[3])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[4])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[5])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[6])));
+			vertices.push_back(get_dof(Vertex(vertices_of_hexa[7])));
 		}
 	}
 
@@ -447,6 +467,9 @@ protected:
 	virtual void createTrianglesInTetrahedronArray() override;
 
 	virtual void createTetrahedraAroundTriangleArray() override;
+
+	virtual void createHexahedraAroundVertexArray() override;
+
 
 	virtual void createTriangleSetArray() override;
 

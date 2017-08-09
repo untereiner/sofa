@@ -194,6 +194,26 @@ protected:
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////   Hexahedron Topology Data Implementation   /////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class T >
+class HexahedronData : public TopologyDataImpl<core::topology::MapTopology::Volume, T>
+{
+public:
+	typedef typename TopologyDataImpl<core::topology::MapTopology::Volume, T>::container_type container_type;
+	typedef typename TopologyDataImpl<core::topology::MapTopology::Volume, T>::value_type value_type;
+
+	HexahedronData( const typename sofa::core::cm_topology::BaseTopologyData< T >::InitData& data)
+		: TopologyDataImpl<core::topology::MapTopology::Volume, T>(data)
+	{}
+
+protected:
+	void linkToElementDataArray() {this->linkToHexahedronDataArray();}
+
+};
+
 } // namespace cm_topology
 
 } // namespace component

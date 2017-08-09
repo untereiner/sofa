@@ -275,6 +275,7 @@ protected:
 	virtual void createHexahedraAroundQuadArray();
 	virtual void createEdgesInHexahedronArray();
 	virtual void createQuadsInHexahedronArray();
+	virtual void createHexahedraAroundVertexArray() = 0;
 
 	Attribute_T<EdgeDOFs> edge_dofs_;
 	Attribute_T<FaceDOFs> face_dofs_;
@@ -324,6 +325,7 @@ public:
 	const HexahedraAroundQuad& getHexahedraAroundQuad(QuadID i);
 	const EdgesInHexahedron& getEdgesInHexahedron(HexahedronID i);
 	const QuadsInHexahedron& getQuadsInHexahedron(HexahedronID i);
+	const HexahedraAroundVertex& getHexahedraAroundVertex(PointID i);
 
 	const sofa::helper::vector<index_type> getElementAroundElement(index_type elem);
 	const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems);

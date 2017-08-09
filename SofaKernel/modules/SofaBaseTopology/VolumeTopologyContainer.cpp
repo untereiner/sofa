@@ -172,6 +172,21 @@ void VolumeTopologyContainer::createTetrahedraAroundTriangleArray()
 	});
 }
 
+void VolumeTopologyContainer::createHexahedraAroundVertexArray()
+{
+	if (!this->m_hexahedraAroundVertex.is_valid())
+		this->m_hexahedraAroundVertex = this->template check_attribute<HexahedraAroundVertex, Vertex>("HexahedraAroundVertexArray");
+	assert(this->m_hexahedraAroundVertex.is_valid());
+	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	{
+		auto & hexahedra = this->m_hexahedraAroundVertex[v.dart];
+		foreach_incident_volume(v, [this,&hexahedra](Volume w)
+		{
+			hexahedra.push_back(topology_.embedding(w));
+		});
+	});
+}
+
 void VolumeTopologyContainer::createTriangleSetArray()
 {
 	helper::WriteAccessor< Data< helper::vector< TriangleIds > > > m_tri = d_triangle;

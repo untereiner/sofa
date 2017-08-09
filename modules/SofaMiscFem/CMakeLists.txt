@@ -27,8 +27,8 @@ set(HEADER_FILES
     TriangularFEMForceField.inl
     ElementFEMForceField.h
     ElementFEMForceField.inl
-    HexaFEMForceField.h
-    HexaFEMForceField.inl
+	#HexaFEMForceField.h
+	#HexaFEMForceField.inl
 )
 
 set(SOURCE_FILES
@@ -40,7 +40,7 @@ set(SOURCE_FILES
     TriangleFEMForceField.cpp
     TriangularFEMForceField.cpp
     ElementFEMForceField.cpp
-    HexaFEMForceField.cpp
+	#HexaFEMForceField.cpp
 )
 
 if(SOFA_HAVE_NEWMAT)

@@ -75,7 +75,7 @@ const BaseMeshTopology::SeqTetrahedra&MapTopology::getTetrahedra()
 	return d_tetra.getValue();
 }
 
-const BaseMeshTopology::SeqHexahedra&MapTopology::getHexahedra() const
+const BaseMeshTopology::SeqHexahedra& MapTopology::getHexahedra() const
 {
 	return d_hexa.getValue();
 }
@@ -181,6 +181,14 @@ const MapTopology::QuadsInHexahedron&MapTopology::getQuadsInHexahedron(MapTopolo
 	if (!m_quadsInHexahedron.is_valid())
 		createQuadsInHexahedronArray();
 	return m_quadsInHexahedron.is_valid()? m_quadsInHexahedron[i] : empty;
+}
+
+const MapTopology::HexahedraAroundVertex& MapTopology::getHexahedraAroundVertex(MapTopology::PointID i)
+{
+	const static HexahedraAroundVertex empty;
+	if (!m_hexahedraAroundVertex.is_valid())
+		createHexahedraAroundVertexArray();
+	return m_hexahedraAroundVertex.is_valid()? m_hexahedraAroundVertex[i] : empty;
 }
 
 const sofa::helper::vector<Topology::index_type> MapTopology::getElementAroundElement(Topology::index_type elem)
