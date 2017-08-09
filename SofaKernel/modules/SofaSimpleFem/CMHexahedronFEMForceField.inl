@@ -931,8 +931,6 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeri
 	Displacement F; //forces
 	computeForce( F, D, _elementStiffnesses.getValue()[w] ); // compute force on element
 
-	msg_info("CMHexahedronFEMForceField") << "Displacement : " << F;
-
 	for(unsigned int i=0; i<dofs.size(); ++i)
 		f[dofs[i]] += _rotations[w].multTranspose( Deriv( F[i*3],  F[i*3+1],   F[i*3+2]  ) );
 
