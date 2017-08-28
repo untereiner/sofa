@@ -194,17 +194,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 			break;
 		}
 		/**/
-		/* Parallelisme naif
-		case LARGE :
-		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
-			{
-				accumulateForceLarge( f, p, w);
-			});
-			break;
-		}
-		/**/
-		/* Parallelisme specifique */
+		/* Parallelisme activé */
 		case LARGE :
 		{
 			cgogn::uint32 nbThreads = cgogn::nb_threads();
