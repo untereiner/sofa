@@ -35,6 +35,8 @@
 #include <assert.h>
 #include <iostream>
 #include <set>
+#include <chrono>
+#include <ctime>
 
 namespace sofa
 {
@@ -63,19 +65,19 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::TetrahedronHandler::appl
 
 		switch(ff->method)
 		{
-		case SMALL :
-			ff->computeMaterialStiffness(w,a,b,c,d);
-			ff->initSmall(w,a,b,c,d);
-			break;
-		case LARGE :
-			ff->computeMaterialStiffness(w,a,b,c,d);
-			ff->initLarge(w,a,b,c,d);
+			case SMALL :
+				ff->computeMaterialStiffness(w,a,b,c,d);
+				ff->initSmall(w,a,b,c,d);
+				break;
+			case LARGE :
+				ff->computeMaterialStiffness(w,a,b,c,d);
+				ff->initLarge(w,a,b,c,d);
 
-			break;
-		case POLAR :
-			ff->computeMaterialStiffness(w,a,b,c,d);
-			ff->initPolar(w,a,b,c,d);
-			break;
+				break;
+			case POLAR :
+				ff->computeMaterialStiffness(w,a,b,c,d);
+				ff->initPolar(w,a,b,c,d);
+				break;
 		}
 	}
 
@@ -96,6 +98,8 @@ CMTetrahedralCorotationalFEMForceField<DataTypes>::CMTetrahedralCorotationalFEMF
 	, drawColor3(initData(&drawColor3,defaulttype::Vec4f(0.0f,1.0f,1.0f,1.0f),"drawColor3"," draw color for faces 3"))
 	, drawColor4(initData(&drawColor4,defaulttype::Vec4f(0.5f,1.0f,1.0f,1.0f),"drawColor4"," draw color for faces 4"))
 	, tetrahedronHandler(NULL)
+	, totalTime(0)
+	, executionCount(0)
 {
 	this->addAlias(&_assembling, "assembling");
 	_poissonRatio.setWidget("poissonRatio");
@@ -112,6 +116,13 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::init()
 
 	this->getContext()->get(_topology);
 
+	if( _topology == NULL )
+	{
+		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Topology."<<sendl;
+		return;
+	}
+
+	// TODO : verify that _topoloy only contains tetrahedron
 	if (_topology->nb_cells<VolumeTopology::Volume::ORBIT>() == 0u)
 	{
 		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Tetrahedral Set Topology."<<sendl;
@@ -157,6 +168,9 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 template<class DataTypes>
 void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& /* d_v */)
 {
+	std::chrono::time_point<std::chrono::system_clock> start;
+	start = std::chrono::system_clock::now();
+
 	VecDeriv& f = *d_f.beginEdit();
 	const VecCoord& p = d_x.getValue();
 
@@ -164,23 +178,50 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 	{
 		case SMALL :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->foreach_cell([&](Volume w)
 			{
 				accumulateForceSmall( f, p, w);
 			});
 			break;
 		}
+		/* Sans parallèlisme
 		case LARGE :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->foreach_cell([&](Volume w)
 			{
 				accumulateForceLarge( f, p, w);
 			});
 			break;
 		}
+		/**/
+		/* Parallelisme activé */
+		case LARGE :
+		{
+			cgogn::uint32 nbThreads = cgogn::nb_threads();
+			unsigned int l = f.size();
+			VecDeriv threadF[nbThreads];
+			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
+			{
+				threadF[threadId].reserve(l);
+				for (unsigned int i = 0; i < l; ++i) threadF[threadId][i] = sofa::defaulttype::Vec3d();
+			}
+
+			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32 threadId)
+			{
+				VecDeriv& localF = threadF[threadId];
+				accumulateForceLarge( localF, p, w);
+			});
+
+			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
+			{
+				for (unsigned int i = 0; i < l; ++i) f[i] += threadF[threadId][i];
+			}
+			break;
+		}
+		/**/
 		case POLAR :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->foreach_cell([&](Volume w)
 			{
 				accumulateForcePolar( f, p, w);
 			});
@@ -188,6 +229,16 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 		}
 	}
 	d_f.endEdit();
+
+	std::chrono::time_point<std::chrono::system_clock> end;
+	end = std::chrono::system_clock::now();
+	std::chrono::duration<double> executionTime = end-start;
+	totalTime += executionTime;
+	executionCount++;
+
+	if (executionCount%100 == 0)
+		std::cout << "average execution time: " << 1000*totalTime.count()/executionCount
+				  << " - cpu: " << cgogn::nb_threads() << std::endl;
 }
 
 template<class DataTypes>
@@ -202,7 +253,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 	{
 		case SMALL :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->foreach_cell([&](Volume w)
 			{
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];
@@ -216,7 +267,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 		}
 		case LARGE :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->foreach_cell([&](Volume w)
 			{
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];
@@ -230,7 +281,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 		}
 		case POLAR :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->foreach_cell([&](Volume w)
 			{
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];
@@ -405,8 +456,8 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeMaterialStiffness
 	{
 		serr << "ERROR: Negative volume for tetra "<<a<<','<<b<<','<<c<<','<<d<<"> = "<<volumes6/6<<sendl;
 	}
-//	materialMatrix  /= (volumes6);//*6 christian
-//    /// @TODO: in TetrahedronFEMForceField, the stiffness matrix is divided by 6 compared to the code in TetrahedralCorotationalFEMForceField. Check which is the correct one...
+	//	materialMatrix  /= (volumes6);//*6 christian
+	//    /// @TODO: in TetrahedronFEMForceField, the stiffness matrix is divided by 6 compared to the code in TetrahedralCorotationalFEMForceField. Check which is the correct one...
 
 	// FF:  there is normally  a factor 1/6v in the strain-displacement matrix. Times transpose makes 1/36v². Integrating accross the volume multiplies by v, so the factor is 1/36v
 	materialMatrix  /= (volumes6*6);
@@ -427,27 +478,27 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 	F = J*(K*(J.multTranspose(Depl)));
 #else
 	/* We have these zeros
-								  K[0][3]   K[0][4]   K[0][5]
-								  K[1][3]   K[1][4]   K[1][5]
-								  K[2][3]   K[2][4]   K[2][5]
-	K[3][0]   K[3][1]   K[3][2]             K[3][4]   K[3][5]
-	K[4][0]   K[4][1]   K[4][2]   K[4][3]             K[4][5]
-	K[5][0]   K[5][1]   K[5][2]   K[5][3]   K[5][4]
+									   K[0][3]   K[0][4]   K[0][5]
+									   K[1][3]   K[1][4]   K[1][5]
+									   K[2][3]   K[2][4]   K[2][5]
+		 K[3][0]   K[3][1]   K[3][2]             K[3][4]   K[3][5]
+		 K[4][0]   K[4][1]   K[4][2]   K[4][3]             K[4][5]
+		 K[5][0]   K[5][1]   K[5][2]   K[5][3]   K[5][4]
 
 
-			  J[0][1]   J[0][2]             J[0][4]
-	J[1][0]             J[1][2]                       J[1][5]
-	J[2][0]   J[2][1]             J[2][3]
-			  J[3][1]   J[3][2]             J[3][4]
-	J[4][0]             J[4][2]                       J[4][5]
-	J[5][0]   J[5][1]             J[5][3]
-			  J[6][1]   J[6][2]             J[6][4]
-	J[7][0]             J[7][2]                       J[7][5]
-	J[8][0]   J[8][1]             J[8][3]
-			  J[9][1]   J[9][2]             J[9][4]
-	J[10][0]            J[10][2]                      J[10][5]
-	J[11][0]  J[11][1]            J[11][3]
-	*/
+				   J[0][1]   J[0][2]             J[0][4]
+		 J[1][0]             J[1][2]                       J[1][5]
+		 J[2][0]   J[2][1]             J[2][3]
+				   J[3][1]   J[3][2]             J[3][4]
+		 J[4][0]             J[4][2]                       J[4][5]
+		 J[5][0]   J[5][1]             J[5][3]
+				   J[6][1]   J[6][2]             J[6][4]
+		 J[7][0]             J[7][2]                       J[7][5]
+		 J[8][0]   J[8][1]             J[8][3]
+				   J[9][1]   J[9][2]             J[9][4]
+		 J[10][0]            J[10][2]                      J[10][5]
+		 J[11][0]  J[11][1]            J[11][3]
+		 */
 
 	defaulttype::VecNoInit<6,Real> JtD;
 	JtD[0] =   J[ 0][0]*Depl[ 0]+/*J[ 1][0]*Depl[ 1]+  J[ 2][0]*Depl[ 2]+*/
@@ -483,11 +534,11 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 	KJtD[2] =   K[2][0]*JtD[0]+  K[2][1]*JtD[1]+  K[2][2]*JtD[2]
 			/*K[2][3]*JtD[3]+  K[2][4]*JtD[4]+  K[2][5]*JtD[5]*/;
 	KJtD[3] = /*K[3][0]*JtD[0]+  K[3][1]*JtD[1]+  K[3][2]*JtD[2]+*/
-		K[3][3]*JtD[3] /*K[3][4]*JtD[4]+  K[3][5]*JtD[5]*/;
+			K[3][3]*JtD[3] /*K[3][4]*JtD[4]+  K[3][5]*JtD[5]*/;
 	KJtD[4] = /*K[4][0]*JtD[0]+  K[4][1]*JtD[1]+  K[4][2]*JtD[2]+*/
-		/*K[4][3]*JtD[3]+*/K[4][4]*JtD[4] /*K[4][5]*JtD[5]*/;
+			/*K[4][3]*JtD[3]+*/K[4][4]*JtD[4] /*K[4][5]*JtD[5]*/;
 	KJtD[5] = /*K[5][0]*JtD[0]+  K[5][1]*JtD[1]+  K[5][2]*JtD[2]+*/
-		/*K[5][3]*JtD[3]+  K[5][4]*JtD[4]+*/K[5][5]*JtD[5]  ;
+			/*K[5][3]*JtD[3]+  K[5][4]*JtD[4]+*/K[5][5]*JtD[5]  ;
 
 	F[ 0] =   J[ 0][0]*KJtD[0]+/*J[ 0][1]*KJtD[1]+  J[ 0][2]*KJtD[2]+*/
 			J[ 0][3]*KJtD[3]+/*J[ 0][4]*KJtD[4]+*/J[ 0][5]*KJtD[5]  ;
@@ -513,11 +564,11 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 			J[10][3]*KJtD[3]+  J[10][4]*KJtD[4] /*J[10][5]*KJtD[5]*/;
 	F[11] = /*J[11][0]*KJtD[0]+  J[11][1]*KJtD[1]+*/J[11][2]*KJtD[2]+
 			/*J[11][3]*KJtD[3]+*/J[11][4]*KJtD[4]+  J[11][5]*KJtD[5]  ;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, D = "<<Depl<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, JtD = "<<JtD<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, K = "<<K<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, KJtD = "<<KJtD<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, F = "<<F<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, D = "<<Depl<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, JtD = "<<JtD<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, K = "<<K<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, KJtD = "<<KJtD<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, F = "<<F<<sendl;
 #endif
 }
 
@@ -536,27 +587,27 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 	F *= fact;
 #else
 	/* We have these zeros
-								  K[0][3]   K[0][4]   K[0][5]
-								  K[1][3]   K[1][4]   K[1][5]
-								  K[2][3]   K[2][4]   K[2][5]
-	K[3][0]   K[3][1]   K[3][2]             K[3][4]   K[3][5]
-	K[4][0]   K[4][1]   K[4][2]   K[4][3]             K[4][5]
-	K[5][0]   K[5][1]   K[5][2]   K[5][3]   K[5][4]
+									   K[0][3]   K[0][4]   K[0][5]
+									   K[1][3]   K[1][4]   K[1][5]
+									   K[2][3]   K[2][4]   K[2][5]
+		 K[3][0]   K[3][1]   K[3][2]             K[3][4]   K[3][5]
+		 K[4][0]   K[4][1]   K[4][2]   K[4][3]             K[4][5]
+		 K[5][0]   K[5][1]   K[5][2]   K[5][3]   K[5][4]
 
 
-			  J[0][1]   J[0][2]             J[0][4]
-	J[1][0]             J[1][2]                       J[1][5]
-	J[2][0]   J[2][1]             J[2][3]
-			  J[3][1]   J[3][2]             J[3][4]
-	J[4][0]             J[4][2]                       J[4][5]
-	J[5][0]   J[5][1]             J[5][3]
-			  J[6][1]   J[6][2]             J[6][4]
-	J[7][0]             J[7][2]                       J[7][5]
-	J[8][0]   J[8][1]             J[8][3]
-			  J[9][1]   J[9][2]             J[9][4]
-	J[10][0]            J[10][2]                      J[10][5]
-	J[11][0]  J[11][1]            J[11][3]
-	*/
+				   J[0][1]   J[0][2]             J[0][4]
+		 J[1][0]             J[1][2]                       J[1][5]
+		 J[2][0]   J[2][1]             J[2][3]
+				   J[3][1]   J[3][2]             J[3][4]
+		 J[4][0]             J[4][2]                       J[4][5]
+		 J[5][0]   J[5][1]             J[5][3]
+				   J[6][1]   J[6][2]             J[6][4]
+		 J[7][0]             J[7][2]                       J[7][5]
+		 J[8][0]   J[8][1]             J[8][3]
+				   J[9][1]   J[9][2]             J[9][4]
+		 J[10][0]            J[10][2]                      J[10][5]
+		 J[11][0]  J[11][1]            J[11][3]
+		 */
 
 	defaulttype::VecNoInit<6,Real> JtD;
 	JtD[0] =   J[ 0][0]*Depl[ 0]+/*J[ 1][0]*Depl[ 1]+  J[ 2][0]*Depl[ 2]+*/
@@ -583,8 +634,8 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 			J[ 3][5]*Depl[ 3]+/*J[ 4][5]*Depl[ 4]*/ J[ 5][5]*Depl[ 5]+
 			J[ 6][5]*Depl[ 6]+/*J[ 7][5]*Depl[ 7]*/ J[ 8][5]*Depl[ 8]+
 			J[ 9][5]*Depl[ 9]+/*J[10][5]*Depl[10]*/ J[11][5]*Depl[11];
-//         serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, D = "<<Depl<<sendl;
-//         serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, JtD = "<<JtD<<sendl;
+	//         serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, D = "<<Depl<<sendl;
+	//         serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, JtD = "<<JtD<<sendl;
 
 	defaulttype::VecNoInit<6,Real> KJtD;
 	KJtD[0] =   K[0][0]*JtD[0]+  K[0][1]*JtD[1]+  K[0][2]*JtD[2]
@@ -594,11 +645,11 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 	KJtD[2] =   K[2][0]*JtD[0]+  K[2][1]*JtD[1]+  K[2][2]*JtD[2]
 			/*K[2][3]*JtD[3]+  K[2][4]*JtD[4]+  K[2][5]*JtD[5]*/;
 	KJtD[3] = /*K[3][0]*JtD[0]+  K[3][1]*JtD[1]+  K[3][2]*JtD[2]+*/
-		K[3][3]*JtD[3] /*K[3][4]*JtD[4]+  K[3][5]*JtD[5]*/;
+			K[3][3]*JtD[3] /*K[3][4]*JtD[4]+  K[3][5]*JtD[5]*/;
 	KJtD[4] = /*K[4][0]*JtD[0]+  K[4][1]*JtD[1]+  K[4][2]*JtD[2]+*/
-		/*K[4][3]*JtD[3]+*/K[4][4]*JtD[4] /*K[4][5]*JtD[5]*/;
+			/*K[4][3]*JtD[3]+*/K[4][4]*JtD[4] /*K[4][5]*JtD[5]*/;
 	KJtD[5] = /*K[5][0]*JtD[0]+  K[5][1]*JtD[1]+  K[5][2]*JtD[2]+*/
-		/*K[5][3]*JtD[3]+  K[5][4]*JtD[4]+*/K[5][5]*JtD[5]  ;
+			/*K[5][3]*JtD[3]+  K[5][4]*JtD[4]+*/K[5][5]*JtD[5]  ;
 
 	KJtD *= fact;
 
@@ -627,11 +678,11 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 	F[11] = /*J[11][0]*KJtD[0]+  J[11][1]*KJtD[1]+*/J[11][2]*KJtD[2]+
 			/*J[11][3]*KJtD[3]+*/J[11][4]*KJtD[4]+  J[11][5]*KJtD[5]  ;
 
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, D = "<<Depl<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, JtD = "<<JtD<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, K = "<<K<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, KJtD = "<<KJtD<<sendl;
-//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, F = "<<F<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, D = "<<Depl<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, JtD = "<<JtD<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, K = "<<K<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, KJtD = "<<KJtD<<sendl;
+	//        serr<<"TetrahedronFEMForceField<DataTypes>::computeForce, F = "<<F<<sendl;
 
 #endif
 }
@@ -744,8 +795,8 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::accumulateForceSmall( Ve
 		}
 
 		/*for(unsigned int i=0;i<_stiffnesses.size();++i)
-			for(typename CompressedValue::iterator it=_stiffnesses[i].begin();it!=_stiffnesses[i].end();++it)
-				serr<<i<<" "<<(*it).first<<"   "<<(*it).second<<"   "<<JKJt[i][(*it).first]<<sendl;*/
+				 for(typename CompressedValue::iterator it=_stiffnesses[i].begin();it!=_stiffnesses[i].end();++it)
+					 serr<<i<<" "<<(*it).first<<"   "<<(*it).second<<"   "<<JKJt[i][(*it).first]<<sendl;*/
 
 		F = JKJt * D;
 	}
@@ -961,16 +1012,16 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::initLarge(Volume w, Inde
 	tetrahedronInf[w.dart].rotatedInitialElements[3] = R_0_1*(X0)[d];
 
 	tetrahedronInf[w.dart].initialTransformation = R_0_1;
-//	serr<<"a,b,c : "<<a<<" "<<b<<" "<<c<<sendl;
-//	serr<<"_initialPoints : "<<_initialPoints<<sendl;
-//	serr<<"R_0_1 large : "<<R_0_1<<sendl;
+	//	serr<<"a,b,c : "<<a<<" "<<b<<" "<<c<<sendl;
+	//	serr<<"_initialPoints : "<<_initialPoints<<sendl;
+	//	serr<<"R_0_1 large : "<<R_0_1<<sendl;
 
 	tetrahedronInf[w.dart].rotatedInitialElements[1] -= tetrahedronInf[w.dart].rotatedInitialElements[0];
 	tetrahedronInf[w.dart].rotatedInitialElements[2] -= tetrahedronInf[w.dart].rotatedInitialElements[0];
 	tetrahedronInf[w.dart].rotatedInitialElements[3] -= tetrahedronInf[w.dart].rotatedInitialElements[0];
 	tetrahedronInf[w.dart].rotatedInitialElements[0] = Coord(0,0,0);
 
-//	serr<<"_rotatedInitialElements : "<<_rotatedInitialElements<<sendl;
+	//	serr<<"_rotatedInitialElements : "<<_rotatedInitialElements<<sendl;
 
 	computeStrainDisplacement( tetrahedronInf[w.dart].strainDisplacementTransposedMatrix,tetrahedronInf[w.dart].rotatedInitialElements[0], tetrahedronInf[w.dart].rotatedInitialElements[1],tetrahedronInf[w.dart].rotatedInitialElements[2],tetrahedronInf[w.dart].rotatedInitialElements[3] );
 
@@ -1044,13 +1095,13 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::accumulateForceLarge( Ve
 
 		//serr<<"p large : "<<p<<sendl;
 		//serr<<"F large : "<<f<<sendl;
-//		for(int i=0;i<12;i+=3)
-//		{
-//			Vec tmp;
-//			v_eq_Ab( tmp, _rotations[elementIndex], Vec( F[i], F[i+1],  F[i+2] ) );
-//			serr<<tmp<<"\t";
-//		}
-//		serr<<sendl;
+		//		for(int i=0;i<12;i+=3)
+		//		{
+		//			Vec tmp;
+		//			v_eq_Ab( tmp, _rotations[elementIndex], Vec( F[i], F[i+1],  F[i+2] ) );
+		//			serr<<tmp<<"\t";
+		//		}
+		//		serr<<sendl;
 	}
 	else
 	{
@@ -1323,22 +1374,22 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::draw(const core::visual:
 		Coord pc = (x[c]+center)*(Real)0.666667;
 		Coord pd = (x[d]+center)*(Real)0.666667;
 
-// 		glColor4f(0,0,1,1);
+		// 		glColor4f(0,0,1,1);
 		points[0].push_back(pa);
 		points[0].push_back(pb);
 		points[0].push_back(pc);
 
-// 		glColor4f(0,0.5,1,1);
+		// 		glColor4f(0,0.5,1,1);
 		points[1].push_back(pb);
 		points[1].push_back(pc);
 		points[1].push_back(pd);
 
-// 		glColor4f(0,1,1,1);
+		// 		glColor4f(0,1,1,1);
 		points[2].push_back(pc);
 		points[2].push_back(pd);
 		points[2].push_back(pa);
 
-// 		glColor4f(0.5,1,1,1);
+		// 		glColor4f(0.5,1,1,1);
 		points[3].push_back(pd);
 		points[3].push_back(pa);
 		points[3].push_back(pb);
@@ -1427,29 +1478,29 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::printStiffnessMatrix(Vol
 	computeStiffnessMatrix(JKJt,tmp,tetrahedronInf[w.dart].materialMatrix,tetrahedronInf[w.dart].strainDisplacementTransposedMatrix,Rot);
 
 
-//	std::cout<<"TetrahedralCorotationalFEMForceField<DataTypes>::  Element "<<idTetra <<"   ===STIFNESSMATRIX===="<<std::endl;
-//	for(int inode=0;inode<4;inode++)
-//	{
-//		for(int icomp=0;icomp<3;icomp++)
-//		{
-//			int imatrix=inode*3+icomp;
-//
-//			for(int jnode=0;jnode<4;jnode++)
-//			{
-//				std::cout<<"| ";
-//				for(int jcomp=0;jcomp<3;jcomp++)
-//				{
-//					   int jmatrix=jnode*3+jcomp;
-//					std::cout<<JKJt[imatrix][jmatrix]<<" ";
-//				}
-//			}
-//			std::cout<<" |"<<std::endl;
-//		}
-//		std::cout<<std::endl;
-//	}
-//
-//	//<<JKJt<<std::endl
-//	std::cout<<"==============================================================="<<std::endl;
+	//	std::cout<<"TetrahedralCorotationalFEMForceField<DataTypes>::  Element "<<idTetra <<"   ===STIFNESSMATRIX===="<<std::endl;
+	//	for(int inode=0;inode<4;inode++)
+	//	{
+	//		for(int icomp=0;icomp<3;icomp++)
+	//		{
+	//			int imatrix=inode*3+icomp;
+	//
+	//			for(int jnode=0;jnode<4;jnode++)
+	//			{
+	//				std::cout<<"| ";
+	//				for(int jcomp=0;jcomp<3;jcomp++)
+	//				{
+	//					   int jmatrix=jnode*3+jcomp;
+	//					std::cout<<JKJt[imatrix][jmatrix]<<" ";
+	//				}
+	//			}
+	//			std::cout<<" |"<<std::endl;
+	//		}
+	//		std::cout<<std::endl;
+	//	}
+	//
+	//	//<<JKJt<<std::endl
+	//	std::cout<<"==============================================================="<<std::endl;
 
 }
 

@@ -80,10 +80,13 @@ public:
 	typedef core::objectmodel::Data<VecDeriv>    DataVecDeriv;
 	typedef core::objectmodel::Data<VecCoord>    DataVecCoord;
 
-	enum { SMALL = 0, ///< Symbol of small displacements tetrahedron solver
-			LARGE = 1, ///< Symbol of large displacements tetrahedron solver
-			POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
-		 };
+	enum
+	{
+		SMALL = 0, ///< Symbol of small displacements tetrahedron solver
+		LARGE = 1, ///< Symbol of large displacements tetrahedron solver
+		POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
+	};
+
 protected:
 
 	/// @name Per element (tetrahedron) data
@@ -268,6 +271,11 @@ public:
 	{
 	  return "CMTetrahedralCorotationalFEMForceField";
 	}
+
+private:
+	/// timers
+	std::chrono::duration<double> totalTime;
+	int executionCount;
 };
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMTETRAHEDRALCOROTATIONALFEMFORCEFIELD_CPP)

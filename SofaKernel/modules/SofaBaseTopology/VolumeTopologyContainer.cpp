@@ -38,8 +38,8 @@ namespace topology
 
 SOFA_DECL_CLASS(VolumeTopologyContainer)
 int VolumeTopologyContainerClass = core::RegisterObject("Volume topology container")
-        .add< VolumeTopologyContainer >()
-        ;
+		.add< VolumeTopologyContainer >()
+		;
 
 VolumeTopologyContainer::VolumeTopologyContainer()
 {
@@ -125,6 +125,21 @@ void VolumeTopologyContainer::createEdgesAroundVertexArray()
 	});
 }
 
+void VolumeTopologyContainer::createHexahedraAroundVertexArray()
+{
+	if (!this->m_hexahedraAroundVertex.is_valid())
+		this->m_hexahedraAroundVertex = this->template check_attribute<HexahedraAroundVertex, Vertex>("HexahedraAroundVertexArray");
+	assert(this->m_hexahedraAroundVertex.is_valid());
+	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	{
+		auto & hexahedra = this->m_hexahedraAroundVertex[v.dart];
+		foreach_incident_volume(v, [this,&hexahedra](Volume w)
+		{
+			hexahedra.push_back(topology_.embedding(w));
+		});
+	});
+}
+
 void VolumeTopologyContainer::createEdgesInTetrahedronArray()
 {
 	if (!this->m_edgesInTetrahedron.is_valid())
@@ -168,21 +183,6 @@ void VolumeTopologyContainer::createTetrahedraAroundTriangleArray()
 		foreach_incident_volume(f, [this,&tetras](Volume w)
 		{
 			tetras.push_back(topology_.embedding(w));
-		});
-	});
-}
-
-void VolumeTopologyContainer::createHexahedraAroundVertexArray()
-{
-	if (!this->m_hexahedraAroundVertex.is_valid())
-		this->m_hexahedraAroundVertex = this->template check_attribute<HexahedraAroundVertex, Vertex>("HexahedraAroundVertexArray");
-	assert(this->m_hexahedraAroundVertex.is_valid());
-	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
-	{
-		auto & hexahedra = this->m_hexahedraAroundVertex[v.dart];
-		foreach_incident_volume(v, [this,&hexahedra](Volume w)
-		{
-			hexahedra.push_back(topology_.embedding(w));
 		});
 	});
 }
