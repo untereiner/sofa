@@ -264,18 +264,18 @@ protected:
 
 	virtual void createTriangleSetArray() = 0;
 
+	virtual void createEdgesAroundVertexArray() = 0;
 	virtual void createEdgesInTriangleArray() = 0;
 	virtual void createEdgesInQuadArray() = 0;
+	virtual void createEdgesInTetrahedronArray() = 0;
+	virtual void createEdgesInHexahedronArray();
 	virtual void createTrianglesAroundVertexArray() = 0;
 	virtual void createTrianglesAroundEdgeArray() = 0;
-	virtual void createEdgesAroundVertexArray() = 0;
 	virtual void createTrianglesInTetrahedronArray() = 0;
-	virtual void createEdgesInTetrahedronArray() = 0;
-	virtual void createTetrahedraAroundTriangleArray() = 0;
-	virtual void createHexahedraAroundVertexArray();
-	virtual void createHexahedraAroundQuadArray();
-	virtual void createEdgesInHexahedronArray();
 	virtual void createQuadsInHexahedronArray();
+	virtual void createTetrahedraAroundTriangleArray() = 0;
+	virtual void createHexahedraAroundVertexArray() = 0;
+	virtual void createHexahedraAroundQuadArray();
 
 	Attribute_T<EdgeDOFs> edge_dofs_;
 	Attribute_T<FaceDOFs> face_dofs_;
@@ -311,21 +311,21 @@ public:
 
 	const SeqEdges& getEdgeArray();
 
+	const VerticesAroundVertex getVerticesAroundVertex(PointID i);
 	const EdgesAroundVertex& getEdgesAroundVertex(PointID i);
 	const EdgesInTriangle& getEdgesInTriangle(TriangleID i);
 	const EdgesInQuad& getEdgesInQuad(QuadID i);
+	const EdgesInTetrahedron& getEdgesInTetrahedron(TetrahedronID i);
+	const EdgesInHexahedron& getEdgesInHexahedron(HexahedronID i);
 	const TrianglesAroundVertex& getTrianglesAroundVertex(PointID i);
 	const TrianglesAroundEdge& getTrianglesAroundEdge(EdgeID i);
+	const TrianglesInTetrahedron& getTrianglesInTetrahedron(TetrahedronID i);
 	const QuadsAroundVertex& getQuadsAroundVertex(PointID i);
 	const QuadsAroundEdge& getQuadsAroundEdge(EdgeID i);
-	const VerticesAroundVertex getVerticesAroundVertex(PointID i);
-	const TrianglesInTetrahedron& getTrianglesInTetrahedron(TetrahedronID i);
-	const EdgesInTetrahedron& getEdgesInTetrahedron(TetrahedronID i);
+	const QuadsInHexahedron& getQuadsInHexahedron(HexahedronID i);
 	const TetrahedraAroundTriangle& getTetrahedraAroundTriangle(TetrahedronID i);
 	const HexahedraAroundVertex& getHexahedraAroundVertex(PointID i);
 	const HexahedraAroundQuad& getHexahedraAroundQuad(QuadID i);
-	const EdgesInHexahedron& getEdgesInHexahedron(HexahedronID i);
-	const QuadsInHexahedron& getQuadsInHexahedron(HexahedronID i);
 
 	const sofa::helper::vector<index_type> getElementAroundElement(index_type elem);
 	const sofa::helper::vector<index_type> getElementAroundElements(sofa::helper::vector<index_type> elems);

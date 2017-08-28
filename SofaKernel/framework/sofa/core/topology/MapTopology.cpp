@@ -80,7 +80,7 @@ const BaseMeshTopology::SeqTetrahedra&MapTopology::getTetrahedra()
 	return d_tetra.getValue();
 }
 
-const BaseMeshTopology::SeqHexahedra&MapTopology::getHexahedra() const
+const BaseMeshTopology::SeqHexahedra& MapTopology::getHexahedra() const
 {
 	return d_hexa.getValue();
 }

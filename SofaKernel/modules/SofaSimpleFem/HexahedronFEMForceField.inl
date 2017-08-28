@@ -1053,12 +1053,15 @@ void HexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeriv 
     Displacement F; //forces
     computeForce( F, D, _elementStiffnesses.getValue()[i] ); // compute force on element
 
-    for(int w=0; w<8; ++w)
+	for(int w=0; w<8; ++w){
 #ifndef SOFA_NEW_HEXA
         f[elem[_indices[w]]] += _rotations[i].multTranspose( Deriv( F[w*3],  F[w*3+1],   F[w*3+2]  ) );
+		msg_info("HexahedronFEMForceField") << "Displacement : " << f[elem[_indices[w]]];
+
 #else
         f[elem[w]] += _rotations[i].multTranspose( Deriv( F[w*3],  F[w*3+1],   F[w*3+2]  ) );
 #endif
+	}
 
     m_potentialEnergy += dot(Deriv( F[0], F[1], F[2] ) ,-Deriv( D[0], D[1], D[2]));
     m_potentialEnergy += dot(Deriv( F[3], F[4], F[5] ) ,-Deriv( D[3], D[4], D[5] ));

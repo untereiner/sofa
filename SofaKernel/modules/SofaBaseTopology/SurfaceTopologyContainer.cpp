@@ -180,6 +180,11 @@ void SurfaceTopologyContainer::createTetrahedraAroundTriangleArray()
 
 }
 
+void SurfaceTopologyContainer::createHexahedraAroundVertexArray()
+{
+
+}
+
 void SurfaceTopologyContainer::init()
 {
 	topology_.clear_and_remove_attributes();

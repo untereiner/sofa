@@ -19,10 +19,10 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#ifndef SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_INL
-#define SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_INL
+#ifndef SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_INL
+#define SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_INL
 
-#include "CMHexahedronFEMForceField.h"
+#include <SofaSimpleFem/CMHexahedronFEMForceField.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/simulation/Simulation.h>
 #include <sofa/helper/decompose.h>
@@ -65,16 +65,11 @@ namespace cm_forcefield
 using std::set;
 using namespace sofa::defaulttype;
 
-#ifndef SOFA_NEW_HEXA
-template<class DataTypes> const int HexahedronFEMForceField<DataTypes>::_indices[8] = {0,1,3,2,4,5,7,6};
-// template<class DataTypes> const int HexahedronFEMForceField<DataTypes>::_indices[8] = {4,5,7,6,0,1,3,2};
-#endif
 
 template <class DataTypes>
 CMHexahedronFEMForceField<DataTypes>::CMHexahedronFEMForceField()
 	: _elementStiffnesses(initData(&_elementStiffnesses,"stiffnessMatrices", "Stiffness matrices per element (K_i)"))
-	, _topology(NULL)
-	, _sparseGrid(NULL)
+	, _mesh(NULL)
 	, _initialPoints(initData(&_initialPoints,"initialPoints", "Initial Position"))
 	, data(new CMHexahedronFEMForceFieldInternalData<DataTypes>())
 	, f_method(initData(&f_method,std::string("large"),"method","\"large\" or \"polar\" or \"small\" displacements" ))
@@ -114,6 +109,8 @@ CMHexahedronFEMForceField<DataTypes>::CMHexahedronFEMForceField()
 	_coef[6][2]=1;
 	_coef[7][2]=1;
 
+	_alreadyInit=false;
+
 	f_poissonRatio.setRequired(true);
 	f_youngModulus.setRequired(true);
 }
@@ -121,28 +118,21 @@ CMHexahedronFEMForceField<DataTypes>::CMHexahedronFEMForceField()
 template <class DataTypes>
 void CMHexahedronFEMForceField<DataTypes>::init()
 {
+	if(_alreadyInit)return;
+	else _alreadyInit=true;
+
 	this->core::behavior::ForceField<DataTypes>::init();
+	this->getContext()->get(_mesh);
 
-	this->getContext()->get(_topology);
+	_materialsStiffnesses = _mesh->add_attribute<MaterialStiffness, Volume>("CMHexahedronFEMForceField_MaterialStiffness");
+	_rotations = _mesh->add_attribute<Transformation, Volume>("CMHexahedronFEMForceField_Rotations");
+	_rotatedInitialElements = _mesh->add_attribute<helper::fixed_array<Coord,8>, Volume>("CMHexahedronFEMForceField_RotatedInitiaElements");
+	_initialrotations = _mesh->add_attribute<Transformation, Volume>("CMHexahedronFEMForceField_InitialRotations");
 
-	if( _topology == NULL )
-	{
-		serr << "ERROR(HexahedronFEMForceField): object must have a Topology."<<sendl;
-		return;
-	}
+	_elementStiffnesses = _mesh->add_attribute<ElementStiffness, Volume>("CMHexahedronFEMForceField_ElementStiffness");
 
-	// TODO : verify that _topoloy only contains hexadron
-	if (_topology->nb_cells<VolumeTopology::Volume::ORBIT>() == 0u)
-	{
-		serr << "ERROR(HexahedronFEMForceField): object must have a Hexahedric Topology." << sendl;
-		return;
-	}
 
 	m_potentialEnergy = 0;
-
-	// 	if( _elementStiffnesses.getValue().empty() )
-	// 		_elementStiffnesses.beginEdit()->resize(this->getIndexedElements()->size());
-	// 	_stiffnesses.resize( _initialPoints.getValue().size()*3 ); // assembly ?
 
 	reinit();
 }
@@ -151,17 +141,8 @@ void CMHexahedronFEMForceField<DataTypes>::init()
 template <class DataTypes>
 void CMHexahedronFEMForceField<DataTypes>::reinit()
 {
-
-	//if (_initialPoints.getValue().size() == 0)
-	//{
 	const VecCoord& p = this->mstate->read(core::ConstVecCoordId::restPosition())->getValue();
 	_initialPoints.setValue(p);
-	//}
-
-	_materialsStiffnesses.resize(this->getIndexedElements()->size() );
-	_rotations.resize( this->getIndexedElements()->size() );
-	_rotatedInitialElements.resize(this->getIndexedElements()->size());
-	_initialrotations.resize( this->getIndexedElements()->size() );
 
 	if (f_method.getValue() == "large")
 		this->setMethod(LARGE);
@@ -174,35 +155,29 @@ void CMHexahedronFEMForceField<DataTypes>::reinit()
 	{
 		case LARGE :
 		{
-			unsigned int i=0;
-			typename VecElement::const_iterator it;
-			for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
+			_mesh->foreach_cell([&](Volume w)
 			{
-				computeMaterialStiffness(i);
-				initLarge(i,*it);
-			}
+				computeMaterialStiffness(w);
+				initLarge(w);
+			});
 			break;
 		}
 		case POLAR :
 		{
-			unsigned int i=0;
-			typename VecElement::const_iterator it;
-			for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
+			_mesh->foreach_cell([&](Volume w)
 			{
-				computeMaterialStiffness(i);
-				initPolar(i,*it);
-			}
+				computeMaterialStiffness(w);
+				initPolar(w);
+			});
 			break;
 		}
 		case SMALL :
 		{
-			unsigned int i=0;
-			typename VecElement::const_iterator it;
-			for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
+			_mesh->foreach_cell([&](Volume w)
 			{
-				computeMaterialStiffness(i);
-				initSmall(i,*it);
-			}
+				computeMaterialStiffness(w);
+				initSmall(w);
+			});
 			break;
 		}
 	}
@@ -231,48 +206,43 @@ void CMHexahedronFEMForceField<DataTypes>::addForce (const core::MechanicalParam
 		needUpdateTopology = false;
 	}
 
-	unsigned int i=0;
-	typename VecElement::const_iterator it;
-
 	switch(method)
 	{
 		case LARGE :
 		{
 			m_potentialEnergy = 0;
-			for(it=this->getIndexedElements()->begin(); it!=this->getIndexedElements()->end(); ++it,++i)
+			_mesh->foreach_cell([&](Volume w)
 			{
-				accumulateForceLarge( _f, _p, i, *it );
-			}
+				accumulateForceLarge(_f, _p, w);
+			});
 			m_potentialEnergy/=-2.0;
 			break;
 		}
 		case POLAR :
 		{
 			m_potentialEnergy = 0;
-			for(it=this->getIndexedElements()->begin(); it!=this->getIndexedElements()->end(); ++it,++i)
+			_mesh->foreach_cell([&](Volume w)
 			{
-				accumulateForcePolar( _f, _p, i, *it );
-			}
+				accumulateForcePolar( _f, _p, w);
+			});
 			m_potentialEnergy/=-2.0;
 			break;
 		}
 		case SMALL :
 		{
 			m_potentialEnergy = 0;
-			for(it=this->getIndexedElements()->begin(); it!=this->getIndexedElements()->end(); ++it,++i)
+			_mesh->foreach_cell([&](Volume w)
 			{
-				accumulateForceSmall( _f, _p, i, *it );
-			}
+				accumulateForceSmall( _f, _p, w);
+			});
 			m_potentialEnergy/=-2.0;
 			break;
 		}
 	}
-
-
 }
 
 template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::addDForce (const core::MechanicalParams *mparams, DataVecDeriv& v, const DataVecDeriv& x)
+void CMHexahedronFEMForceField<DataTypes>::addDForce(const core::MechanicalParams *mparams, DataVecDeriv& v, const DataVecDeriv& x)
 {
 	WDataRefVecDeriv _df = v;
 	RDataRefVecCoord _dx = x;
@@ -281,53 +251,34 @@ void CMHexahedronFEMForceField<DataTypes>::addDForce (const core::MechanicalPara
 	if (_df.size() != _dx.size())
 		_df.resize(_dx.size());
 
-	unsigned int i = 0;
-	typename VecElement::const_iterator it;
-
-	for(it = this->getIndexedElements()->begin() ; it != this->getIndexedElements()->end() ; ++it, ++i)
+	_mesh->foreach_cell([&](Volume w)
 	{
-		// Transformation R_0_2;
-		// R_0_2.transpose(_rotations[i]);
-
 		Displacement X;
 
-		for(int w=0; w<8; ++w)
+		const auto& dofs = _mesh->get_dofs(w);
+
+		for(unsigned int i=0; i<dofs.size(); ++i)
 		{
 			Coord x_2;
-#ifndef SOFA_NEW_HEXA
-			x_2 = _rotations[i] * _dx[(*it)[_indices[w]]];
-#else
-			x_2 = _rotations[i] * _dx[(*it)[w]];
-#endif
-			X[w*3] = x_2[0];
-			X[w*3+1] = x_2[1];
-			X[w*3+2] = x_2[2];
+
+			x_2 = _rotations[w] * _dx[dofs[i]];
+
+			X[i*3] = x_2[0];
+			X[i*3+1] = x_2[1];
+			X[i*3+2] = x_2[2];
 		}
 
 		Displacement F;
-		computeForce( F, X, _elementStiffnesses.getValue()[i] );
+		computeForce( F, X, _elementStiffnesses.getValue()[w]);
 
-		for(int w=0; w<8; ++w)
-		{
-#ifndef SOFA_NEW_HEXA
-			_df[(*it)[_indices[w]]] -= _rotations[i].multTranspose(Deriv(F[w*3], F[w*3+1], F[w*3+2])) * kFactor;
-#else
-			_df[(*it)[w]] -= _rotations[i].multTranspose(Deriv(F[w*3], F[w*3+1], F[w*3+2])) * kFactor;
-#endif
-		}
-	}
-}
-
-template <class DataTypes>
-const typename CMHexahedronFEMForceField<DataTypes>::Transformation& CMHexahedronFEMForceField<DataTypes>::getElementRotation(const unsigned elemidx)
-{
-	return _rotations[elemidx];
+		for(unsigned int i=0; i<dofs.size(); ++i)
+			_df[dofs[i]] -= _rotations[w].multTranspose(Deriv(F[i*3], F[i*3+1], F[i*3+2])) * kFactor;
+	});
 }
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-
 
 
 
@@ -341,7 +292,7 @@ const typename CMHexahedronFEMForceField<DataTypes>::Transformation& CMHexahedro
 
 
 template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::computeElementStiffness( ElementStiffness &K, const MaterialStiffness &M, const helper::fixed_array<Coord,8> &nodes, const int elementIndice, double stiffnessFactor)
+void CMHexahedronFEMForceField<DataTypes>::computeElementStiffness( ElementStiffness &K, const MaterialStiffness &M, const helper::fixed_array<Coord,8> &nodes, const Index elementIndice, double stiffnessFactor)
 {
 	// 	serr<<"HexahedronFEMForceField<DataTypes>::computeElementStiffnessAsFinest"<<sendl;
 
@@ -598,6 +549,41 @@ void CMHexahedronFEMForceField<DataTypes>::computeElementStiffness( ElementStiff
 
 
 
+template<class DataTypes>
+void CMHexahedronFEMForceField<DataTypes>::computeMaterialStiffness(Volume w)
+{
+	_materialsStiffnesses[w][0][0] = _materialsStiffnesses[w][1][1] = _materialsStiffnesses[w][2][2] = 1;
+	_materialsStiffnesses[w][0][1] = _materialsStiffnesses[w][0][2] = _materialsStiffnesses[w][1][0]
+			= _materialsStiffnesses[w][1][2] = _materialsStiffnesses[w][2][0] =
+			_materialsStiffnesses[w][2][1] = f_poissonRatio.getValue()/(1-f_poissonRatio.getValue());
+	_materialsStiffnesses[w][0][3] = _materialsStiffnesses[w][0][4] =	_materialsStiffnesses[w][0][5] = 0;
+	_materialsStiffnesses[w][1][3] = _materialsStiffnesses[w][1][4] =	_materialsStiffnesses[w][1][5] = 0;
+	_materialsStiffnesses[w][2][3] = _materialsStiffnesses[w][2][4] =	_materialsStiffnesses[w][2][5] = 0;
+	_materialsStiffnesses[w][3][0] = _materialsStiffnesses[w][3][1] = _materialsStiffnesses[w][3][2] = _materialsStiffnesses[w][3][4] =	_materialsStiffnesses[w][3][5] = 0;
+	_materialsStiffnesses[w][4][0] = _materialsStiffnesses[w][4][1] = _materialsStiffnesses[w][4][2] = _materialsStiffnesses[w][4][3] =	_materialsStiffnesses[w][4][5] = 0;
+	_materialsStiffnesses[w][5][0] = _materialsStiffnesses[w][5][1] = _materialsStiffnesses[w][5][2] = _materialsStiffnesses[w][5][3] =	_materialsStiffnesses[w][5][4] = 0;
+	_materialsStiffnesses[w][3][3] = _materialsStiffnesses[w][4][4] = _materialsStiffnesses[w][5][5] = (1-2*f_poissonRatio.getValue())/(2*(1-f_poissonRatio.getValue()));
+	_materialsStiffnesses[w] *= (f_youngModulus.getValue()*(1-f_poissonRatio.getValue()))/((1+f_poissonRatio.getValue())*(1-2*f_poissonRatio.getValue()));
+	// S = [ U V V 0 0 0 ]
+	//     [ V U V 0 0 0 ]
+	//     [ V V U 0 0 0 ]
+	//     [ 0 0 0 W 0 0 ]
+	//     [ 0 0 0 0 W 0 ]
+	//     [ 0 0 0 0 0 W ]
+	// with U = y * (1-p)/( (1+p)(1-2p))
+	//      V = y *    p /( (1+p)(1-2p))
+	//      W = y *  1   /(2(1+p)) = (U-V)/2
+}
+
+
+
+
+template<class DataTypes>
+void CMHexahedronFEMForceField<DataTypes>::computeForce( Displacement &F, const Displacement &Depl, const ElementStiffness &K )
+{
+	// 576*multiplications+1176*subscripts+552*additions+24*storage+24*assignments
+	F = K*Depl;
+}
 
 template<class DataTypes>
 typename CMHexahedronFEMForceField<DataTypes>::Mat33 CMHexahedronFEMForceField<DataTypes>::integrateStiffness( int signx0, int signy0, int signz0, int signx1, int signy1, int signz1, const Real u, const Real v, const Real w, const Mat33& J_1  )
@@ -831,119 +817,6 @@ typename CMHexahedronFEMForceField<DataTypes>::Mat33 CMHexahedronFEMForceField<D
 
 
 
-template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::computeMaterialStiffness(int i)
-{
-	_materialsStiffnesses[i][0][0] = _materialsStiffnesses[i][1][1] = _materialsStiffnesses[i][2][2] = 1;
-	_materialsStiffnesses[i][0][1] = _materialsStiffnesses[i][0][2] = _materialsStiffnesses[i][1][0]
-			= _materialsStiffnesses[i][1][2] = _materialsStiffnesses[i][2][0] =
-			_materialsStiffnesses[i][2][1] = f_poissonRatio.getValue()/(1-f_poissonRatio.getValue());
-	_materialsStiffnesses[i][0][3] = _materialsStiffnesses[i][0][4] =	_materialsStiffnesses[i][0][5] = 0;
-	_materialsStiffnesses[i][1][3] = _materialsStiffnesses[i][1][4] =	_materialsStiffnesses[i][1][5] = 0;
-	_materialsStiffnesses[i][2][3] = _materialsStiffnesses[i][2][4] =	_materialsStiffnesses[i][2][5] = 0;
-	_materialsStiffnesses[i][3][0] = _materialsStiffnesses[i][3][1] = _materialsStiffnesses[i][3][2] = _materialsStiffnesses[i][3][4] =	_materialsStiffnesses[i][3][5] = 0;
-	_materialsStiffnesses[i][4][0] = _materialsStiffnesses[i][4][1] = _materialsStiffnesses[i][4][2] = _materialsStiffnesses[i][4][3] =	_materialsStiffnesses[i][4][5] = 0;
-	_materialsStiffnesses[i][5][0] = _materialsStiffnesses[i][5][1] = _materialsStiffnesses[i][5][2] = _materialsStiffnesses[i][5][3] =	_materialsStiffnesses[i][5][4] = 0;
-	_materialsStiffnesses[i][3][3] = _materialsStiffnesses[i][4][4] = _materialsStiffnesses[i][5][5] = (1-2*f_poissonRatio.getValue())/(2*(1-f_poissonRatio.getValue()));
-	_materialsStiffnesses[i] *= (f_youngModulus.getValue()*(1-f_poissonRatio.getValue()))/((1+f_poissonRatio.getValue())*(1-2*f_poissonRatio.getValue()));
-	// S = [ U V V 0 0 0 ]
-	//     [ V U V 0 0 0 ]
-	//     [ V V U 0 0 0 ]
-	//     [ 0 0 0 W 0 0 ]
-	//     [ 0 0 0 0 W 0 ]
-	//     [ 0 0 0 0 0 W ]
-	// with U = y * (1-p)/( (1+p)(1-2p))
-	//      V = y *    p /( (1+p)(1-2p))
-	//      W = y *  1   /(2(1+p)) = (U-V)/2
-}
-
-template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::computeForce( Displacement &F, const Displacement &Depl, const ElementStiffness &K )
-{
-	// 576*multiplications+1176*subscripts+552*additions+24*storage+24*assignments
-	F = K*Depl;
-}
-
-
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-////////////// small displacements method
-
-template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::initSmall(int i, const Element &elem)
-{
-	// Rotation matrix identity
-	Transformation t; t.identity();
-	_rotations[i] = t;
-
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		_rotatedInitialElements[i][w] =  _rotations[i]*_initialPoints.getValue()[elem[_indices[w]]];
-#else
-		_rotatedInitialElements[i][w] =  _rotations[i]*_initialPoints.getValue()[elem[w]];
-#endif
-
-
-	if( _elementStiffnesses.getValue().size() <= (unsigned)i )
-	{
-		_elementStiffnesses.beginEdit()->resize( _elementStiffnesses.getValue().size()+1 );
-	}
-
-	computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], _rotatedInitialElements[i], i, _sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0 );
-}
-
-template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::accumulateForceSmall ( WDataRefVecDeriv &f, RDataRefVecCoord &p, int i, const Element&elem )
-{
-	Vec<8,Coord> nodes;
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		nodes[w] = p[elem[_indices[w]]];
-#else
-		nodes[w] = p[elem[w]];
-#endif
-
-	// positions of the deformed and displaced Tetrahedron in its frame
-	Vec<8,Coord> deformed;
-	for(int w=0; w<8; ++w)
-		deformed[w] = nodes[w];
-
-	// displacement
-	Displacement D;
-	for(int k=0 ; k<8 ; ++k )
-	{
-		int indice = k*3;
-		for(int j=0 ; j<3 ; ++j )
-			D[indice+j] = _rotatedInitialElements[i][k][j] - nodes[k][j];
-	}
-
-
-	if(f_updateStiffnessMatrix.getValue())
-		computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], deformed, i, _sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0 );
-
-
-	Displacement F; //forces
-	computeForce( F, D, _elementStiffnesses.getValue()[i] ); // compute force on element
-
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		f[elem[_indices[w]]] += Deriv( F[w*3],  F[w*3+1],   F[w*3+2]  ) ;
-#else
-		f[elem[w]] += Deriv( F[w*3],  F[w*3+1],   F[w*3+2]  ) ;
-#endif
-
-	m_potentialEnergy += dot(Deriv( F[0], F[1], F[2] ) ,-Deriv( D[0], D[1], D[2]));
-	m_potentialEnergy += dot(Deriv( F[3], F[4], F[5] ) ,-Deriv( D[3], D[4], D[5] ));
-	m_potentialEnergy += dot(Deriv( F[6], F[7], F[8] ) ,-Deriv( D[6], D[7], D[8] ));
-	m_potentialEnergy += dot(Deriv( F[9], F[10], F[11]),-Deriv( D[9], D[10], D[11] ));
-	m_potentialEnergy += dot(Deriv( F[12], F[13], F[14]),-Deriv( D[12], D[13], D[14] ));
-	m_potentialEnergy += dot(Deriv( F[15], F[16], F[17]),-Deriv( D[15], D[16], D[17] ));
-	m_potentialEnergy += dot(Deriv( F[18], F[19], F[20]),-Deriv( D[18], D[19], D[20] ));
-	m_potentialEnergy += dot(Deriv( F[21], F[22], F[23]),-Deriv( D[21], D[22], D[23] ));
-}
-
-
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -951,40 +824,33 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForceSmall ( WDataRefVecDer
 
 
 template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::initLarge(int i, const Element &elem)
+void CMHexahedronFEMForceField<DataTypes>::initLarge(Volume w)
 {
 	// Rotation matrix (initial Tetrahedre/world)
 	// edges mean on 3 directions
-
-
+	const auto& dofs = _mesh->get_dofs(w);
 	defaulttype::Vec<8,Coord> nodes;
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		nodes[w] = _initialPoints.getValue()[elem[_indices[w]]];
-#else
-		nodes[w] = _initialPoints.getValue()[elem[w]];
-#endif
+	for(unsigned int i=0; i<8; ++i)
+		nodes[i] = _initialPoints.getValue()[dofs[i]];
 
 	Coord horizontal;
 	horizontal = (nodes[1]-nodes[0] + nodes[2]-nodes[3] + nodes[5]-nodes[4] + nodes[6]-nodes[7])*.25;
 	Coord vertical;
 	vertical = (nodes[3]-nodes[0] + nodes[2]-nodes[1] + nodes[7]-nodes[4] + nodes[6]-nodes[5])*.25;
-	computeRotationLarge( _rotations[i], horizontal,vertical);
-	_initialrotations[i] = _rotations[i];
+	//Transformation rot;
+	computeRotationLarge( _rotations[w], horizontal,vertical);
+	// = rot;
+	_initialrotations[w] = _rotations[w];
 
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		_rotatedInitialElements[i][w] =  _rotations[i]*_initialPoints.getValue()[elem[_indices[w]]];
-#else
-		_rotatedInitialElements[i][w] =  _rotations[i]*_initialPoints.getValue()[elem[w]];
-#endif
+	for(unsigned int i=0; i<8; ++i)
+		_rotatedInitialElements[w][i] =  _rotations[w]*_initialPoints.getValue()[dofs[i]];
 
-	if( _elementStiffnesses.getValue().size() <= (unsigned)i )
-	{
-		_elementStiffnesses.beginEdit()->resize( _elementStiffnesses.getValue().size()+1 );
-	}
+	//	if( _elementStiffnesses.getValue().size() <= (unsigned)i )
+	//	{
+	//		_elementStiffnesses.beginEdit()->resize( _elementStiffnesses.getValue().size()+1 );
+	//	}
 
-	computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], _rotatedInitialElements[i], i, _sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0 );
+	computeElementStiffness( (*_elementStiffnesses.beginEdit())[w], _materialsStiffnesses[w], _rotatedInitialElements[w], w.dart.index, 1.0 );
 	// 	computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], _rotatedInitialElements[i], i, i==1?10.0:1.0 );
 
 	// 	printMatlab( serr,this->_elementStiffnesses.getValue()[0] );
@@ -1027,15 +893,12 @@ void CMHexahedronFEMForceField<DataTypes>::computeRotationLarge( Transformation 
 }
 
 template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeriv &f, RDataRefVecCoord &p, int i, const Element&elem )
+void CMHexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w)
 {
+	const auto& dofs = _mesh->get_dofs(w);
 	defaulttype::Vec<8,Coord> nodes;
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		nodes[w] = p[elem[_indices[w]]];
-#else
-		nodes[w] = p[elem[w]];
-#endif
+	for(unsigned int i=0; i<dofs.size(); ++i)
+		nodes[i] = p[dofs[i]];
 
 	Coord horizontal;
 	horizontal = (nodes[1]-nodes[0] + nodes[2]-nodes[3] + nodes[5]-nodes[4] + nodes[6]-nodes[7])*.25;
@@ -1043,40 +906,33 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeri
 	vertical = (nodes[3]-nodes[0] + nodes[2]-nodes[1] + nodes[7]-nodes[4] + nodes[6]-nodes[5])*.25;
 
 	// 	Transformation R_0_2; // Rotation matrix (deformed and displaced Tetrahedron/world)
-	computeRotationLarge( _rotations[i], horizontal,vertical);
+	//Transformation& rot = ;
+	computeRotationLarge( _rotations[w], horizontal,vertical);
 
 	// 	_rotations[i].transpose(R_0_2);
 
 	// positions of the deformed and displaced Tetrahedron in its frame
 	defaulttype::Vec<8,Coord> deformed;
-	for(int w=0; w<8; ++w)
-		deformed[w] = _rotations[i] * nodes[w];
+	for(unsigned int i=0; i<dofs.size(); ++i)
+		deformed[i] = _rotations[w] * nodes[i];
 
 
 	// displacement
 	Displacement D;
-	for(int k=0 ; k<8 ; ++k )
-	{
-		int indice = k*3;
+	for(int k=0 ; k<dofs.size() ; ++k )
 		for(int j=0 ; j<3 ; ++j )
-			D[indice+j] = _rotatedInitialElements[i][k][j] - deformed[k][j];
-	}
-
+			D[k*3+j] = _rotatedInitialElements[w][k][j] - deformed[k][j];
 
 	if(f_updateStiffnessMatrix.getValue())
 		// 		computeElementStiffness( _elementStiffnesses[i], _materialsStiffnesses[i], deformed );
-		computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], deformed, i, _sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0 );
+		computeElementStiffness( (*_elementStiffnesses.beginEdit())[w], _materialsStiffnesses[w], deformed, w.dart.index, 1.0 );
 
 
 	Displacement F; //forces
-	computeForce( F, D, _elementStiffnesses.getValue()[i] ); // compute force on element
+	computeForce( F, D, _elementStiffnesses.getValue()[w] ); // compute force on element
 
-	for(int w=0; w<8; ++w)
-#ifndef SOFA_NEW_HEXA
-		f[elem[_indices[w]]] += _rotations[i].multTranspose( Deriv( F[w*3],  F[w*3+1],   F[w*3+2]  ) );
-#else
-		f[elem[w]] += _rotations[i].multTranspose( Deriv( F[w*3],  F[w*3+1],   F[w*3+2]  ) );
-#endif
+	for(unsigned int i=0; i<dofs.size(); ++i)
+		f[dofs[i]] += _rotations[w].multTranspose( Deriv( F[i*3],  F[i*3+1],   F[i*3+2]  ) );
 
 	m_potentialEnergy += dot(Deriv( F[0], F[1], F[2] ) ,-Deriv( D[0], D[1], D[2]));
 	m_potentialEnergy += dot(Deriv( F[3], F[4], F[5] ) ,-Deriv( D[3], D[4], D[5] ));
@@ -1102,33 +958,30 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeri
 
 
 template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::initPolar(int i, const Element& elem)
+void CMHexahedronFEMForceField<DataTypes>::initPolar(Volume w)
 {
 	defaulttype::Vec<8,Coord> nodes;
-	for(int j=0; j<8; ++j)
-#ifndef SOFA_NEW_HEXA
-		nodes[j] = _initialPoints.getValue()[elem[_indices[j]]];
-#else
-		nodes[j] = _initialPoints.getValue()[elem[j]];
-#endif
+	const auto& dofs = _mesh->get_dofs(w);
 
-	computeRotationPolar( _rotations[i], nodes );
+	for(unsigned int j=0; j<dofs.size(); ++j)
+		nodes[j] = _initialPoints.getValue()[dofs[j]];
 
-	_initialrotations[i] = _rotations[i];
+	computeRotationPolar( _rotations[w], nodes );
 
-	for(int j=0; j<8; ++j)
+	_initialrotations[w] = _rotations[w];
+
+	for(unsigned int j=0; j<dofs.size(); ++j)
 	{
-		_rotatedInitialElements[i][j] =  _rotations[i] * nodes[j];
+		_rotatedInitialElements[w][j] =  _rotations[w] * nodes[j];
 	}
 
 
-	if( _elementStiffnesses.getValue().size() <= (unsigned)i )
-	{
-		_elementStiffnesses.beginEdit()->resize( _elementStiffnesses.getValue().size()+1 );
-	}
+	//	if( _elementStiffnesses.getValue().size() <= (unsigned)i )
+	//	{
+	//		_elementStiffnesses.beginEdit()->resize( _elementStiffnesses.getValue().size()+1 );
+	//	}
 
-
-	computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], _rotatedInitialElements[i], i, _sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0);
+	computeElementStiffness( (*_elementStiffnesses.beginEdit())[w], _materialsStiffnesses[w], _rotatedInitialElements[w], w.dart.index, 1.0);
 }
 
 
@@ -1165,18 +1018,16 @@ void CMHexahedronFEMForceField<DataTypes>::computeRotationPolar( Transformation 
 
 
 template<class DataTypes>
-void CMHexahedronFEMForceField<DataTypes>::accumulateForcePolar( WDataRefVecDeriv &f, RDataRefVecCoord &p, int i, const Element&elem )
+void CMHexahedronFEMForceField<DataTypes>::accumulateForcePolar( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w)
 {
+	const auto& dofs = _mesh->get_dofs(w);
+
 	defaulttype::Vec<8,Coord> nodes;
-	for(int j=0; j<8; ++j)
-#ifndef SOFA_NEW_HEXA
-		nodes[j] = p[elem[_indices[j]]];
-#else
-		nodes[j] = p[elem[j]];
-#endif
+	for(unsigned int j=0; j<8; ++j)
+		nodes[j] = p[dofs[j]];
 
 	// 	Transformation R_0_2; // Rotation matrix (deformed and displaced Tetrahedron/world)
-	computeRotationPolar( _rotations[i], nodes );
+	computeRotationPolar( _rotations[w], nodes );
 
 	// 	_rotations[i].transpose( R_0_2 );
 
@@ -1184,7 +1035,7 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForcePolar( WDataRefVecDeri
 	// positions of the deformed and displaced Tetrahedre in its frame
 	defaulttype::Vec<8,Coord> deformed;
 	for(int j=0; j<8; ++j)
-		deformed[j] = _rotations[i] * nodes[j];
+		deformed[j] = _rotations[w] * nodes[j];
 
 
 
@@ -1194,7 +1045,7 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForcePolar( WDataRefVecDeri
 	{
 		int indice = k*3;
 		for(int j=0 ; j<3 ; ++j )
-			D[indice+j] = _rotatedInitialElements[i][k][j] - deformed[k][j];
+			D[indice+j] = _rotatedInitialElements[w][k][j] - deformed[k][j];
 	}
 
 	//forces
@@ -1202,19 +1053,15 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForcePolar( WDataRefVecDeri
 
 	if(f_updateStiffnessMatrix.getValue())
 		// 		computeElementStiffness( _elementStiffnesses[i], _materialsStiffnesses[i], deformed );
-		computeElementStiffness( (*_elementStiffnesses.beginEdit())[i], _materialsStiffnesses[i], deformed, i, _sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0);
+		computeElementStiffness( (*_elementStiffnesses.beginEdit())[w], _materialsStiffnesses[w], deformed, w.dart.index, 1.0);
 
 
 	// compute force on element
-	computeForce( F, D, _elementStiffnesses.getValue()[i] );
+	computeForce( F, D, _elementStiffnesses.getValue()[w] );
 
 
-	for(int j=0; j<8; ++j)
-#ifndef SOFA_NEW_HEXA
-		f[elem[_indices[j]]] += _rotations[i].multTranspose( Deriv( F[j*3],  F[j*3+1],   F[j*3+2]  ) );
-#else
-		f[elem[j]] += _rotations[i].multTranspose( Deriv( F[j*3],  F[j*3+1],   F[j*3+2]  ) );
-#endif
+	for(unsigned int j=0; j<8; ++j)
+		f[dofs[j]] += _rotations[w].multTranspose( Deriv( F[j*3],  F[j*3+1],   F[j*3+2]  ) );
 
 	m_potentialEnergy += dot(Deriv( F[0], F[1], F[2] ) ,-Deriv( D[0], D[1], D[2]));
 	m_potentialEnergy += dot(Deriv( F[3], F[4], F[5] ) ,-Deriv( D[3], D[4], D[5] ));
@@ -1233,6 +1080,74 @@ inline SReal CMHexahedronFEMForceField<DataTypes>::getPotentialEnergy(const core
 }
 
 
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+////////////// small displacements method
+
+template<class DataTypes>
+void CMHexahedronFEMForceField<DataTypes>::initSmall(Volume w)
+{
+	// Rotation matrix identity
+	Transformation t; t.identity();
+	_rotations[w] = t;
+
+	const auto& dofs = _mesh->get_dofs(w);
+
+	for(int i=0; i<8; ++i)
+		_rotatedInitialElements[w][i] =  _rotations[w]*_initialPoints.getValue()[dofs[i]];
+
+
+	//	if( _elementStiffnesses.getValue().size() <= (unsigned)i )
+	//	{
+	//		_elementStiffnesses.beginEdit()->resize( _elementStiffnesses.getValue().size()+1 );
+	//	}
+
+	computeElementStiffness( (*_elementStiffnesses.beginEdit())[w], _materialsStiffnesses[w], _rotatedInitialElements[w], w.dart.index, 1.0 );
+}
+
+template<class DataTypes>
+void CMHexahedronFEMForceField<DataTypes>::accumulateForceSmall ( WDataRefVecDeriv &f, RDataRefVecCoord &p, Volume w)
+{
+	Vec<8,Coord> nodes;
+	const auto& dofs = _mesh->get_dofs(w);
+	for(unsigned int i=0; i<dofs.size(); ++i)
+		nodes[i] = p[dofs[i]];
+
+	// positions of the deformed and displaced Tetrahedron in its frame
+	Vec<8,Coord> deformed;
+	for(unsigned int i=0; i<dofs.size(); ++i)
+		deformed[i] = nodes[i];
+
+	// displacement
+	Displacement D;
+	for(unsigned int k=0 ; k<8 ; ++k )
+	{
+		int indice = k*3;
+		for(int j=0 ; j<3 ; ++j )
+			D[indice+j] = _rotatedInitialElements[w][k][j] - nodes[k][j];
+	}
+
+
+	if(f_updateStiffnessMatrix.getValue())
+		computeElementStiffness( (*_elementStiffnesses.beginEdit())[w], _materialsStiffnesses[w], deformed, w.dart.index, 1.0 );
+
+
+	Displacement F; //forces
+	computeForce( F, D, _elementStiffnesses.getValue()[w] ); // compute force on element
+
+	for(unsigned int i=0; i<8; ++i)
+		f[dofs[i]] += Deriv( F[i*3],  F[i*3+1],   F[i*3+2]  ) ;
+
+	m_potentialEnergy += dot(Deriv( F[0], F[1], F[2] ) ,-Deriv( D[0], D[1], D[2]));
+	m_potentialEnergy += dot(Deriv( F[3], F[4], F[5] ) ,-Deriv( D[3], D[4], D[5] ));
+	m_potentialEnergy += dot(Deriv( F[6], F[7], F[8] ) ,-Deriv( D[6], D[7], D[8] ));
+	m_potentialEnergy += dot(Deriv( F[9], F[10], F[11]),-Deriv( D[9], D[10], D[11] ));
+	m_potentialEnergy += dot(Deriv( F[12], F[13], F[14]),-Deriv( D[12], D[13], D[14] ));
+	m_potentialEnergy += dot(Deriv( F[15], F[16], F[17]),-Deriv( D[15], D[16], D[17] ));
+	m_potentialEnergy += dot(Deriv( F[18], F[19], F[20]),-Deriv( D[18], D[19], D[20] ));
+	m_potentialEnergy += dot(Deriv( F[21], F[22], F[23]),-Deriv( D[21], D[22], D[23] ));
+}
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -1251,31 +1166,21 @@ void CMHexahedronFEMForceField<DataTypes>::addKToMatrix(const core::MechanicalPa
 
 	sofa::core::behavior::MultiMatrixAccessor::MatrixRef r = matrix->getMatrix(this->mstate);
 
-	for(it = this->getIndexedElements()->begin(), e=0 ; it != this->getIndexedElements()->end() ; ++it,++e)
-	{
-		const ElementStiffness &Ke = _elementStiffnesses.getValue()[e];
-		//         const Transformation& Rt = _rotations[e];
-		//         Transformation R; R.transpose(Rt);
-
-		Transformation Rot = getElementRotation(e);
-
+	//TODO
+	_mesh->foreach_cell([&](Volume w)	{
+		const ElementStiffness &Ke = _elementStiffnesses.getValue()[w];
+		Transformation Rot = getElementRotation(w);
 		Real kFactor = (Real)mparams->kFactorIncludingRayleighDamping(this->rayleighStiffness.getValue());
-		// find index of node 1
+
+		const auto& dofs = _mesh->get_dofs(w);
+
 		for (n1=0; n1<8; n1++)
 		{
-#ifndef SOFA_NEW_HEXA
-			node1 = (*it)[_indices[n1]];
-#else
-			node1 = (*it)[n1];
-#endif
+			node1 = dofs[n1];
 			// find index of node 2
 			for (n2=0; n2<8; n2++)
 			{
-#ifndef SOFA_NEW_HEXA
-				node2 = (*it)[_indices[n2]];
-#else
-				node2 = (*it)[n2];
-#endif
+				node2 = dofs[n2];
 				Mat33 tmp = Rot.multTranspose( Mat33(Coord(Ke[3*n1+0][3*n2+0],Ke[3*n1+0][3*n2+1],Ke[3*n1+0][3*n2+2]),
 						Coord(Ke[3*n1+1][3*n2+0],Ke[3*n1+1][3*n2+1],Ke[3*n1+1][3*n2+2]),
 						Coord(Ke[3*n1+2][3*n2+0],Ke[3*n1+2][3*n2+1],Ke[3*n1+2][3*n2+2])) ) * Rot;
@@ -1284,7 +1189,7 @@ void CMHexahedronFEMForceField<DataTypes>::addKToMatrix(const core::MechanicalPa
 						r.matrix->add(r.offset+3*node1+i, r.offset+3*node2+j, - tmp[i][j]*kFactor);
 			}
 		}
-	}
+	});
 }
 
 
@@ -1335,45 +1240,19 @@ void CMHexahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 	if (vparams->displayFlags().getShowWireFrame())
 		vparams->drawTool()->setPolygonMode(0,true);
 
-
-
-	typename VecElement::const_iterator it;
-	int i;
-	for(it = this->getIndexedElements()->begin(), i = 0 ; it != this->getIndexedElements()->end() ; ++it, ++i)
-	{
-
+	_mesh->foreach_cell([&](Volume w)	{
 
 		std::vector< defaulttype::Vector3 > points[6];
 
-		Index a = (*it)[0];
-		Index b = (*it)[1];
-#ifndef SOFA_NEW_HEXA
-		Index d = (*it)[2];
-		Index c = (*it)[3];
-#else
-		Index d = (*it)[3];
-		Index c = (*it)[2];
-#endif
-		Index e = (*it)[4];
-		Index f = (*it)[5];
-#ifndef SOFA_NEW_HEXA
-		Index h = (*it)[6];
-		Index g = (*it)[7];
-#else
-		Index h = (*it)[7];
-		Index g = (*it)[6];
-#endif
-
-		// 		Coord center = (x[a]+x[b]+x[c]+x[d]+x[e]+x[g]+x[f]+x[h])*0.0625;
-		// 		Real percentage = 0.666667;
-		// 		Coord pa = (x[a]+center)*percentage;
-		// 		Coord pb = (x[b]+center)*percentage;
-		// 		Coord pc = (x[c]+center)*percentage;
-		// 		Coord pd = (x[d]+center)*percentage;
-		// 		Coord pe = (x[e]+center)*percentage;
-		// 		Coord pf = (x[f]+center)*percentage;
-		// 		Coord pg = (x[g]+center)*percentage;
-		// 		Coord ph = (x[h]+center)*percentage;
+		const auto& dofs = _mesh->get_dofs(w);
+		Index a = dofs[0];
+		Index b = dofs[1];
+		Index c = dofs[2];
+		Index d = dofs[3];
+		Index e = dofs[4];
+		Index f = dofs[5];
+		Index h = dofs[7];
+		Index g = dofs[6];
 
 		Coord center = (x[a]+x[b]+x[c]+x[d]+x[e]+x[g]+x[f]+x[h])*0.125;
 		Real percentage = f_drawPercentageOffset.getValue();
@@ -1385,14 +1264,6 @@ void CMHexahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 		Coord pf = x[f]-(x[f]-center)*percentage;
 		Coord pg = x[g]-(x[g]-center)*percentage;
 		Coord ph = x[h]-(x[h]-center)*percentage;
-
-
-		if(_sparseGrid )
-		{
-			vparams->drawTool()->enableBlending();
-		}
-
-
 
 
 		// 		glColor4f(0.7f, 0.7f, 0.1f, (_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f));
@@ -1449,21 +1320,18 @@ void CMHexahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 
 
 		vparams->drawTool()->setLightingEnabled(false);
-		vparams->drawTool()->drawTriangles(points[0], defaulttype::Vec<4,float>(0.7f,0.7f,0.1f,(_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f)));
-		vparams->drawTool()->drawTriangles(points[1], defaulttype::Vec<4,float>(0.7f,0.0f,0.0f,(_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f)));
-		vparams->drawTool()->drawTriangles(points[2], defaulttype::Vec<4,float>(0.0f,0.7f,0.0f,(_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f)));
-		vparams->drawTool()->drawTriangles(points[3], defaulttype::Vec<4,float>(0.0f,0.0f,0.7f,(_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f)));
-		vparams->drawTool()->drawTriangles(points[4], defaulttype::Vec<4,float>(0.1f,0.7f,0.7f,(_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f)));
-		vparams->drawTool()->drawTriangles(points[5], defaulttype::Vec<4,float>(0.7f,0.1f,0.7f,(_sparseGrid?_sparseGrid->getStiffnessCoef(i):1.0f)));
-
-	}
+		vparams->drawTool()->drawTriangles(points[0], defaulttype::Vec<4,float>(0.7f,0.7f,0.1f,(1.0f)));
+		vparams->drawTool()->drawTriangles(points[1], defaulttype::Vec<4,float>(0.7f,0.0f,0.0f,(1.0f)));
+		vparams->drawTool()->drawTriangles(points[2], defaulttype::Vec<4,float>(0.0f,0.7f,0.0f,(1.0f)));
+		vparams->drawTool()->drawTriangles(points[3], defaulttype::Vec<4,float>(0.0f,0.0f,0.7f,(1.0f)));
+		vparams->drawTool()->drawTriangles(points[4], defaulttype::Vec<4,float>(0.1f,0.7f,0.7f,(1.0f)));
+		vparams->drawTool()->drawTriangles(points[5], defaulttype::Vec<4,float>(0.7f,0.1f,0.7f,(1.0f)));
+	});
 
 
 	if (vparams->displayFlags().getShowWireFrame())
 		vparams->drawTool()->setPolygonMode(0,false);
 
-	if(_sparseGrid )
-		vparams->drawTool()->disableBlending();
 }
 
 
@@ -1473,4 +1341,4 @@ void CMHexahedronFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 
 } // namespace sofa
 
-#endif // SOFA_COMPONENT_FORCEFIELD_CMHEXAHEDRONFEMFORCEFIELD_INL
+#endif // SOFA_COMPONENT_FORCEFIELD_HEXAHEDRONFEMFORCEFIELD_INL
