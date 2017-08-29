@@ -19,6 +19,8 @@ set(HEADER_FILES
     VerondaWestman.h
     config.h
     initMiscFEM.h
+    TetrahedronHyperelasticityFEMForceField.h
+    TetrahedronHyperelasticityFEMForceField.inl
     TriangleFEMForceField.h
     TriangleFEMForceField.inl
     TriangularAnisotropicFEMForceField.h
@@ -36,6 +38,7 @@ set(SOURCE_FILES
     StandardTetrahedralFEMForceField.cpp
     TetrahedralTensorMassForceField.cpp
     initMiscFEM.cpp
+    TetrahedronHyperelasticityFEMForceField.cpp
     TriangularAnisotropicFEMForceField.cpp
     TriangleFEMForceField.cpp
     TriangularFEMForceField.cpp
