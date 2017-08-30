@@ -35,8 +35,6 @@
 #include <assert.h>
 #include <iostream>
 #include <set>
-#include <chrono>
-#include <ctime>
 
 namespace sofa
 {
@@ -70,9 +68,9 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::TetrahedronHandler::appl
 				ff->initSmall(w,a,b,c,d);
 				break;
 			case LARGE :
+			case PLARGE :
 				ff->computeMaterialStiffness(w,a,b,c,d);
 				ff->initLarge(w,a,b,c,d);
-
 				break;
 			case POLAR :
 				ff->computeMaterialStiffness(w,a,b,c,d);
@@ -98,8 +96,6 @@ CMTetrahedralCorotationalFEMForceField<DataTypes>::CMTetrahedralCorotationalFEMF
 	, drawColor3(initData(&drawColor3,defaulttype::Vec4f(0.0f,1.0f,1.0f,1.0f),"drawColor3"," draw color for faces 3"))
 	, drawColor4(initData(&drawColor4,defaulttype::Vec4f(0.5f,1.0f,1.0f,1.0f),"drawColor4"," draw color for faces 4"))
 	, tetrahedronHandler(NULL)
-	, totalTime(0)
-	, executionCount(0)
 {
 	this->addAlias(&_assembling, "assembling");
 	_poissonRatio.setWidget("poissonRatio");
@@ -112,20 +108,22 @@ CMTetrahedralCorotationalFEMForceField<DataTypes>::CMTetrahedralCorotationalFEMF
 template <class DataTypes>
 void CMTetrahedralCorotationalFEMForceField<DataTypes>::init()
 {
+	std::cout << "INIT(CMTetrahedralCorotationalFEMForceField)." << std::endl;
+
 	this->core::behavior::ForceField<DataTypes>::init();
 
 	this->getContext()->get(_topology);
 
 	if( _topology == NULL )
 	{
-		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Topology."<<sendl;
+		serr << "ERROR(CMTetrahedralCorotationalFEMForceField): object must have a Topology."<<sendl;
 		return;
 	}
 
 	// TODO : verify that _topoloy only contains tetrahedron
 	if (_topology->nb_cells<VolumeTopology::Volume::ORBIT>() == 0u)
 	{
-		serr << "ERROR(TetrahedralCorotationalFEMForceField): object must have a Tetrahedral Set Topology."<<sendl;
+		serr << "ERROR(CMTetrahedralCorotationalFEMForceField): object must have a Tetrahedral Set Topology."<<sendl;
 		return;
 	}
 
@@ -142,6 +140,8 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 		this->setMethod(SMALL);
 	else if (f_method.getValue() == "polar")
 		this->setMethod(POLAR);
+	else if (f_method.getValue() == "plarge")
+		this->setMethod(PLARGE);
 	else this->setMethod(LARGE);
 
 	// Need to initialize the _stiffnesses vector before using it
@@ -168,9 +168,6 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 template<class DataTypes>
 void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& /* d_v */)
 {
-	std::chrono::time_point<std::chrono::system_clock> start;
-	start = std::chrono::system_clock::now();
-
 	VecDeriv& f = *d_f.beginEdit();
 	const VecCoord& p = d_x.getValue();
 
@@ -184,7 +181,6 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 			});
 			break;
 		}
-		/* Sans parallèlisme
 		case LARGE :
 		{
 			_topology->foreach_cell([&](Volume w)
@@ -193,9 +189,8 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 			});
 			break;
 		}
-		/**/
 		/* Parallelisme activé */
-		case LARGE :
+		case PLARGE :
 		{
 			cgogn::uint32 nbThreads = cgogn::nb_threads();
 			unsigned int l = f.size();
@@ -218,7 +213,6 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 			}
 			break;
 		}
-		/**/
 		case POLAR :
 		{
 			_topology->foreach_cell([&](Volume w)
@@ -230,15 +224,15 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 	}
 	d_f.endEdit();
 
-	std::chrono::time_point<std::chrono::system_clock> end;
-	end = std::chrono::system_clock::now();
-	std::chrono::duration<double> executionTime = end-start;
-	totalTime += executionTime;
-	executionCount++;
+//	std::chrono::time_point<std::chrono::system_clock> end;
+//	end = std::chrono::system_clock::now();
+//	std::chrono::duration<double> executionTime = end-start;
+//	totalTime += executionTime;
+//	executionCount++;
 
-	if (executionCount%100 == 0)
-		std::cout << "average execution time: " << 1000*totalTime.count()/executionCount
-				  << " - cpu: " << cgogn::nb_threads() << std::endl;
+//	if (executionCount%100 == 0)
+//		std::cout << "average execution time: " << 1000*totalTime.count()/executionCount
+//				  << " - cpu: " << cgogn::nb_threads() << std::endl;
 }
 
 template<class DataTypes>
@@ -277,6 +271,35 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 
 				applyStiffnessLarge( df, dx, w, a,b,c,d, kFactor );
 			});
+			break;
+		}
+		case PLARGE :
+		{
+			cgogn::uint32 nbThreads = cgogn::nb_threads();
+			unsigned int l = df.size();
+			VecDeriv threadDF[nbThreads];
+			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
+			{
+				threadDF[threadId].reserve(l);
+				for (unsigned int i = 0; i < l; ++i) threadDF[threadId][i] = sofa::defaulttype::Vec3d();
+			}
+
+			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32 threadId)
+			{
+				VecDeriv& localDF = threadDF[threadId];
+				const auto& t=_topology->get_dofs(w);
+				Index a = t[0];
+				Index b = t[1];
+				Index c = t[2];
+				Index d = t[3];
+
+				applyStiffnessLarge( localDF, dx, w, a,b,c,d, kFactor );
+			});
+
+			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
+			{
+				for (unsigned int i = 0; i < l; ++i) df[i] += threadDF[threadId][i];
+			}
 			break;
 		}
 		case POLAR :

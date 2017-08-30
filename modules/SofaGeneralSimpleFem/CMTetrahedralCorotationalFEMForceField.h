@@ -82,9 +82,10 @@ public:
 
 	enum
 	{
-		SMALL = 0, ///< Symbol of small displacements tetrahedron solver
-		LARGE = 1, ///< Symbol of large displacements tetrahedron solver
-		POLAR = 2  ///< Symbol of polar displacements tetrahedron solver
+		SMALL = 0, // Symbol of small displacements tetrahedron solver
+		LARGE = 1, // Symbol of large displacements tetrahedron solver
+		POLAR = 2,  // Symbol of polar displacements tetrahedron solver
+		PLARGE = 3 // Symbol of large displacements tetrahedron solver with parallel addForce
 	};
 
 protected:
@@ -271,11 +272,6 @@ public:
 	{
 	  return "CMTetrahedralCorotationalFEMForceField";
 	}
-
-private:
-	/// timers
-	std::chrono::duration<double> totalTime;
-	int executionCount;
 };
 
 #if defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_CMTETRAHEDRALCOROTATIONALFEMFORCEFIELD_CPP)
