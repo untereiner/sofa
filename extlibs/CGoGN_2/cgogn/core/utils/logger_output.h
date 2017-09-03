@@ -42,7 +42,7 @@ public:
 
 	inline LoggerOutput() {}
 	CGOGN_NOT_COPYABLE_NOR_MOVABLE(LoggerOutput);
-	virtual ~LoggerOutput() {}
+	virtual ~LoggerOutput();
 
 	virtual void process_entry(const LogEntry& entry) = 0;
 };
@@ -88,8 +88,11 @@ public:
 	}
 
 private:
+#pragma warning(push)
+#pragma warning(disable:4251)
 	std::ofstream	out_;
 	std::string		filename_;
+#pragma warning(pop)
 };
 
 } // namespace logger

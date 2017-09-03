@@ -34,6 +34,8 @@
 
 #include <cgogn/io/io_utils.h>
 
+#include <Eigen/StdVector>
+
 namespace cgogn
 {
 
@@ -71,12 +73,6 @@ public:
 	 */
 	virtual uint8 data_size() const = 0;
 	virtual DataType data_type() const = 0;
-	/**
-	 * @brief buffer_vector
-	 * @return return a pointer to the vector used to store the data (WARNING : this is not a pointer to the data contained in the vector)
-	 */
-	virtual void* buffer_vector() = 0;
-	virtual const void* buffer_vector() const = 0;
 
 	virtual void reset() = 0;
 	virtual std::size_t size() const = 0;
@@ -111,10 +107,25 @@ class DataInput : public DataInputGen
 public:
 
 	using Inherit		= DataInputGen;
-	using Self			= DataInput<PRIM_SIZE, BUFFER_T , T> ;
+	using Self			= DataInput<PRIM_SIZE, BUFFER_T, T> ;
 	using ChunkArrayContainer = typename Inherit::ChunkArrayContainer;
 	using ChunkArrayGen	= typename Inherit::ChunkArrayGen;
 	using ChunkArray	= MapBaseData::ChunkArray<T>;
+
+#ifdef CGOGN_USE_SIMD
+	// If using SIMD with EIGEN we need to be sure that the memory used in the std::vector is properly aligned.
+	// Usually 16 bytes alignment is guaranteed but we might need 32 bytes alignment when using avx2 with for exemple a Eigen::Vector4d
+	// http://eigen.tuxfamily.org/dox-devel/group__TopicStlContainers.html
+	using VecT = typename std::conditional<std::is_same<T, Eigen::AlignedVector3<array_data_type<T>>>::value || std::is_same<T, Eigen::Matrix<array_data_type<T>, 4, 1, 0, 4,1>>::value
+	, std::vector<T, Eigen::aligned_allocator<T>>,
+	std::vector<T>>::type;
+	using VecBufferT = typename std::conditional<std::is_same<BUFFER_T, Eigen::AlignedVector3<array_data_type<BUFFER_T>>>::value || std::is_same<BUFFER_T, Eigen::Matrix<array_data_type<BUFFER_T>, 4, 1, 0, 4,1>>::value,
+	std::vector<BUFFER_T, Eigen::aligned_allocator<BUFFER_T>>,
+	std::vector<BUFFER_T>>::type;
+#else
+	using VecT = std::vector<T>;
+	using VecBufferT = std::vector<BUFFER_T>;
+#endif
 
 	DataInput()
 	{}
@@ -152,7 +163,7 @@ public:
 				fp.read(reinterpret_cast<char*>(&data_[old_size]), std::streamsize(n * sizeof(T)));
 				if ((big_endian && cgogn::internal::cgogn_is_little_endian) || (!big_endian && cgogn::internal::cgogn_is_big_endian))
 				{
-					for (auto it = data_.begin() + typename std::vector<T>::difference_type(old_size), end = data_.end() ; it != end; ++it)
+					for (auto it = data_.begin() + typename VecT::difference_type(old_size), end = data_.end() ; it != end; ++it)
 						*it = cgogn::swap_endianness(*it);
 				}
 
@@ -161,19 +172,31 @@ public:
 			}
 			else
 			{ // 2nd case : BUFFER_T and T are different.
-				std::vector<BUFFER_T> buffer(old_size+n);
-				fp.read(reinterpret_cast<char*>(&buffer[old_size]), std::streamsize(n * sizeof(BUFFER_T)));
-				if ((big_endian && cgogn::internal::cgogn_is_little_endian) || (!big_endian && cgogn::internal::cgogn_is_big_endian))
-				{
-					for (auto it = buffer.begin() + typename std::vector<BUFFER_T>::difference_type(old_size), end = buffer.end() ; it != end; ++it)
-						*it = cgogn::swap_endianness(*it);
-				}
-				if (fp.eof() || fp.bad())
-					this->reset();
-				// copy
 				auto dest_it = data_.begin();
-				for (auto & x : buffer)
-					*dest_it++ = internal::convert<T>(x);
+				std::advance(dest_it, old_size);
+				const std::size_t buffer_size = std::min(n,std::size_t(16384));
+				VecBufferT buffer(buffer_size);
+				std::size_t already_read = 0;
+				while (already_read != n)
+				{
+					const std::size_t nb_to_read = std::min(buffer_size, n-already_read);
+					buffer.resize(nb_to_read);
+					fp.read(reinterpret_cast<char*>(&buffer[0]), std::streamsize(nb_to_read * sizeof(BUFFER_T)));
+					already_read += nb_to_read;
+
+					if ((big_endian && cgogn::internal::cgogn_is_little_endian) || (!big_endian && cgogn::internal::cgogn_is_big_endian))
+						for (auto& it : buffer)
+							it = cgogn::swap_endianness(it);
+
+					if (fp.eof() || fp.bad())
+					{
+						this->reset();
+						return;
+					}
+					// copy
+					for (const auto & x : buffer)
+						*dest_it++ = internal::convert<T>(x);
+				}
 			}
 		}
 		else
@@ -281,22 +304,12 @@ public:
 		return cgogn::io::data_type(cgogn::name_of_type(T()));
 	}
 
-	void* buffer_vector() override
-	{
-		return &data_;
-	}
-
-	virtual const void* buffer_vector() const override
-	{
-		return &data_;
-	}
-
-	inline const std::vector<T>& vec() const
+	inline const VecT& vec() const
 	{
 		return data_;
 	}
 
-	inline std::vector<T>&  vec()
+	inline VecT&  vec()
 	{
 		return data_;
 	}
@@ -314,15 +327,13 @@ public:
 	virtual std::unique_ptr<Inherit> simplify() override
 	{
 		std::unique_ptr<DataInput<PRIM_SIZE, T , T>> res = make_unique<DataInput<PRIM_SIZE, T , T>>();
-		std::vector<T>& res_vec = *(static_cast<std::vector<T>*>(res->buffer_vector()));
-		res_vec = std::move(this->data_);
-		this->data_ = std::vector<T>();
+		std::swap(this->data_, res->vec());
 		return std::unique_ptr<Inherit>(res.release());
 	}
 
 private:
 
-	std::vector<T> data_;
+	VecT data_;
 };
 
 template <uint32 PRIM_SIZE>

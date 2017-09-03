@@ -57,8 +57,11 @@ public:
 	 * \brief Dimension of the dataset
 	 */
 	static const uint32 dim_ = vector_traits<Vec>::SIZE;
-
 	using Matrix = Eigen::Matrix<Scalar, dim_, dim_>;
+
+	// https://eigen.tuxfamily.org/dox-devel/group__TopicStructHavingEigenMembers.html
+	static const bool eigen_make_aligned = std::is_same<Eigen::AlignedVector3<Scalar>, Vec>::value;
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(eigen_make_aligned)
 
 private:
 
@@ -214,7 +217,7 @@ public:
 		cgogn::geometry::set_zero(mean);
 		uint32 count = 0;
 
-		CellCache<MAP> cache(map);
+		typename MAP::CellCache cache(map);
 		cache.template build<Vertex>();
 
 		map.foreach_cell(
