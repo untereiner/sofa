@@ -26,6 +26,8 @@
 
 #include <cgogn/core/utils/definitions.h>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <unsupported/Eigen/AlignedVector3>
 
 namespace cgogn
 {

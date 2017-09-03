@@ -56,7 +56,6 @@ else()
 			target_compile_options(${PROJECT_NAME} PUBLIC "-std=c++17")
 		endif(CGOGN_CPP_STD STREQUAL "11")
 	endif(NOT MSVC)
-	add_definitions("-fPIC")
 endif()
 
 # for glu warning on mac
@@ -64,9 +63,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	add_flags(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations")
 endif()
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-	DESTINATION "include/thirdparty/"
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/QOGLViewer"
+	DESTINATION "include/cgogn/thirdparty/"
 	FILES_MATCHING PATTERN "*.h"
 )
 
-cgogn_create_package("${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" "include")
+cgogn_create_package("${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" "include/cgogn/thirdparty")
