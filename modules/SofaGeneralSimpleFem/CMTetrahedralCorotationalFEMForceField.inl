@@ -142,7 +142,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 
 	auto& tetrahedronInf = *(tetrahedronInfo.beginEdit());
 
-	_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	_topology->parallel_foreach_cell([&](Volume w)
 	{
 		tetrahedronHandler->applyCreateFunction( tetrahedronInf[w.dart], BaseVolume(w.dart), helper::vector< BaseVolume >(), helper::vector< double >());
 	});
@@ -164,7 +164,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 	{
 		case SMALL :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
 				accumulateForceSmall( f, p, w);
 			});
@@ -172,7 +172,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 		}
 		case LARGE :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
 				accumulateForceLarge( f, p, w);
 			});
@@ -180,7 +180,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 		}
 		case POLAR :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
 				accumulateForcePolar( f, p, w);
 			});
@@ -202,7 +202,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 	{
 		case SMALL :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];
@@ -216,7 +216,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 		}
 		case LARGE :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];
@@ -230,7 +230,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 		}
 		case POLAR :
 		{
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];

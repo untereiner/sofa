@@ -57,7 +57,7 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	helper::ReadAccessor< Data< helper::vector< TetraIds > > > m_tetra = d_tetra;
 	helper::ReadAccessor< Data< helper::vector< HexaIds > > > m_hexa = d_hexa;
 
-	cgogn::io::VolumeImport<Eigen::Vector3d> volume_import;
+	cgogn::io::VolumeImport<Topology, Eigen::Vector3d> volume_import(topology_);
 	volume_import.reserve(m_tetra.size() + m_hexa.size());
 
 	auto* pos_att = volume_import.position_attribute();
@@ -76,7 +76,7 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	for(const HexaIds& h : m_hexa.ref())
 		volume_import.add_hexa(h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], true);
 
-	volume_import.create_map(topology_);
+	volume_import.create_map();
 }
 
 void VolumeTopologyContainer::createTrianglesAroundEdgeArray()
@@ -84,7 +84,7 @@ void VolumeTopologyContainer::createTrianglesAroundEdgeArray()
 	if (!this->m_trianglesAroundEdge.is_valid())
 		this->m_trianglesAroundEdge = this->template check_attribute<TrianglesAroundEdge, Edge>("TrianglesAroundEdgeArray");
 	assert(this->m_trianglesAroundEdge.is_valid());
-	this->parallel_foreach_cell([&](Edge e, cgogn::uint32)
+	this->parallel_foreach_cell([&](Edge e)
 	{
 		auto & tris = this->m_trianglesAroundEdge[e.dart];
 		foreach_incident_face(e, [this,&tris](Face f)
@@ -99,7 +99,7 @@ void VolumeTopologyContainer::createEdgesInQuadArray()
 	if (!this->m_edgesInQuad.is_valid())
 		this->m_edgesInQuad = this->template check_attribute<EdgesInQuad, Face>("EdgesInQuadArray");
 	assert(this->m_edgesInQuad.is_valid());
-	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	this->parallel_foreach_cell([&](Face f)
 	{
 		auto & edges = this->m_edgesInQuad[f.dart];
 		unsigned int i = 0;
@@ -115,7 +115,7 @@ void VolumeTopologyContainer::createEdgesAroundVertexArray()
 	if (!this->m_edgesAroundVertex.is_valid())
 		this->m_edgesAroundVertex = this->template check_attribute<EdgesAroundVertex, Vertex>("EdgesAroundVertexArray");
 	assert(this->m_edgesAroundVertex.is_valid());
-	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	this->parallel_foreach_cell([&](Vertex v)
 	{
 		auto & edges = this->m_edgesAroundVertex[v.dart];
 		foreach_incident_edge(v, [this,&edges](Edge e)
@@ -130,7 +130,7 @@ void VolumeTopologyContainer::createEdgesInTetrahedronArray()
 	if (!this->m_edgesInTetrahedron.is_valid())
 		this->m_edgesInTetrahedron = this->template check_attribute<EdgesInTetrahedron, Volume>("EdgesInTetrahedronArray");
 	assert(this->m_edgesInTetrahedron.is_valid());
-	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	this->parallel_foreach_cell([&](Volume w)
 	{
 		auto & edges = this->m_edgesInTetrahedron[w.dart];
 		unsigned int i = 0u;
@@ -146,7 +146,7 @@ void VolumeTopologyContainer::createTrianglesInTetrahedronArray()
 	if (!this->m_trianglesInTetrahedron.is_valid())
 		this->m_trianglesInTetrahedron = this->template check_attribute<TrianglesInTetrahedron, Volume>("TrianglesInTetrahedronArray");
 	assert(this->m_trianglesInTetrahedron.is_valid());
-	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	this->parallel_foreach_cell([&](Volume w)
 	{
 		auto & faces = this->m_trianglesInTetrahedron[w.dart];
 		unsigned int i = 0u;
@@ -162,7 +162,7 @@ void VolumeTopologyContainer::createTetrahedraAroundTriangleArray()
 	if (!this->m_tetrahedraAroundTriangle.is_valid())
 		this->m_tetrahedraAroundTriangle = this->template check_attribute<TetrahedraAroundTriangle, Face>("TetrahedraAroundTriangleArray");
 	assert(this->m_tetrahedraAroundTriangle.is_valid());
-	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	this->parallel_foreach_cell([&](Face f)
 	{
 		auto & tetras = this->m_tetrahedraAroundTriangle[f.dart];
 		foreach_incident_volume(f, [this,&tetras](Volume w)
@@ -177,7 +177,7 @@ void VolumeTopologyContainer::createHexahedraAroundVertexArray()
 	if (!this->m_hexahedraAroundVertex.is_valid())
 		this->m_hexahedraAroundVertex = this->template check_attribute<HexahedraAroundVertex, Vertex>("HexahedraAroundVertexArray");
 	assert(this->m_hexahedraAroundVertex.is_valid());
-	this->parallel_foreach_cell([&](Vertex v, cgogn::uint32)
+	this->parallel_foreach_cell([&](Vertex v)
 	{
 		auto & hexahedra = this->m_hexahedraAroundVertex[v.dart];
 		foreach_incident_volume(v, [this,&hexahedra](Volume w)
@@ -221,7 +221,7 @@ void VolumeTopologyContainer::init()
 	if (d_use_volume_qt_.getValue())
 		qt_->build<Volume>();
 
-	this->parallel_foreach_cell([&](Face f, cgogn::uint32)
+	this->parallel_foreach_cell([&](Face f)
 	{
 		auto& dofs = this->face_dofs_[f.dart];
 		dofs.reserve(4u);
@@ -231,7 +231,7 @@ void VolumeTopologyContainer::init()
 		});
 	});
 
-	this->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	this->parallel_foreach_cell([&](Volume w)
 	{
 		auto& dofs = this->volume_dofs_[w.dart];
 		dofs.reserve(8u);
