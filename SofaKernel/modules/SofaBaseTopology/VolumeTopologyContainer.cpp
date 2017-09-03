@@ -38,8 +38,8 @@ namespace topology
 
 SOFA_DECL_CLASS(VolumeTopologyContainer)
 int VolumeTopologyContainerClass = core::RegisterObject("Volume topology container")
-        .add< VolumeTopologyContainer >()
-        ;
+		.add< VolumeTopologyContainer >()
+		;
 
 VolumeTopologyContainer::VolumeTopologyContainer()
 {
