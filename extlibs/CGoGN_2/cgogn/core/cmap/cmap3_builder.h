@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * CGoGN: Combinatorial and Geometric modeling with Generic N-dimensional Maps  *
 * Copyright (C) 2015, IGG Group, ICube, University of Strasbourg, France       *
 *                                                                              *
@@ -51,13 +51,9 @@ public:
 	template <typename T>
 	using ChunkArrayContainer = typename Map3::template ChunkArrayContainer<T>;
 
-	inline CMap3Builder_T(Map3& map) : map_(map)
-	{}
-
+	inline CMap3Builder_T(Map3& map) : map_(map) {}
 	CGOGN_NOT_COPYABLE_NOR_MOVABLE(CMap3Builder_T);
-
-	inline ~CMap3Builder_T()
-	{}
+	inline ~CMap3Builder_T() {}
 
 public:
 
@@ -67,10 +63,10 @@ public:
 		map_.template create_embedding<ORBIT>();
 	}
 
-	template <Orbit ORBIT, typename T>
-	inline void swap_chunk_array_container(ChunkArrayContainer<T> &cac)
+	template <Orbit ORBIT>
+	inline ChunkArrayContainer<uint32>& attribute_container()
 	{
-		map_.attributes_[ORBIT].swap(cac);
+		return map_.template non_const_attribute_container<ORBIT>();
 	}
 
 	inline void phi3_sew(Dart d, Dart e)
@@ -111,9 +107,9 @@ public:
 	}
 
 	template <class CellType>
-	inline void new_orbit_embedding(CellType c)
+	inline uint32 new_orbit_embedding(CellType c)
 	{
-		map_.new_orbit_embedding(c);
+		return map_.new_orbit_embedding(c);
 	}
 
 	inline void sew_volumes_fp(Dart v1, Dart v2)

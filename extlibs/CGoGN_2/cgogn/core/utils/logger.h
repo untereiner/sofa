@@ -49,13 +49,14 @@ namespace logger
 class CGOGN_CORE_API Logger final
 {
 public:
+
 	using Self = Logger;
 	using FileInfo = internal::FileInfo;
 	using LogLevel = internal::LogLevel;
 
 	CGOGN_NOT_COPYABLE_NOR_MOVABLE(Logger);
 
-	static const Logger& get_logger();
+	static Logger& get_logger();
 	void process(const LogEntry& entry) const;
 
 	LogStream info(const std::string& sender, FileInfo fileinfo) const;
@@ -68,16 +69,27 @@ public:
 	void remove_console_output();
 	void add_file_output(const std::string& filename);
 	void remove_file_output(const std::string& filename);
+	/**
+	 * @brief add_output
+	 * @param output : the logger doesn't take the ownership of the output
+	 */
+	void add_output(LoggerOutput* output);
+
 private:
+
 	Logger();
 	LogStream log(LogLevel lvl, const std::string& sender, FileInfo fileinfo) const;
-
+#pragma warning(push)
+#pragma warning(disable:4251)
 	std::unique_ptr<ConsoleOutput>				console_out_;
 	std::vector<std::unique_ptr<FileOutput>>	file_out_;
+	std::vector<LoggerOutput*>					other_outputs_;
 	mutable std::mutex							process_mutex_;
+#pragma warning(pop)
 };
 
-
 } // namespace logger
+
 } // namespace cgogn
+
 #endif // CGOGN_CORE_UTILS_LOGGER_H_

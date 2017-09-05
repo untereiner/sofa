@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * CGoGN: Combinatorial and Geometric modeling with Generic N-dimensional Maps  *
 * Copyright (C) 2015, IGG Group, ICube, University of Strasbourg, France       *
 *                                                                              *
@@ -47,52 +47,46 @@ public:
 	using Self = VolumeExport<MAP>;
 	using Map = MAP;
 	using Vertex = typename Map::Vertex;
-	using Volume = typename Map::Volume;
+	using Edge = typename Map::Edge;
 	using Face   = typename Map::Face;
+	using Volume = typename Map::Volume;	
 	using ChunkArrayGen = typename Map::ChunkArrayGen;
 	using ChunkArrayContainer = typename Map::template ChunkArrayContainer<uint32>;
 
-	class ConnectorCellFilter : public cgogn::CellFilters
-	{
-	public:
-
-		inline ConnectorCellFilter(const Map& map) : map_(map) {}
-		inline bool filter(Volume w) const
-		{
-			return map_.codegree(w) != 3u; // we want to ignore the "connector" cells that are sometime added
-		}
-		inline uint32 filtered_cells() const
-		{
-			return orbit_mask<Volume>();
-		}
-
-	private:
-
-		const Map& map_;
-	};
-
 	inline VolumeExport() :
-		vertices_of_volumes_()
-	  ,nb_tetras_(0u)
-	  ,nb_pyramids_(0u)
-	  ,nb_triangular_prisms_(0u)
-	  ,nb_hexas_(0u)
-	  ,volume_attributes_()
+		vertices_of_volumes_(),
+		nb_tetras_(0u),
+		nb_pyramids_(0u),
+		nb_triangular_prisms_(0u),
+		nb_hexas_(0u),
+		volume_attributes_()
 	{}
 
-	virtual ~VolumeExport() override
-	{}
+	virtual ~VolumeExport() override {}
 
 protected:
 
 	virtual void prepare_for_export(Map& map, const ExportOptions& options) override
 	{
-		const ChunkArrayContainer& ver_cac = map.template const_attribute_container<Vertex::ORBIT>();
-		const ChunkArrayContainer& vol_cac = map.template const_attribute_container<Volume::ORBIT>();
+		const ChunkArrayContainer& ver_cac = map.template attribute_container<Vertex::ORBIT>();
+		const ChunkArrayContainer& edge_cac = map.template attribute_container<Edge::ORBIT>();
+		const ChunkArrayContainer& face_cac = map.template attribute_container<Face::ORBIT>();
+		const ChunkArrayContainer& vol_cac = map.template attribute_container<Volume::ORBIT>();
 
-		this->position_attribute_ = ver_cac.get_chunk_array(options.position_attribute_.second);
-		if (!this->position_attribute())
-			return;
+		for(const auto& pair : options.position_attributes_)
+		{
+			const ChunkArrayGen* pos_cag = nullptr;
+
+			if(pair.first == Edge::ORBIT)
+				pos_cag = edge_cac.get_chunk_array(pair.second);
+			else if(pair.first == Face::ORBIT)
+				pos_cag = face_cac.get_chunk_array(pair.second);
+			else if(pair.first == Volume::ORBIT)
+				pos_cag = vol_cac.get_chunk_array(pair.second);
+
+			if(pos_cag)
+				this->position_attributes_.insert(std::make_pair(pair.first, pos_cag));
+		}
 
 		vertices_of_volumes_ = map.template add_attribute<std::vector<uint32>, Volume>("vertices_of_volume_volume_export");
 
@@ -103,23 +97,40 @@ protected:
 				const ChunkArrayGen* ver_cag = ver_cac.get_chunk_array(pair.second);
 				if (ver_cag)
 					this->vertex_attributes_.push_back(ver_cag);
-			} else {
+			}
+			else
+			{
 				const ChunkArrayGen* vol_cag = vol_cac.get_chunk_array(pair.second);
 				if (vol_cag)
 					volume_attributes_.push_back(vol_cag);
 			}
 		}
 
-		this->cell_cache_->template build<Vertex>();
-		this->cell_cache_->template build<Volume>(ConnectorCellFilter(map));
+		std::function<bool(Volume)> volume_validator = [&](Volume w) -> bool
+		{
+			// we want to ignore the "connector" cells that are sometime added. Their codegree is 3.
+			return map.codegree(w) != 3u && (!options.cell_filter_ || options.cell_filter_(w.dart));
+		};
+
+		this->cell_cache_->template build<Volume>(volume_validator);
+		this->cell_cache_->template build<Vertex>([&map, &volume_validator](Vertex v)
+		{
+			bool use_vertex = false;
+			map.foreach_incident_volume(v, [&map, &use_vertex, &volume_validator](Volume w) -> bool
+			{
+				use_vertex = volume_validator(w);
+				return !use_vertex; // stop when use_vertex == true
+			});
+			return use_vertex;
+		});
 
 		uint32 count{0u};
 		map.foreach_cell(
-			[&] (Vertex v) { this->indices_[v] = count++; },
+			[&] (Vertex v) { this->vindices_[v] = count++; },
 			*(this->cell_cache_)
 		);
 
-		const auto& ids = this->indices_;
+		const auto& ids = this->vindices_;
 		map.foreach_cell([&] (Volume w)
 		{
 			uint32 nb_vert{0u};

@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * CGoGN: Combinatorial and Geometric modeling with Generic N-dimensional Maps  *
 * Copyright (C) 2015, IGG Group, ICube, University of Strasbourg, France       *
 *                                                                              *
@@ -43,10 +43,12 @@ class TriangularGrid : public Tiling<MAP>
 	using Volume = typename MAP::Volume;
 
 public:
+
 	template <typename INNERMAP>
 	class GridTopo
 	{
 	public:
+
 		//@{
 		//! Create a 2D grid
 		/*! @param[in] x nb of squares in x
@@ -76,6 +78,7 @@ public:
 					mbuild.phi2_sew(g->map_.phi1(d), g->map_.phi_1(d2));
 
 					g->vertex_table_.push_back(Vertex(d));
+					g->edge_table_.push_back(Edge(d));
 
 					g->face_table_.push_back(Face(d));
 					g->face_table_.push_back(Face(d2));
@@ -121,54 +124,59 @@ public:
 		//@}
 	};
 
-public:
-	TriangularGrid(MAP& map, uint32 x, uint32 y):
+	TriangularGrid(MAP& map, uint32 x, uint32 y) :
 		Tiling<MAP>(map)
 	{
 		this->nx_ = x;
 		this->ny_ = y;
 		this->nz_ = UINT32_MAX;
 
-		GridTopo<MAP>(this,x,y);
+		GridTopo<MAP>(this, x, y);
 
 		this->dart_ = this->vertex_table_[0].dart;
 
 		using MapBuilder = typename MAP::Builder;
 		MapBuilder mbuild(this->map_);
 
-		//close the hole
+		// close the hole
 		Dart f = mbuild.close_hole_topo(this->dart_);
+		mbuild.boundary_mark(Face(f));
 
-		//and embed the vertices
-		if(this->map_.template is_embedded<Vertex>())
-			for(Vertex v : this->vertex_table_)
+		// embed the cells
+
+		if (this->map_.template is_embedded<CDart>())
+		{
+			this->map_.foreach_dart_of_orbit(Volume(this->dart_), [&] (Dart d)
+			{
+				if (!this->map_.is_boundary(d))
+					mbuild.new_orbit_embedding(CDart(d));
+			});
+		}
+
+		if (this->map_.template is_embedded<Vertex>())
+		{
+			for (Vertex v : this->vertex_table_)
 				mbuild.new_orbit_embedding(v);
+		}
 
-		if(this->map_.template is_embedded<Edge>())
-			this->map_.foreach_incident_edge(Volume(this->dart_), [&](Edge e)
+		if (this->map_.template is_embedded<Edge>())
+		{
+			this->map_.foreach_incident_edge(Volume(this->dart_), [&] (Edge e)
 			{
 				mbuild.new_orbit_embedding(e);
 			});
+		}
 
-		if(this->map_.template is_embedded<Volume>())
-			mbuild.new_orbit_embedding(Volume(this->dart_));
-
-		//mark it as boundary
-		mbuild.boundary_mark(Face(f));
-
-		/*
-		if(this->map_.template is_embedded<CDart>())
-			this->map_.foreach_dart_of_orbit(Volume(this->dart_), [&](CDart d)
-			{
-				mbuild.new_orbit_embedding(d);
-			});
-		*/
-
-		if(this->map_.template is_embedded<Face>())
-			this->map_.foreach_incident_face(Volume(this->dart_), [&](Face f)
+		if (this->map_.template is_embedded<Face>())
+		{
+			this->map_.foreach_incident_face(Volume(this->dart_), [&] (Face f)
 			{
 				mbuild.new_orbit_embedding(f);
 			});
+		}
+
+		if (this->map_.template is_embedded<Volume>())
+			mbuild.new_orbit_embedding(Volume(this->dart_));
 	}
 
 	/*! @name Embedding Operators
@@ -187,8 +195,8 @@ public:
 						 float32 y,
 						 float32 z)
 	{
-		float32 dx = x / float32(this->nx_);
-		float32 dy = y / float32(this->ny_);
+		const float32 dx = x / float32(this->nx_);
+		const float32 dy = y / float32(this->ny_);
 
 		for(uint32 i = 0; i <= this->ny_; ++i)
 		{
@@ -201,6 +209,7 @@ public:
 			}
 		}
 	}
+
 	//! Embed a topological grid into a twister open ribbon
 	/*! @details with turns=PI it is a Moebius strip, needs only to be closed (if model allows it)
 	 *  @param[in] attribute Attribute used to store vertices positions
@@ -214,18 +223,18 @@ public:
 								  float32 radius_max,
 								  float32 turns)
 	{
-		float32 alpha = float32(2.0 * M_PI / this->ny_);
-		float32 beta = turns / float32(this->ny_);
+		const float32 alpha = 2.0f * float32(M_PI) / this->ny_;
+		const float32 beta = turns / float32(this->ny_);
 
-		float32 radius = (radius_max + radius_min) / 2.0f;
-		float32 rdiff = (radius_max - radius_min) / 2.0f;
+		const float32 radius = (radius_max + radius_min) / 2.0f;
+		const float32 rdiff = (radius_max - radius_min) / 2.0f;
 
 		for(uint32 i = 0; i <= this->ny_; ++i)
 		{
 			for(uint32 j = 0; j <= this->nx_; ++j)
 			{
-				float32 rw = -rdiff + float32(j) * 2.0f * rdiff / float32(this->nx_);
-				float32 r = radius + rw * std::cos(beta * float32(i));
+				const float32 rw = -rdiff + float32(j) * 2.0f * rdiff / float32(this->nx_);
+				const float32 r = radius + rw * std::cos(beta * float32(i));
 
 				attribute[this->vertex_table_[i * (this->nx_ + 1) + j]] =
 						T(r * std::cos(alpha * float32(i)),
@@ -251,8 +260,8 @@ public:
 							 float32 nbTurn,
 							 int32 orient)
 	{
-		float32 alpha = float32(2.0 * M_PI / this->nx_) * nbTurn;
-		float32 hS = maxHeight / float32(this->nx_);
+		const float32 alpha = float32(2.0 * M_PI / this->nx_) * nbTurn;
+		const float32 hS = maxHeight / float32(this->nx_);
 
 		float32 r,x,y;
 		for(uint32 i = 0; i <= this->ny_; ++i)
@@ -270,8 +279,12 @@ public:
 	//@}
 };
 
-} //namespace modeling
+#if defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_MODELING_TILING_TRIANGULAR_GRID_CPP_))
+extern template class CGOGN_MODELING_API TriangularGrid<CMap2>;
+#endif // defined(CGOGN_USE_EXTERNAL_TEMPLATES) && (!defined(CGOGN_MODELING_TILING_TRIANGULAR_GRID_CPP_))
 
-} //namespace cgogn
+} // namespace modeling
+
+} // namespace cgogn
 
 #endif // CGOGN_MODELING_TILING_TRIANGULAR_GRID_H_

@@ -153,7 +153,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 
 	auto& tetrahedronInf = *(tetrahedronInfo.beginEdit());
 
-	_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32)
+	_topology->parallel_foreach_cell([&](Volume w)
 	{
 		tetrahedronHandler->applyCreateFunction( tetrahedronInf[w.dart], BaseVolume(w.dart), helper::vector< BaseVolume >(), helper::vector< double >());
 	});
@@ -193,7 +193,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 		/* Parallelisme activé */
 		case PLARGE :
 		{
-			cgogn::uint32 nbThreads = cgogn::nb_threads();
+			cgogn::uint32 nbThreads = cgogn::thread_pool()->nb_workers();
 			unsigned int l = f.size();
 			VecDeriv threadF[nbThreads];
 			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
@@ -202,9 +202,9 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 				for (unsigned int i = 0; i < l; ++i) threadF[threadId][i] = sofa::defaulttype::Vec3d();
 			}
 
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32 threadId)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
-				VecDeriv& localF = threadF[threadId];
+				VecDeriv& localF = threadF[cgogn::current_thread_index()];
 				accumulateForceLarge( localF, p, w);
 			});
 
@@ -278,7 +278,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 		}
 		case PLARGE :
 		{
-			cgogn::uint32 nbThreads = cgogn::nb_threads();
+			cgogn::uint32 nbThreads = cgogn::thread_pool()->nb_workers();
 			unsigned int l = df.size();
 			VecDeriv threadDF[nbThreads];
 			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
@@ -287,9 +287,9 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 				for (unsigned int i = 0; i < l; ++i) threadDF[threadId][i] = sofa::defaulttype::Vec3d();
 			}
 
-			_topology->parallel_foreach_cell([&](Volume w, cgogn::uint32 threadId)
+			_topology->parallel_foreach_cell([&](Volume w)
 			{
-				VecDeriv& localDF = threadDF[threadId];
+				VecDeriv& localDF = threadDF[cgogn::current_thread_index()];
 				const auto& t=_topology->get_dofs(w);
 				Index a = t[0];
 				Index b = t[1];

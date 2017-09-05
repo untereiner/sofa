@@ -71,34 +71,14 @@ public:
 	{}
 
 	/**
-	 * \brief move constructor
-	 * @param atthg
-	 */
-	inline AttributeGen(Self&& atthg) CGOGN_NOEXCEPT :
-		map_(atthg.map_)
-	{
-		atthg.map_ = nullptr;
-	}
-
-	/**
 	 * \brief operator =
 	 * @param atthg
 	 * @return
 	 */
 	inline AttributeGen& operator=(const Self& atthg)
 	{
-		this->map_ = atthg.map_;
-		return *this;
-	}
-
-	/**
-	 * \brief move operator =
-	 * @param atthg
-	 * @return
-	 */
-	inline AttributeGen& operator=(Self&& atthg) CGOGN_NOEXCEPT
-	{
-		this->map_ = atthg.map_;
+		if (this != &atthg)
+			this->map_ = atthg.map_;
 		return *this;
 	}
 
@@ -146,7 +126,7 @@ public:
 		orbit_(orbit)
 	{
 		if (map != nullptr)
-			chunk_array_cont_ = &map->const_attribute_container(orbit);
+			chunk_array_cont_ = &map->attribute_container(orbit);
 		if (chunk_array_ != nullptr)
 			chunk_array_->add_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
 	}
@@ -161,47 +141,23 @@ public:
 			chunk_array_->add_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
 	}
 
-	inline Attribute_T(Self&& att) CGOGN_NOEXCEPT :
-		Inherit(std::move(att)),
-		chunk_array_cont_(att.chunk_array_cont_),
-		chunk_array_(att.chunk_array_),
-		orbit_(att.orbit_)
-	{
-		if (chunk_array_ != nullptr)
-			chunk_array_->add_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
-	}
 
 	inline Attribute_T& operator=(const Self& att)
 	{
-		Inherit::operator=(att);
+		if (this != &att)
+		{
+			Inherit::operator=(att);
 
-		if (is_valid())
-			chunk_array_->remove_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
+			if (is_valid())
+				chunk_array_->remove_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
 
-		chunk_array_cont_ = att.chunk_array_cont_;
-		chunk_array_ = att.chunk_array_;
-		orbit_ = att.orbit_;
+			chunk_array_cont_ = att.chunk_array_cont_;
+			chunk_array_ = att.chunk_array_;
+			orbit_ = att.orbit_;
 
-		if (chunk_array_ != nullptr)
-			chunk_array_->add_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
-
-		return *this;
-	}
-
-	Attribute_T& operator=(Self&& att)
-	{
-		Inherit::operator=(std::move(att));
-
-		if (is_valid())
-			chunk_array_->remove_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
-
-		chunk_array_cont_ = att.chunk_array_cont_;
-		chunk_array_ = att.chunk_array_;
-		orbit_ = att.orbit_;
-
-		if (chunk_array_ != nullptr)
-			chunk_array_->add_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
-
+			if (chunk_array_ != nullptr)
+				chunk_array_->add_external_ref(reinterpret_cast<ChunkArrayGen**>(&chunk_array_));
+		}
 		return *this;
 	}
 
@@ -393,9 +349,9 @@ public:
 
 protected:
 
-	ChunkArrayContainer const*	chunk_array_cont_;
-	TChunkArray*				chunk_array_;
-	Orbit						orbit_;
+	ChunkArrayContainer const* chunk_array_cont_;
+	TChunkArray*               chunk_array_;
+	Orbit                      orbit_;
 };
 
 /**
@@ -437,32 +393,14 @@ public:
 	{}
 
 	/**
-	 * \brief Move constructor
-	 * @param att
-	 */
-	inline Attribute(Self&& att) CGOGN_NOEXCEPT :
-		Inherit(std::move(att))
-	{}
-
-	/**
 	 * \brief operator =
 	 * @param att
 	 * @return
 	 */
 	inline Attribute& operator=(const Self& att)
 	{
-		Inherit::operator=(att);
-		return *this;
-	}
-
-	/**
-	 * \brief move operator =
-	 * @param att
-	 * @return
-	 */
-	Attribute& operator=(Self&& att)
-	{
-		Inherit::operator=(std::move(att));
+		if (this != &att)
+			Inherit::operator=(att);
 		return *this;
 	}
 
