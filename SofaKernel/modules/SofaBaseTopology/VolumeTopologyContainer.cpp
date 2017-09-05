@@ -41,7 +41,8 @@ int VolumeTopologyContainerClass = core::RegisterObject("Volume topology contain
 		.add< VolumeTopologyContainer >()
 		;
 
-VolumeTopologyContainer::VolumeTopologyContainer()
+VolumeTopologyContainer::VolumeTopologyContainer() :
+	cellCache_(topology_)
 {
 
 }
@@ -211,6 +212,11 @@ void VolumeTopologyContainer::init()
 
 	if (d_use_vertex_qt_.getValue() || d_use_edge_qt_.getValue() || d_use_face_qt_.getValue() || d_use_volume_qt_.getValue())
 		qt_ = cgogn::make_unique<QuickTraversor>(topology_);
+
+	cellCache_.build<Vertex>();
+	cellCache_.build<Edge>();
+	cellCache_.build<Face>();
+	cellCache_.build<Volume>();
 
 	if (d_use_vertex_qt_.getValue())
 		qt_->build<Vertex>();

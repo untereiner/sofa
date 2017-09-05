@@ -116,28 +116,28 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		if (d_use_vertex_qt_.getValue())
 			topology_.foreach_cell([&](Vertex v) { func((v.dart));}, *qt_);
 		else
-			topology_.foreach_cell([&](Vertex v) { func((v.dart));});
+			topology_.foreach_cell([&](Vertex v) { func((v.dart));}, cellCache_);
 	}
 	virtual void foreach_edge(const std::function<void (BaseEdge)>& func) override
 	{
 		if (d_use_edge_qt_.getValue())
 			topology_.foreach_cell([&](Edge e) { func((e.dart));}, *qt_);
 		else
-			topology_.foreach_cell([&](Edge e) { func((e.dart));});
+			topology_.foreach_cell([&](Edge e) { func((e.dart));}, cellCache_);
 	}
 	virtual void foreach_face(const std::function<void (BaseFace)>& func) override
 	{
 		if (d_use_face_qt_.getValue())
 			topology_.foreach_cell([&](Face f) { func((f.dart));}, *qt_);
 		else
-			topology_.foreach_cell([&](Face f) { func((f.dart));});
+			topology_.foreach_cell([&](Face f) { func((f.dart));}, cellCache_);
 	}
 	virtual void foreach_volume(const std::function<void (BaseVolume)>& func) override
 	{
 		if (d_use_volume_qt_.getValue())
 			topology_.foreach_cell([&](Volume w) { func((w.dart));}, *qt_);
 		else
-			topology_.foreach_cell([&](Volume w) { func((w.dart));});
+			topology_.foreach_cell([&](Volume w) { func((w.dart));}, cellCache_);
 	}
 
 	template<typename FUNC>
@@ -153,7 +153,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		{
 			topology_.foreach_cell(f, *qt_);
 		} else
-			topology_.foreach_cell(f);
+			topology_.foreach_cell(f, cellCache_);
 	}
 
 	template<typename FUNC>
@@ -169,7 +169,7 @@ class SOFA_BASE_TOPOLOGY_API VolumeTopologyContainer : public core::topology::Ma
 		{
 			topology_.parallel_foreach_cell(f, *qt_);
 		} else
-			topology_.parallel_foreach_cell(f);
+			topology_.parallel_foreach_cell(f, cellCache_);
 	}
 
 
@@ -502,6 +502,7 @@ public:
 
 private:
 	Topology topology_;
+	CellCache cellCache_;
 	std::unique_ptr<QuickTraversor> qt_;
 
 };

@@ -168,6 +168,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 template<class DataTypes>
 void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& /* d_v */)
 {
+	sofa::helper::AdvancedTimer::stepBegin("AddForce");
 	VecDeriv& f = *d_f.beginEdit();
 	const VecCoord& p = d_x.getValue();
 
@@ -223,6 +224,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 		}
 	}
 	d_f.endEdit();
+	sofa::helper::AdvancedTimer::stepEnd("AddForce");
 
 //	std::chrono::time_point<std::chrono::system_clock> end;
 //	end = std::chrono::system_clock::now();
@@ -238,6 +240,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 template<class DataTypes>
 void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx)
 {
+	sofa::helper::AdvancedTimer::stepBegin("AddDForce");
 	VecDeriv& df = *d_df.beginEdit();
 	const VecDeriv& dx = d_dx.getValue();
 
@@ -319,6 +322,7 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 	}
 
 	d_df.endEdit();
+	sofa::helper::AdvancedTimer::stepEnd("AddDForce");
 }
 
 template<class DataTypes>
@@ -598,7 +602,6 @@ inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Dis
 template<class DataTypes>
 inline void CMTetrahedralCorotationalFEMForceField<DataTypes>::computeForce( Displacement &F, const Displacement &Depl, const MaterialStiffness &K, const StrainDisplacementTransposed &J, SReal fact )
 {
-
 	// Unit of K = unit of youngModulus / unit of volume = Pa / m^3 = kg m^-4 s^-2
 	// Unit of J = m^2
 	// Unit of JKJt =  kg s^-2
