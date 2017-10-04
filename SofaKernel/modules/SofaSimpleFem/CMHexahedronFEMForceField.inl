@@ -919,8 +919,8 @@ void CMHexahedronFEMForceField<DataTypes>::accumulateForceLarge( WDataRefVecDeri
 
 	// displacement
 	Displacement D;
-	for(int k=0 ; k<dofs.size() ; ++k )
-		for(int j=0 ; j<3 ; ++j )
+	for(unsigned int k=0 ; k<dofs.size() ; ++k )
+		for(unsigned int j=0 ; j<3 ; ++j )
 			D[k*3+j] = _rotatedInitialElements[w][k][j] - deformed[k][j];
 
 	if(f_updateStiffnessMatrix.getValue())
@@ -1158,7 +1158,7 @@ template<class DataTypes>
 void CMHexahedronFEMForceField<DataTypes>::addKToMatrix(const core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix)
 {
 	// Build Matrix Block for this ForceField
-	int i,j,n1, n2, e;
+	int i,j,n1, n2 /*, e*/;
 
 	typename VecElement::const_iterator it;
 

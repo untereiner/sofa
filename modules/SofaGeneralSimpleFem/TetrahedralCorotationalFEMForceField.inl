@@ -164,6 +164,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::reinit()
 template<class DataTypes>
 void TetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::MechanicalParams* /* mparams */, DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& /* d_v */)
 {
+	sofa::helper::AdvancedTimer::stepBegin("AddForce");
 	VecDeriv& f = *d_f.beginEdit();
 	const VecCoord& p = d_x.getValue();
 
@@ -195,11 +196,13 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mecha
 	}
 	}
 	d_f.endEdit();
+	sofa::helper::AdvancedTimer::stepEnd("AddForce");
 }
 
 template<class DataTypes>
 void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx)
 {
+	sofa::helper::AdvancedTimer::stepBegin("AddDForce");
 	VecDeriv& df = *d_df.beginEdit();
 	const VecDeriv& dx = d_dx.getValue();
 
@@ -252,6 +255,7 @@ void TetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Mech
 	}
 
 	d_df.endEdit();
+	sofa::helper::AdvancedTimer::stepEnd("AddDForce");
 }
 
 template<class DataTypes>
