@@ -207,7 +207,8 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addForce(const core::Mec
 
 			cgogn::uint32 nbThreads = cgogn::thread_pool()->nb_workers();
 			unsigned int l = f.size();
-            VecDeriv threadF[32];
+			// TODO: adpat to the size of these vector to the real number od threads
+			VecDeriv threadF[32];
 			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
 			{
 				threadF[threadId].reserve(l);
@@ -279,8 +280,9 @@ void CMTetrahedralCorotationalFEMForceField<DataTypes>::addDForce(const core::Me
 		{
 			cgogn::uint32 nbThreads = cgogn::thread_pool()->nb_workers();
 			unsigned int l = df.size();
-            VecDeriv threadDF[32];
-            for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
+			// TODO: adpat to the size of these vector to the real number od threads
+			VecDeriv threadDF[32];
+			for (cgogn::uint32 threadId = 0; threadId < nbThreads; ++threadId)
 			{
 				threadDF[threadId].reserve(l);
 				for (unsigned int i = 0; i < l; ++i) threadDF[threadId][i] = sofa::defaulttype::Vec3d();
