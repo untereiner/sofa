@@ -239,9 +239,7 @@ static PyObject * Sofa_setViewerCamera(PyObject * /*self*/, PyObject * args)
     float px = 0.0f, py = 0.0f, pz = 0.0f;
     float qx = 0.0f, qy = 0.0f, qz = 0.0f, qw = 1.0f;
 
-    if (!PyArg_ParseTuple(args, "fffffff", &px, &py, &pz, &qx, &qy, &qz, &qw))
-    {
-        PyErr_BadArgument();
+	if (!PyArg_ParseTuple(args, "fffffff", &px, &py, &pz, &qx, &qy, &qz, &qw)) {
         return NULL;
     }
 
@@ -422,7 +420,8 @@ static PyObject* parse_emitter_message_then(PyObject* args, const Action& action
             return NULL;
         }
     }
-    return NULL;
+
+	Py_RETURN_NONE;
 }
 
 static PyObject * Sofa_msg_info(PyObject * /*self*/, PyObject * args) {
@@ -490,7 +489,6 @@ static PyObject * Sofa_unload(PyObject * /*self*/, PyObject * args)
 
     Node* node = sofa::py::unwrap<Node>(pyNode);
     if (!node) {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -616,7 +614,6 @@ static PyObject * Sofa_timerIsEnabled(PyObject* /*self*/, PyObject *args)
 
     if(!PyArg_ParseTuple(args, "s", &id))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -644,7 +641,6 @@ static PyObject * Sofa_timerSetEnabled(PyObject* /*self*/, PyObject *args)
 
     if(!PyArg_ParseTuple(args, "sO", &id, &val))
     {
-        PyErr_BadArgument();
         Py_RETURN_NONE;
     }
 
@@ -667,7 +663,6 @@ static PyObject * Sofa_timerGetInterval(PyObject* /*self*/, PyObject *args)
 
     if(!PyArg_ParseTuple(args, "s", &id))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -714,7 +709,6 @@ static PyObject * Sofa_timerBegin(PyObject* /*self*/, PyObject *args)
 
     if(!PyArg_ParseTuple(args, "s", &id))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -736,7 +730,6 @@ static PyObject * Sofa_timerStepBegin(PyObject*, PyObject* args)
 
     if(!PyArg_ParseTuple(args, "s", &id))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -758,7 +751,6 @@ static PyObject * Sofa_timerStepEnd(PyObject*, PyObject* args)
 
     if(!PyArg_ParseTuple(args, "s", &id))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -784,7 +776,6 @@ static PyObject * Sofa_timerEnd(PyObject* /*self*/, PyObject *args)
 
     if(!PyArg_ParseTuple(args, "sO", &id, &tempNode))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -800,20 +791,19 @@ static PyObject * Sofa_timerEnd(PyObject* /*self*/, PyObject *args)
 
 
 /**
- * Method : Sofa_timerSetOutPutType
+ * Method : Sofa_timerSetOutputType
  * Desc   : Wrapper for python usage. Used to change output type of the given timer
  * Param  : PyObject*, self - Object of the python script
  * Param  : PyObject*, args - given arguments to apply to the method
  * Return : NULL
  */
-static PyObject * Sofa_timerSetOutPutType(PyObject* /*self*/, PyObject *args)
+static PyObject * Sofa_timerSetOutputType(PyObject* /*self*/, PyObject *args)
 {
     char* id = NULL;
     char* newOutputType = NULL;
 
     if(!PyArg_ParseTuple(args, "ss", &id, &newOutputType))
     {
-        PyErr_BadArgument();
         return NULL;
     }
 
@@ -851,14 +841,14 @@ SP_MODULE_METHOD(Sofa,loadPythonSceneWithArguments)
 SP_MODULE_METHOD(Sofa,loadPlugin)
 SP_MODULE_METHOD(Sofa,path)
 SP_MODULE_METHOD(Sofa,getAvailableComponents)
-SP_MODULE_METHOD_DOC(Sofa, timerClear, "Method : Sofa_clear \nDesc   : Wrapper for python usage. Clear the timer. \nParam  : PyObject*, self - Object of the python script \nReturn : return NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerIsEnabled, "Method : Sofa_isEnabled \nDesc   : Wrapper for python usage. Return if the timer is enable or not. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerSetEnabled, "Method : Sofa_setEnabled \nDesc   : Wrapper for python usage. /!\\ Need to pass an int in arguments insteed of a bool in the python script. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerGetInterval, "Method : Sofa_getInterval \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerSetInterval, "Method : Sofa_setInterval \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerBegin, "Method : Sofa_begin \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : return NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerStepBegin, "Method : Sofa_timerStepBegin \nDesc   : Wrapper for python usage. \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerStepEnd, "Method : Sofa_timerStepEnd \nDesc   : Wrapper for python usage. \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerSetOutPutType, "Method : Sofa_timerSetOutPutType \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : NULL")
-SP_MODULE_METHOD_DOC(Sofa, timerEnd, "Method : Sofa_timerEnd \nDesc   : Wrapper for python usage. Used to change output type of the given timer \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : return NULL")
+SP_MODULE_METHOD_DOC(Sofa, timerClear, "Method : Sofa_clear \nDesc   : Wrapper for python usage. Clear the timer. \nParam  : PyObject*, self - Object of the python script \nReturn : return None")
+SP_MODULE_METHOD_DOC(Sofa, timerIsEnabled, "Method : Sofa_isEnabled \nDesc   : Wrapper for python usage. Return if the timer is enable or not. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerSetEnabled, "Method : Sofa_setEnabled \nDesc   : Wrapper for python usage. /!\\ Need to pass an int in arguments insteed of a bool in the python script. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerGetInterval, "Method : Sofa_getInterval \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerSetInterval, "Method : Sofa_setInterval \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerBegin, "Method : Sofa_begin \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : return None")
+SP_MODULE_METHOD_DOC(Sofa, timerStepBegin, "Method : Sofa_timerStepBegin \nDesc   : Wrapper for python usage. \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerStepEnd, "Method : Sofa_timerStepEnd \nDesc   : Wrapper for python usage. \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerSetOutputType, "Method : Sofa_timerSetOutputType \nDesc   : Wrapper for python usage. \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : None")
+SP_MODULE_METHOD_DOC(Sofa, timerEnd, "Method : Sofa_timerEnd \nDesc   : Wrapper for python usage. Used to change output type of the given timer \nParam  : PyObject*, self - Object of the python script \nParam  : PyObject*, args - given arguments to apply to the method \nReturn : return None")
 SP_MODULE_METHODS_END
