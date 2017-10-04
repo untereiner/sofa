@@ -22,8 +22,6 @@ set(HEADER_FILES
     MultiMapping.inl
     MultiVecId.h
     ObjectFactory.h
-    # Plugin.h
-    # PluginManager.h
     SofaLibrary.h
     State.h
     State.inl
@@ -199,6 +197,7 @@ set(SOURCE_FILES
     collision/Intersection.cpp
     collision/Pipeline.cpp
     init.cpp
+    loader/BaseLoader.cpp
     loader/MeshLoader.cpp
     loader/SceneLoader.cpp
     loader/VoxelLoader.cpp

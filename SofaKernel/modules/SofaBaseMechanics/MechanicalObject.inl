@@ -393,9 +393,6 @@ void MechanicalObject<DataTypes>::PointDestroyFunction(int , void * param, Coord
 template <class DataTypes>
 void MechanicalObject<DataTypes>::handleStateChange()
 {
-    //#ifdef SOFA_HAVE_NEW_TOPOLOGYCHANGES
-    //    std::cout << "WARNING MechanicalObject<DataTypes>::handleStateChange()" << std::endl;
-    //#else
     using sofa::core::topology::TopologyChange;
     using sofa::core::topology::TopologyChangeType;
     using sofa::core::topology::PointsAdded;
@@ -1095,9 +1092,55 @@ void MechanicalObject<DataTypes>::init()
     if(m_topology == NULL)
         m_topology = this->getContext()->getMeshTopology();
 
+    // Make sure the sizes of the vectors and the arguments of the scene matches
+    const std::vector<std::pair<const std::string, const size_t>> vector_sizes = {
+            {x.getName(),                x.getValue().size()},
+            {v.getName(),                v.getValue().size()},
+            {f.getName(),                f.getValue().size()},
+            {externalForces.getName(),   externalForces.getValue().size()},
+            {dx.getName(),               dx.getValue().size()},
+            {xfree.getName(),            xfree.getValue().size()},
+            {vfree.getName(),            vfree.getValue().size()},
+            {x0.getName(),               x0.getValue().size()},
+            {reset_position.getName(),   reset_position.getValue().size()},
+            {reset_velocity.getName(),   reset_velocity.getValue().size()}
+    };
 
-    //helper::WriteAccessor< Data<VecCoord> > x_wA = *this->write(VecCoordId::position());
-    //helper::WriteAccessor< Data<VecDeriv> > v_wA = *this->write(VecDerivId::velocity());
+    // Get the maximum size of all argument's vectors
+    auto maxElement = std::max_element(vector_sizes.begin(), vector_sizes.end(),
+       [] (const std::pair<const std::string, const size_t> &a, const std::pair<const std::string, const size_t> &b) {
+            return a.second < b.second;
+    });
+
+    if (maxElement != vector_sizes.end()) {
+        size_t maxSize = (*maxElement).second;
+
+        // Resize the mechanical object size to match the maximum size of argument's vectors
+        if (getSize() < maxSize)
+            resize(maxSize);
+
+        // Print a warning if one or more vector don't match the maximum size
+        bool allSizeAreEqual = true;
+        for (const std::pair<const std::string, const size_t> vector_size : vector_sizes) {
+            const size_t & size = vector_size.second;
+            if (size > 1 && size != maxSize) {
+                allSizeAreEqual = false;
+                break;
+            }
+        }
+
+        if (!allSizeAreEqual) {
+            std::string message_warning = "One or more of the state vectors passed as argument don't match the size of the others : ";
+            for (const std::pair<const std::string, const size_t> vector_size : vector_sizes) {
+                const std::string & name = vector_size.first;
+                const size_t & size = vector_size.second;
+                if (size <= 1) continue;
+                message_warning += name + "(size " + std::to_string(size) + ") ";
+            }
+            msg_warning() << message_warning;
+        }
+    }
+
     Data<VecCoord>* x_wAData = this->write(sofa::core::VecCoordId::position());
     Data<VecDeriv>* v_wAData = this->write(sofa::core::VecDerivId::velocity());
     VecCoord& x_wA = *x_wAData->beginEdit();
@@ -1117,7 +1160,6 @@ void MechanicalObject<DataTypes>::init()
         if (m_topology != NULL && m_topology->getNbPoints() && m_topology->getContext() == this->getContext())
         {
             int nbp = m_topology->getNbPoints();
-            //std::cout<<"Setting "<<nbp<<" points from topology. " << this->getName() << " topo : " << m_topology->getName() <<std::endl;
             // copy the last specified velocity to all points
             if (v_wA.size() >= 1 && v_wA.size() < (unsigned)nbp)
             {
@@ -2764,9 +2806,6 @@ inline void MechanicalObject<DataTypes>::drawVectors(const core::visual::VisualP
     {
         Real vx=0.0,vy=0.0,vz=0.0;
         DataTypes::get(vx,vy,vz,v_rA[i]);
-        //v = DataTypes::getDPos(v_rA[i]);
-        //Real vx = v[0]; Real vy = v[1]; Real vz = v[2];
-        //std::cout << "v=" << vx << ", " << vy << ", " << vz << std::endl;
         Vector3 p1 = Vector3(getPX(i), getPY(i), getPZ(i));
         Vector3 p2 = Vector3(getPX(i)+scale*vx, getPY(i)+scale*vy, getPZ(i)+scale*vz);
 

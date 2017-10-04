@@ -33,6 +33,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <stack>
+#include <algorithm>
+#include <cctype>
 
 #define DEFAULT_INTERVAL 100
 
@@ -934,8 +936,25 @@ void TimerData::print()
     out << std::endl;
 }
 
+AdvancedTimer::outputType AdvancedTimer::convertOutputType(std::string type)
+{
+	std::for_each(type.begin(), type.end(),  [](char& c) {
+		c = std::tolower(static_cast<unsigned char>(c)); } );
 
-void AdvancedTimer::setOutputType(IdTimer id, std::string type)
+	if(type.compare("json") == 0)
+		return JSON;
+	else if(type.compare("ljson") == 0)
+		return LJSON;
+	else if(type.compare("stdout") == 0)
+		return STDOUT;
+	else // Add your own outputTypes before the else
+	{
+		msg_warning("AdvancedTimer") << "Unable to set output type to " << type << ". Switching to the default 'stdout' output. Valid types are [stdout, json, ljson].";
+		return STDOUT;
+	}
+}
+
+void AdvancedTimer::setOutputType(IdTimer id, const std::string& type)
 {
     // Seek for the timer
     TimerData& data = timers[id];
@@ -944,18 +963,13 @@ void AdvancedTimer::setOutputType(IdTimer id, std::string type)
         data.init(id);
     }
 
-    // Set the output type
-    if(type.compare("json") == 0)
-        data.timerOutputType = JSON;
-    else if(type.compare("ljson") == 0)
-        data.timerOutputType = LJSON;
-    else if(type.compare("stdout") == 0)
-        data.timerOutputType = STDOUT;
-    else // Add your own outputTypes before the else
-    {
-        msg_warning("AdvancedTimer") << "Unable to set output type to " << type << " for timer " << id << ". Switching to the default 'stdout' output. Valid types are [stdout, json, ljson].";
-        data.timerOutputType = STDOUT;
-    }
+	data.timerOutputType = convertOutputType(type);
+}
+
+AdvancedTimer::outputType AdvancedTimer::getOutputType(IdTimer id)
+{
+	TimerData& data = timers[id];
+	return data.timerOutputType;
 }
 
 // -------------------------------
