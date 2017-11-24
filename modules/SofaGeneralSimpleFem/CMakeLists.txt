@@ -4,37 +4,12 @@ project(SofaGeneralSimpleFem)
 message(STATUS "SofaGeneralSimpleFem:")
 ################################ COMPONENTS HERE ARE THE NG-SET ####################################
 set(HEADER_FILES
-	BeamFEMForceField.h
-	BeamFEMForceField.inl
-	HexahedralFEMForceField.h
-	HexahedralFEMForceField.inl
-	HexahedralFEMForceFieldAndMass.h
-	HexahedralFEMForceFieldAndMass.inl
-	HexahedronFEMForceFieldAndMass.h
-	HexahedronFEMForceFieldAndMass.inl
-	LengthContainer.h
-	PoissonContainer.h
-	RadiusContainer.h
-	StiffnessContainer.h
-	TetrahedralCorotationalFEMForceField.h
-	TetrahedralCorotationalFEMForceField.inl
-	CMTetrahedralCorotationalFEMForceField.h
-	CMTetrahedralCorotationalFEMForceField.inl
-	TriangularFEMForceFieldOptim.h
-	TriangularFEMForceFieldOptim.inl
 	config.h
 	initGeneralSimpleFEM.h
 )
 
 set(SOURCE_FILES
 	initGeneralSimpleFEM.cpp
-	BeamFEMForceField.cpp
-	HexahedralFEMForceField.cpp
-	HexahedralFEMForceFieldAndMass.cpp
-	HexahedronFEMForceFieldAndMass.cpp
-	TetrahedralCorotationalFEMForceField.cpp
-	CMTetrahedralCorotationalFEMForceField.cpp
-	TriangularFEMForceFieldOptim.cpp
 )
 
 

@@ -10,28 +10,10 @@ message(STATUS "SofaMiscFem:")
 set(HEADER_FILES
     config.h
     initMiscFEM.h
-    TetrahedronHyperelasticityFEMForceField.h
-    TetrahedronHyperelasticityFEMForceField.inl
-    TriangleFEMForceField.h
-    TriangleFEMForceField.inl
-    TriangularAnisotropicFEMForceField.h
-    TriangularAnisotropicFEMForceField.inl
-    TriangularFEMForceField.h
-    TriangularFEMForceField.inl
-    ElementFEMForceField.h
-    ElementFEMForceField.inl
-	#HexaFEMForceField.h
-	#HexaFEMForceField.inl
 )
 
 set(SOURCE_FILES
     initMiscFEM.cpp
-    TetrahedronHyperelasticityFEMForceField.cpp
-    TriangularAnisotropicFEMForceField.cpp
-    TriangleFEMForceField.cpp
-    TriangularFEMForceField.cpp
-    ElementFEMForceField.cpp
-	#HexaFEMForceField.cpp
 )
 
 ############################## COMPONENTS HERE ARE THE LIGHT-SET ###################################
@@ -80,6 +62,8 @@ if(SOFA_BUILD_COMPONENTSET_STANDARD)
 
     if(SOFA_HAVE_NEWMAT)
         list(APPEND HEADER_FILES
+            CMTriangularFEMForceField.h
+            CMTriangularFEMForceField.inl
             PlasticMaterial.h
             TriangularAnisotropicFEMForceField.h
             TriangularAnisotropicFEMForceField.inl
@@ -87,6 +71,7 @@ if(SOFA_BUILD_COMPONENTSET_STANDARD)
             TriangularFEMForceField.inl
             )
         list(APPEND SOURCE_FILES
+            CMTriangularFEMForceField.cpp
             PlasticMaterial.cpp
             TriangularAnisotropicFEMForceField.cpp
             TriangularFEMForceField.cpp
