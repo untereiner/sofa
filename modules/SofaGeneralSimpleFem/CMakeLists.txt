@@ -26,6 +26,9 @@ endif()
 ############################## COMPONENTS HERE ARE THE STANDARD-SET ################################
 if(SOFA_BUILD_COMPONENTSET_STANDARD)
     list(APPEND HEADER_FILES
+        CMTetrahedralCorotationalFEMForceField.h
+        CMTetrahedralCorotationalFEMForceField.inl
+
         BeamFEMForceField.h
         BeamFEMForceField.inl
         HexahedralFEMForceField.h
@@ -44,6 +47,8 @@ if(SOFA_BUILD_COMPONENTSET_STANDARD)
         TriangularFEMForceFieldOptim.inl
         )
     list(APPEND SOURCE_FILES
+        CMTetrahedralCorotationalFEMForceField.cpp
+
         BeamFEMForceField.cpp
         HexahedralFEMForceField.cpp
         HexahedralFEMForceFieldAndMass.cpp
