@@ -83,7 +83,7 @@ protected:
     virtual ~TopologyAlgorithms()
     {}
 public:
-    virtual void init();
+	virtual void init() override;
 
 protected:
     /** \brief Adds a TopologyChange object to the list of the topology this object describes.
@@ -113,7 +113,7 @@ protected:
     virtual ~GeometryAlgorithms()
     {}
 public:
-    virtual void init();
+	virtual void init() override;
 
     /** \brief Called by the MechanicalObject state change callback to initialize added
     * points according to the topology (topology element & local coordinates)
@@ -143,7 +143,7 @@ protected:
     virtual ~TopologyModifier()
     { }
 public:
-    virtual void init();
+	virtual void init() override;
 
     /** \brief Called by a topology to warn the Mechanical Object component that points have been added or will be removed.
     *

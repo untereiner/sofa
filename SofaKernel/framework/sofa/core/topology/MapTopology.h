@@ -48,7 +48,7 @@ class TopologyEngine;
 class TopologyChange;
 
 template<typename T>
-class TopologyElementInfo;
+struct TopologyElementInfo;
 
 }
 namespace topology
