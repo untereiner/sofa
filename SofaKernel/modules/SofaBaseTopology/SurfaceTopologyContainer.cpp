@@ -56,10 +56,11 @@ void SurfaceTopologyContainer::initFromMeshLoader()
 	helper::ReadAccessor< Data< helper::vector< TriangleIds > > > m_tri = d_triangle;
 	helper::ReadAccessor< Data< helper::vector< QuadIds > > > m_quad = d_quad;
 
-	cgogn::io::SurfaceImport<Topology, Eigen::Vector3d> surface_import(topology_);
+	cgogn::io::SurfaceImport<Topology/*, Eigen::Vector3d*/> surface_import(topology_);
 	surface_import.reserve(m_tri.size() + m_quad.size());
 
-	auto* pos_att = surface_import.position_attribute();
+	//auto* pos_att = surface_import.position_attribute();
+	auto* pos_att = surface_import.vertex_container().template get_chunk_array<Eigen::Vector3d>("position");
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)
 	{
 		const auto id = surface_import.insert_line_vertex_container();

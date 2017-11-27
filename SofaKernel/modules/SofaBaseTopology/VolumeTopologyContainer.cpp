@@ -58,10 +58,12 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	helper::ReadAccessor< Data< helper::vector< TetraIds > > > m_tetra = d_tetra;
 	helper::ReadAccessor< Data< helper::vector< HexaIds > > > m_hexa = d_hexa;
 
-	cgogn::io::VolumeImport<Topology, Eigen::Vector3d> volume_import(topology_);
+	cgogn::io::VolumeImport<Topology/*, Eigen::Vector3d*/> volume_import(topology_);
 	volume_import.reserve(m_tetra.size() + m_hexa.size());
 
-	auto* pos_att = volume_import.position_attribute();
+	//auto* pos_att = volume_import.position_attribute();
+	auto* pos_att = volume_import.vertex_container().template get_chunk_array<Eigen::Vector3d>("position");
+
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)
 	{
 		const auto id = volume_import.insert_line_vertex_container();
@@ -73,9 +75,9 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	}
 
 	for(const TetraIds& t : m_tetra.ref())
-		volume_import.add_tetra(t[0], t[1], t[2], t[3], true);
+		volume_import.add_tetra(t[0], t[1], t[2], t[3]);
 	for(const HexaIds& h : m_hexa.ref())
-		volume_import.add_hexa(h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], true);
+		volume_import.add_hexa(h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
 
 	volume_import.create_map();
 }
