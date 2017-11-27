@@ -57,7 +57,7 @@ void MapTriangleSetTopologyContainer::init()
 	this->getContext()->get(map_);
 	if (!map_)
 		return;
-	this->nbPoints.setValue(map_->nb_cells<Vertex::ORBIT>());
+	this->setNbPoints(map_->nb_cells<Vertex::ORBIT>());
 }
 
 void MapTriangleSetTopologyContainer::bwdInit()
