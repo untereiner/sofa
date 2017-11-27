@@ -55,6 +55,8 @@ public:
 
     using CellCache = cgogn::CellCache<Topology>;
 
+	using FilteredQuickTraversor = cgogn::FilteredQuickTraversor<Topology>;
+
 	using DartMarker = cgogn::DartMarker<Topology>;
 	template<Orbit ORB>
 	using CellMarker = cgogn::CellMarker<Topology, ORB>;
@@ -90,11 +92,17 @@ public:
 	topology_.foreach_cell([&](Volume w) { func((w.dart));});
     }
 
-    template<typename FUNC>
-    inline void foreach_cell(const FUNC& f)
+	template<typename FUNC, typename Traversor>
+	inline void foreach_cell(const FUNC& f, const Traversor& t)
     {
-        topology_.foreach_cell(f);
+		topology_.foreach_cell(f, t);
     }
+
+	template<typename FUNC>
+	inline void foreach_cell(const FUNC& f)
+	{
+		topology_.foreach_cell(f);
+	}
 
 	template<typename FUNC>
 	inline void parallel_foreach_cell(const FUNC& f)
@@ -272,6 +280,12 @@ protected:
 private:
 	Topology topology_;
 	std::unique_ptr<CellCache> cache_;
+
+public:
+	Topology& getMap()
+	{
+		return topology_;
+	}
 };
 
 } // namespace topology

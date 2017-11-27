@@ -33,6 +33,11 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/Mat.h>
 
+#include <SofaBaseTopology/SurfaceMaskTraversal.h>
+
+#include <cgogn/core/utils/masks.h>
+
+
 #include <map>
 #include <sofa/helper/map.h>
 
@@ -89,6 +94,9 @@ public:
 	using Edge = SurfaceTopology::Edge;
 	using Face = SurfaceTopology::Face;
 	using VecElement = SurfaceTopology::SeqHexahedra;
+
+	using CellCache = SurfaceTopology::CellCache;
+	using FilteredQuickTraversor = SurfaceTopology::FilteredQuickTraversor;
 
 	template<typename T>
 	using VertexAttribute = typename SurfaceTopology::Topology::template VertexAttribute<T>;
@@ -226,16 +234,21 @@ public:
     };
 
     /// Topology Data
+	//cm_topolgy::TriangleData<TriangleInformation> triangleInfo; ??
 	FaceAttribute<TriangleInformation> triangleInfo;
 	VertexAttribute<VertexInformation> vertexInfo;
 	EdgeAttribute<EdgeInformation> edgeInfo;
 
 
 
-	class TRQSTriangleHandler : public cm_topology::TopologyDataHandler<core::topology::MapTopology::Face,helper::vector<TriangleInformation> >
+	class TRQSTriangleHandler : public cm_topology::TopologyDataHandler<core::topology::MapTopology::Face, TriangleInformation>
     {
     public:
-		TRQSTriangleHandler(CMTriangularFEMForceField<DataTypes>* _ff, cm_topology::TriangleData<sofa::helper::vector<TriangleInformation> >* _data) : topology::TopologyDataHandler<core::topology::MapTopology::Face, TriangleInformation >(_data), ff(_ff) {}
+		TRQSTriangleHandler(CMTriangularFEMForceField<DataTypes>* _ff,
+							cm_topology::TriangleData<TriangleInformation>* _data)
+			: cm_topology::TopologyDataHandler<core::topology::MapTopology::Face, TriangleInformation >(_data)
+			, ff(_ff)
+		{}
 
 		void applyCreateFunction(TriangleInformation& ,
 				const core::topology::MapTopology::Face & t,
@@ -247,7 +260,7 @@ public:
     };
 
 	SurfaceTopology* _topology;
-
+	//std::unique_ptr<FilteredQuickTraversor> cell_traversor;
 
     /// Get/Set methods
     Real getPoisson() { return (f_poisson.getValue())[0]; }
@@ -282,7 +295,7 @@ public:
 
     int  getFracturedEdge();
 
-	void getFractureCriteria(Face face, Deriv& direction, Real& value);
+	void getFractureCriteria(TriangleInformation& info, Deriv& direction, Real& value);
 
     /// Compute value of stress along a given direction (typically the fiber direction and transverse direction in anisotropic materials)
 	void computeStressAlongDirection(Real &stress_along_dir, const TriangleInformation& info, const Coord &direction, const defaulttype::Vec<3,Real> &stress);
@@ -347,6 +360,9 @@ public:
     Data<helper::vector<Real> > f_poisson;
     Data<helper::vector<Real> > f_young;
     Data<Real> f_damping;
+
+	//SingleLink<CMTriangularFEMForceField, sofa::component::topology::SurfaceMaskTraversal, BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> mask_;
+
 
     /// Initial strain parameters (if FEM is initialised with predefine values)
 	typedef helper::fixed_array<Coord,3> RotatedInitialElements;

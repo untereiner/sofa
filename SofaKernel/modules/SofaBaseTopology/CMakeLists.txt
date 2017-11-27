@@ -75,6 +75,8 @@ set(HEADER_FILES
     VolumeTopologyModifier.h
     VolumeGeometryAlgorithms.h
     MapHexahedronSetTopologyContainer.h
+
+	SurfaceMaskTraversal.h
 )
 
 set(SOURCE_FILES
