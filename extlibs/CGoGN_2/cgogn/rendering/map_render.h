@@ -43,7 +43,7 @@ namespace cgogn
 namespace rendering
 {
 
-enum DrawingType
+enum DrawingType : uint8
 {
 	POINTS = 0,
 	LINES,
@@ -74,7 +74,6 @@ public:
 	CGOGN_NOT_COPYABLE_NOR_MOVABLE(MapRender);
 
 	inline bool is_primitive_uptodate(DrawingType prim) { return indices_buffers_uptodate_[prim]; }
-
 	inline void set_primitive_dirty(DrawingType prim) { indices_buffers_uptodate_[prim] = false; }
 
 protected:
@@ -99,8 +98,9 @@ protected:
 //		table_indices.reserve(m.get_nb_darts() / 2);
 		m.foreach_cell([&] (Edge e)
 		{
-			table_indices.push_back(m.embedding(Vertex(e.dart)));
-			table_indices.push_back(m.embedding(Vertex(m.phi1(e.dart))));
+			std::pair<Vertex, Vertex> vs = m.vertices(e);
+			table_indices.push_back(m.embedding(vs.first));
+			table_indices.push_back(m.embedding(vs.second));
 		},
 		mask);
 	}
@@ -234,7 +234,6 @@ public:
 		return nb_indices_[prim];
 	}
 
-
 	template <typename VEC3, typename MAP, typename MASK>
 	inline void init_primitives(
 		const MAP& m,
@@ -268,11 +267,14 @@ public:
 				break;
 		}
 
-		if (!indices_buffers_[prim]->isCreated())
-			indices_buffers_[prim]->create();
-
 		indices_buffers_uptodate_[prim] = true;
 		nb_indices_[prim] = uint32(table_indices.size());
+
+		if (table_indices.empty())
+			return;
+
+		if (!indices_buffers_[prim]->isCreated())
+			indices_buffers_[prim]->create();
 		indices_buffers_[prim]->bind();
 		indices_buffers_[prim]->allocate(&(table_indices[0]), nb_indices_[prim] * sizeof(uint32));
 		indices_buffers_[prim]->release();
@@ -317,14 +319,14 @@ public:
 				break;
 		}
 
+		indices_buffers_uptodate_[prim] = true;
+		nb_indices_[prim] = uint32(table_indices.size());
+
 		if (table_indices.empty())
 			return;
 
 		if (!indices_buffers_[prim]->isCreated())
 			indices_buffers_[prim]->create();
-
-		indices_buffers_uptodate_[prim] = true;
-		nb_indices_[prim] = uint32(table_indices.size());
 		indices_buffers_[prim]->bind();
 		indices_buffers_[prim]->allocate(&(table_indices[0]), nb_indices_[prim] * sizeof(uint32));
 		indices_buffers_[prim]->release();
