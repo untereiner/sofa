@@ -182,7 +182,7 @@ void CMTriangularFEMForceField<DataTypes>::init()
 	if(_topology == nullptr)
 		msg_error("CMTriangularFEMForceField") << "no topology";
 
-	//cell_traversor = cgogn::make_unique<FilteredQuickTraversor>(_topology->getMap());
+	cell_traversor = cgogn::make_unique<FilteredQuickTraversor>(_topology->getMap());
 
 	const VecCoord& x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
@@ -194,12 +194,12 @@ void CMTriangularFEMForceField<DataTypes>::init()
 		Index b = dofs[1];
 		Index c = dofs[2];
 
-		return x[a][1] > 10. && x[b][1] > 10. && x[c][1] > 10. ;
+		return x[a][2] <= 12. && x[b][2] <= 12. && x[c][2] <= 12. ;
 	};
 
 	//if(mask_ == nullptr)
-	//cell_traversor->build<Face>();
-	//cell_traversor->set_filter<Face>(face_validator);
+	cell_traversor->build<Face>();
+	cell_traversor->set_filter<Face>(face_validator);
 	//else
 	// cell_traversor->build<Face>(mask_);
 
@@ -288,7 +288,7 @@ void CMTriangularFEMForceField<DataTypes>::addForce(const core::MechanicalParams
 			{
 				accumulateForceSmall( f1, x1, face);
 				accumulateDampingSmall( f1, face);
-			}/*, *cell_traversor*/);
+			}, *cell_traversor);
 		}
 		else
 		{
@@ -296,7 +296,7 @@ void CMTriangularFEMForceField<DataTypes>::addForce(const core::MechanicalParams
 			{
 				accumulateForceLarge( f1, x1, face);
 				accumulateDampingLarge( f1, face);
-			}/*, *cell_traversor*/);
+			}, *cell_traversor);
 		}
 	}
 	else
@@ -306,14 +306,14 @@ void CMTriangularFEMForceField<DataTypes>::addForce(const core::MechanicalParams
 			_topology->foreach_cell([&](Face face)
 			{
 				accumulateForceSmall( f1, x1, face);
-			}/*, *cell_traversor*/);
+			}, *cell_traversor);
 		}
 		else
 		{
 			_topology->foreach_cell([&](Face face)
 			{
 				accumulateForceLarge( f1, x1, face);
-			}/*, *cell_traversor*/);
+			}, *cell_traversor);
 		}
 	}
 	f.endEdit();
@@ -324,7 +324,7 @@ void CMTriangularFEMForceField<DataTypes>::addForce(const core::MechanicalParams
 		{
 			TriangleInformation& info  = triangleInfo[face.dart];
 			computePrincipalStress(info);
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 	}
 }
 
@@ -393,7 +393,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 			helper::gl::glVertexT(x[b]);
 			glColor4f(0,0,1,1);
 			helper::gl::glVertexT(x[c]);
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 		glEnd();
 	}
 
@@ -402,7 +402,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 		_topology->foreach_cell([&](Face face)
 		{
 			computePrincipalStress(triangleInfo[face]);
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 	}
 
 	if (showStressVector.getValue())
@@ -421,7 +421,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 			Coord d = triangleInfo[face].principalStressDirection*2.5; //was 0.25
 			helper::gl::glVertexT(center);
 			helper::gl::glVertexT(center+d);
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 		glEnd();
 	}
 
@@ -451,7 +451,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 				minStress = averageStress;
 			if (averageStress > maxStress)
 				maxStress = averageStress;
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 
 		helper::ColorMap::evaluator<double> evalColor = helper::ColorMap::getDefault()->getEvaluator(minStress, maxStress);
 		glBegin(GL_TRIANGLES);
@@ -469,7 +469,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 			helper::gl::glVertexT(x[b]);
 			glColor4fv(evalColor(vertexInfo[c].stress).ptr());
 			helper::gl::glVertexT(x[c]);
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 		glEnd();
 	}
 
@@ -487,7 +487,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 				if (triangleInfo[face].differenceToCriteria < minDifference)
 					minDifference = triangleInfo[face].differenceToCriteria;
 			}
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 
 		glBegin(GL_TRIANGLES);
 		_topology->foreach_cell([&](Face face)
@@ -506,7 +506,7 @@ void CMTriangularFEMForceField<DataTypes>::draw(const core::visual::VisualParams
 				helper::gl::glVertexT(x[b]);
 				helper::gl::glVertexT(x[c]);
 			}
-		}/*, *cell_traversor*/);
+		}, *cell_traversor);
 		glEnd();
 	}
 
@@ -723,7 +723,7 @@ void CMTriangularFEMForceField<DataTypes>::getRotations()
 	_topology->foreach_cell([&](Vertex vertex)
 	{
 		vertexInfo[vertex].rotation.clear();
-	}/*, *cell_traversor*/);
+	}, *cell_traversor);
 
 	//add the rotation matrix
 	_topology->foreach_cell([&](Face face)
@@ -737,7 +737,7 @@ void CMTriangularFEMForceField<DataTypes>::getRotations()
 		{
 			vertexInfo[vertex].rotation+=r21;
 		});
-	}/*, *cell_traversor*/);
+	}, *cell_traversor);
 
 	//averaging the rotation matrix
 	_topology->foreach_cell([&](Vertex vertex)
@@ -769,7 +769,7 @@ void CMTriangularFEMForceField<DataTypes>::getRotations()
 			vinfo.rotation[1][i]=ey[i];
 			vinfo.rotation[2][i]=ez[i];
 		}
-	}/*, *cell_traversor*/);
+	}, *cell_traversor);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1349,7 +1349,7 @@ void CMTriangularFEMForceField<DataTypes>::applyStiffnessSmall(VecCoord &v, Real
 		v[a] += (Coord(-h*F[0], -h*F[1], 0)) * kFactor;
 		v[b] += (Coord(-h*F[2], -h*F[3], 0)) * kFactor;
 		v[c] += (Coord(-h*F[4], -h*F[5], 0)) * kFactor;
-	}/*, *cell_traversor*/);
+	}, *cell_traversor);
 }
 
 // --------------------------------------------------------------------------------------
@@ -1544,7 +1544,7 @@ void CMTriangularFEMForceField<DataTypes>::applyStiffnessLarge(VecCoord &v, Real
 		v[a] += (triangleInfo[face].rotation * Coord(-h*F[0], -h*F[1], 0)) * kFactor;
 		v[b] += (triangleInfo[face].rotation * Coord(-h*F[2], -h*F[3], 0)) * kFactor;
 		v[c] += (triangleInfo[face].rotation * Coord(-h*F[4], -h*F[5], 0)) * kFactor;
-	}/*, *cell_traversor*/);
+	}, *cell_traversor);
 }
 
 } // namespace forcefield

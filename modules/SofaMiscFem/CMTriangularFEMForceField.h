@@ -260,7 +260,7 @@ public:
     };
 
 	SurfaceTopology* _topology;
-	//std::unique_ptr<FilteredQuickTraversor> cell_traversor;
+	std::unique_ptr<FilteredQuickTraversor> cell_traversor;
 
     /// Get/Set methods
     Real getPoisson() { return (f_poisson.getValue())[0]; }
