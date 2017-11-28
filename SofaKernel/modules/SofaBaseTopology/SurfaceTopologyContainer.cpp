@@ -60,7 +60,7 @@ void SurfaceTopologyContainer::initFromMeshLoader()
 	surface_import.reserve(m_tri.size() + m_quad.size());
 
 	//auto* pos_att = surface_import.position_attribute();
-	auto* pos_att = surface_import.vertex_container().template get_chunk_array<Eigen::Vector3d>("position");
+	auto* pos_att = surface_import.vertex_container().template add_chunk_array<Eigen::Vector3d>("position");
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)
 	{
 		const auto id = surface_import.insert_line_vertex_container();

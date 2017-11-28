@@ -62,7 +62,7 @@ void VolumeTopologyContainer::initFromMeshLoader()
 	volume_import.reserve(m_tetra.size() + m_hexa.size());
 
 	//auto* pos_att = volume_import.position_attribute();
-	auto* pos_att = volume_import.vertex_container().template get_chunk_array<Eigen::Vector3d>("position");
+	auto* pos_att = volume_import.vertex_container().template add_chunk_array<Eigen::Vector3d>("position");
 
 	for(std::size_t i = 0ul, end = m_position.size(); i < end ; ++i)
 	{
