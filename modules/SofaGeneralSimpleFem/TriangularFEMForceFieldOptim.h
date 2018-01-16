@@ -32,6 +32,7 @@
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/Mat.h>
 #include <SofaBaseTopology/TopologyData.h>
+#include <sofa/helper/ColorMap.h>
 
 // FIX: temporarily disabled as SofaSimpleFem is not supposed to depend on SofaOpenGLVisual
 //#define SIMPLEFEM_COLORMAP
@@ -323,7 +324,8 @@ public:
 
     /// Forcefield intern paramaters
     Data<Real> f_poisson;
-    Data<Real> f_young;
+    //Data<Real> f_young;
+    Data<VecReal > f_young;
     Data<Real> f_damping;
     Data<Real> f_restScale;
 

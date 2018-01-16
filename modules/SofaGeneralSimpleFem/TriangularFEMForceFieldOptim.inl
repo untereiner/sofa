@@ -86,7 +86,7 @@ TriangularFEMForceFieldOptim<DataTypes>::TriangularFEMForceFieldOptim()
 #endif
 #endif
     , f_poisson(initData(&f_poisson,(Real)(0.45),"poissonRatio","Poisson ratio in Hooke's law"))
-    , f_young(initData(&f_young,(Real)(1000.0),"youngModulus","Young modulus in Hooke's law"))
+    , f_young(initData(&f_young,"youngModulus","Young modulus in Hooke's law"))
     , f_damping(initData(&f_damping,(Real)0.,"damping","Ratio damping/stiffness"))
     , f_restScale(initData(&f_restScale,(Real)1.,"restScale","Scale factor applied to rest positions (to simulate pre-stretched materials)"))
 #ifdef SIMPLEFEM_COLORMAP
@@ -219,13 +219,12 @@ template <class DataTypes>
 void TriangularFEMForceFieldOptim<DataTypes>::reinit()
 {
     // Compute material-dependent constants
-
     // mu = (1-p)*y/(1-p^2) = (1-p)*y/((1-p)(1+p)) = y/(1+p)
 
-    const Real youngModulus = f_young.getValue();
-    const Real poissonRatio = f_poisson.getValue();
-    mu = (youngModulus) / (1+poissonRatio);
-    gamma = (youngModulus * poissonRatio) / (1-poissonRatio*poissonRatio);
+//    const Real poissonRatio = f_poisson.getValue();
+//    const Real youngModulus = f_young.getValue();
+//    mu = (youngModulus) / (1+poissonRatio);
+//    gamma = (youngModulus * poissonRatio) / (1-poissonRatio*poissonRatio);
 
     /// prepare to store info in the triangle array
     const unsigned int nbTriangles = _topology->getNbTriangles();
@@ -294,13 +293,32 @@ void TriangularFEMForceFieldOptim<DataTypes>::addForce(const core::MechanicalPar
 
     const unsigned int nbTriangles = _topology->getNbTriangles();
     const VecElement& triangles = _topology->getTriangles();
-    const Real gamma = this->gamma;
-    const Real mu = this->mu;
+//    const Real gamma = this->gamma;
+//    const Real mu = this->mu;
+    Real gamma, mu;
+    const Real poissonRatio = f_poisson.getValue();
 
     f.resize(x.size());
 
     for ( Index i=0; i<nbTriangles; i+=1)
     {
+        // Compute material-dependent constants
+        // mu = (1-p)*y/(1-p^2) = (1-p)*y/((1-p)(1+p)) = y/(1+p)
+
+        if (f_young.getValue().size() == nbTriangles) {
+            mu = (f_young.getValue()[i]) / (1+poissonRatio);
+            gamma = (f_young.getValue()[i] * poissonRatio) / (1-poissonRatio*poissonRatio);
+        }
+        else if (f_young.getValue().size() > 0) {
+            mu = (f_young.getValue()[0]) / (1+poissonRatio);
+            gamma = (f_young.getValue()[0] * poissonRatio) / (1-poissonRatio*poissonRatio);
+        }
+        else {
+            // default value for Young Modulus is 1000.0
+            mu = (1000.0) / (1+poissonRatio);
+            gamma = (1000.0 * poissonRatio) / (1-poissonRatio*poissonRatio);
+        }
+
         Triangle t = triangles[i];
         const TriangleInfo& ti = triInfo[i];
         TriangleState& ts = triState[i];
@@ -802,7 +820,7 @@ void TriangularFEMForceFieldOptim<DataTypes>::draw(const core::visual::VisualPar
     }
     else
     {
-        std::vector< Vector3 > points[4];
+/*        std::vector< Vector3 > points[4];
 
         const Vec4f c0(1,0,0,1);
         const Vec4f c1(0,1,0,1);
@@ -849,7 +867,35 @@ void TriangularFEMForceFieldOptim<DataTypes>::draw(const core::visual::VisualPar
         vparams->drawTool()->drawLines(points[0], 1, c0);
         vparams->drawTool()->drawLines(points[1], 1, c1);
         vparams->drawTool()->drawLines(points[2], 1, c2);
-        vparams->drawTool()->drawLines(points[3], 1, c3);
+        vparams->drawTool()->drawLines(points[3], 1, c3);*/
+
+
+        std::vector< Vector3 > points;
+        std::vector< Vector3 > normals;
+        std::vector< Vec4f > colors;
+        helper::ColorMap colorMap(256, "Red");
+        Real Emin = 0;
+        Real Emax = 5000.0;
+        helper::ColorMap::evaluator<Real> evalColor = colorMap.getEvaluator(Emin, Emax);
+        for (unsigned int i=0; i<nbTriangles; i++)
+        {
+            Triangle t = triangles[i];
+            Vector3 a = x[t[0]];
+            Vector3 b = x[t[1]];
+            Vector3 c = x[t[2]];
+            points.push_back(a);
+            points.push_back(b);
+            points.push_back(c);
+            Vector3 n = cross(b-a,c-a);
+            n.normalize();
+            normals.push_back(n);
+            Vec4f color = evalColor(f_young.getValue()[i]);
+            colors.push_back(color);
+            colors.push_back(color);
+            colors.push_back(color);
+        }
+        vparams->drawTool()->setLightingEnabled(false);
+        vparams->drawTool()->drawTriangles(points, normals, colors);
     }
 }
 
